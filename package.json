@@ -1,0 +1,17 @@
+{
+  "name": "music-transposer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.1.1",
+    "vitest": "^4.1.10"
+  }
+}

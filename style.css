@@ -1,0 +1,14 @@
+:root {
+  color: #202124;
+  background: #f7f5ef;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  width: min(48rem, calc(100% - 2rem));
+  margin: 4rem auto;
+}

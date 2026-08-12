@@ -1,0 +1,22 @@
+@AGENTS.md
+@package.json
+
+Luo projektin alkurakenne käyttöliittymäohjelmalle, jolla voi transponoida eli muuttaa sävellajia soinnuille ja sävelille. 
+Käyttöliittymä sisältää tahdistetut soinnut ja / tai sävelet
+
+Toiminnot :
+- add <otsikko>   lisää tehtävän
+- list            listaa tehtävät
+- done <id>       merkitsee tehdyksi
+
+Kansiorakenne:
+- src/index.ts      komentorivin sisääntulo, argumenttien jäsennys
+- src/types.ts      tyypit: Todo, Category, Priority
+- src/commands/     yksi tiedosto per komento
+- src/storage.ts    muistinvarainen tallennus
+
+Rajoitteet:
+- Noudata AGENTS.md:n sääntöjä
+- Määrittele tyypit ennen toteutusta
+- ÄLÄ toteuta logiikkaa vielä: luo tiedostot tyyppiallekirjoituksineen ja
+  funktiot, jotka heittävät "not implemented"
