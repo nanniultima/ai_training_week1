@@ -1,0 +1,21 @@
+käsky on englanniksi, mutta jatka vain toimimista samalla kielellä kun olet käyttänyt tähän asti: Write the spec: «feature»
+
+  Ground it in the research pass findings. Write
+  specs/features/«feature».md using the spec template structure.
+
+  Acceptance criteria as Given/When/Then, numbered AC1, AC2, …
+  Every one names a precise expected value or output — never
+  "a sensible message", never "works correctly".
+
+  Then run the Spec Readiness checklist and show the result
+  item by item.
+
+---
+
+Tutkimuksen perusteella rajaan tämän speksin puhtaaseen sointujen jäsentämiseen ja transponointiin; lihavointi sekä rivien kohdistus jäävät omiin myöhempiin spekseihinsä. Teen myös enharmonisen tuloksen yksiselitteiseksi: valittu kohdesävellaji määrää merkkiperheen, ja
+  neutraaleissa C-duurissa/A-mollissa positiivinen siirto käyttää ylennyksiä ja negatiivinen alennuksia, kuten ChordPron tutkittu oletuskäytäntö.
+3 olisiko 
+
+transposeChordSymbol` | AC3 päätteet | Seitsemän tuettua C-sointua, `+2` | Transponoidaan | Täsmälleen määritelty D-sointulista |
+
++| `transposeChordSymbol` | AC3 tuetut tyypit | `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus4`, `Cdim`, `Caug`, `Cadd9`; `+2`; D-duuri | Transponoidaan | `D`, `Dm`, `D7`, `Dmaj7`, `Dm7`, `Dsus4`, `Ddim`, `Daug`, `Dadd9` samassa järjestyksessä |

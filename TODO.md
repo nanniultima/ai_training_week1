@@ -97,10 +97,12 @@ vain vielä toteuttamatta olevat työt suositellussa toteutusjärjestyksessä.
 
 ## 9. Myöhempi jatkokehitys
 
+- [ ] Arvioi käyttäjän valittava `#`/`b`-kirjoitusasu C-duurin ja A-mollin
+  kromaattisille soinnuille. Ensimmäisessä versiossa positiivinen siirto
+  käyttää ylennyksiä ja negatiivinen siirto alennuksia.
 - [ ] Lisää käyttäjän valittavaksi soitin: piano, kitara tai ukulele.
 - [ ] Näytä pianon koskettimet tai sointuote.
 - [ ] Näytä kitaran sointuote.
 - [ ] Näytä ukulelen sointuote.
 - [ ] Arvioi automaattinen lähtösävellajin tunnistus avustavaksi toiminnoksi.
 - [ ] Arvioi tiedostovienti erillisenä ominaisuutena.
-
