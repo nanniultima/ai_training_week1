@@ -39,11 +39,56 @@ export function initializeUi(root: HTMLElement | null): void {
         <kbd>Ctrl</kbd> + <kbd>B</kbd> ja <kbd>Ctrl</kbd> + <kbd>I</kbd>.
       </p>
 
-      <div class="transpose-controls" aria-label="Transponoinnin asetukset">
-        <label for="transpose-step">Askel</label>
-        <input id="transpose-step" type="number" min="-12" max="12" value="0" />
-        <button type="button" disabled>Transponoi</button>
-      </div>
+      <section class="transposition-panel" aria-labelledby="transposition-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step-label">Transponoinnin asetukset</p>
+            <h3 id="transposition-title">Valitse lähtösävellaji</h3>
+          </div>
+          <p class="coming-soon">Toiminto tulossa</p>
+        </div>
+
+        <div class="setting-grid">
+          <fieldset class="setting-field">
+            <legend><span>1</span> Sävellajin laatu</legend>
+            <div class="segmented-control">
+              <label>
+                <input type="radio" name="key-mode" value="major" />
+                <span>Duuri</span>
+              </label>
+              <label>
+                <input type="radio" name="key-mode" value="minor" />
+                <span>Molli</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="setting-field">
+            <label for="source-key"><span>2</span> Lähtösävellaji</label>
+            <select id="source-key" disabled>
+              <option value="">Valitse ensin duuri tai molli</option>
+            </select>
+            <small>Lista muodostuu duuri- tai mollivalinnan perusteella.</small>
+          </div>
+
+          <div class="setting-field">
+            <label for="transpose-step"><span>3</span> Puolisävelaskeleet</label>
+            <input id="transpose-step" type="number" min="-11" max="11" value="0" />
+            <small>Valitse kokonaisluku väliltä −11–11.</small>
+          </div>
+        </div>
+
+        <div id="enharmonic-choice" class="enharmonic-choice" hidden>
+          <p class="step-label">Valitse kirjoitusasu</p>
+          <h3>Kumpaa kohdesävellajia käytetään?</h3>
+          <p>Vaihtoehdot näytetään tässä vain silloin, kun molemmat ovat käyttökelpoisia.</p>
+        </div>
+
+        <div class="transpose-actions">
+          <p>Vahvistamisen jälkeen mahdollinen lisävalinta avautuu tähän.</p>
+          <button type="button" disabled>Transponoi</button>
+        </div>
+      </section>
     </section>
 
     <section class="chord-tool" aria-labelledby="chord-tool-title">

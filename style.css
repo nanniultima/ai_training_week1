@@ -19,7 +19,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -83,7 +84,6 @@ h2 {
 }
 
 .section-heading,
-.transpose-controls,
 .chord-tool,
 .chord-controls {
   display: flex;
@@ -151,13 +151,129 @@ kbd {
   font-size: 0.78rem;
 }
 
-.transpose-controls {
-  justify-content: flex-end;
+.transposition-panel {
   padding-top: 1.25rem;
   border-top: 1px solid #e4e1d9;
 }
 
-input {
+.panel-heading,
+.transpose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panel-heading h3,
+.enharmonic-choice h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.step-label,
+.coming-soon {
+  margin-bottom: 0.25rem;
+  color: #88652d;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.coming-soon {
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #f3e8c9;
+}
+
+.setting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.setting-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.setting-field > label,
+.setting-field legend {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #41443e;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.setting-field label > span:first-child,
+.setting-field legend > span {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-right: 0.3rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #315b4d;
+  font-size: 0.72rem;
+}
+
+.setting-field > input,
+.setting-field > select {
+  width: 100%;
+}
+
+.setting-field small {
+  display: block;
+  margin-top: 0.45rem;
+  color: #777970;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.segmented-control label {
+  position: relative;
+}
+
+.segmented-control input {
+  position: absolute;
+  opacity: 0;
+}
+
+.segmented-control span {
+  display: grid;
+  min-height: 2.7rem;
+  place-items: center;
+  border: 1px solid #c9c5bb;
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.segmented-control input:focus-visible + span {
+  outline: 3px solid rgb(139 107 53 / 25%);
+}
+
+.segmented-control input:checked + span {
+  border-color: #315b4d;
+  color: #fff;
+  background: #315b4d;
+}
+
+input,
+select {
   min-height: 2.7rem;
   padding: 0.55rem 0.75rem;
   border: 1px solid #c9c5bb;
@@ -165,8 +281,33 @@ input {
   background: #fff;
 }
 
-#transpose-step {
-  width: 5rem;
+.enharmonic-choice {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d6c58e;
+  border-radius: 0.65rem;
+  background: #fff9e9;
+}
+
+.enharmonic-choice[hidden] {
+  display: none;
+}
+
+.enharmonic-choice p:last-child {
+  margin: 0.35rem 0 0;
+  color: #6f6c62;
+}
+
+.transpose-actions {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e4e1d9;
+}
+
+.transpose-actions p {
+  margin: 0;
+  color: #777970;
+  font-size: 0.82rem;
 }
 
 button {
@@ -180,7 +321,8 @@ button {
 }
 
 button:disabled,
-input:disabled {
+input:disabled,
+select:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -218,7 +360,17 @@ input:disabled {
     align-self: flex-start;
   }
 
-  .transpose-controls {
-    flex-wrap: wrap;
+  .setting-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-heading,
+  .transpose-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .coming-soon {
+    align-self: flex-start;
   }
 }
