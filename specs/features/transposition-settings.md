@@ -254,4 +254,3 @@ sointuja, säveliä tai rikastekstiä.
 - [x] Every AC can fail — one that cannot fail proves nothing
 - [x] Error and edge cases have ACs of their own
 - [x] Every AC appears in the testing strategy table
-
