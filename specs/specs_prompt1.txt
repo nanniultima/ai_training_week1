@@ -1,0 +1,42 @@
+annoin speksin pohjan specs/TEMPLATE.md meidän pitäisi muotoilla toiminnoista speksit. Kuinka monta toimintoa mielestäsi tarvitsee tehdä speksin muotoon?
+
+• Suosittelen ensimmäiseen toteutusvaiheeseen 8 erillistä speksiä. Tämä pitää kokonaisuudet riittävän pieninä testattaviksi, mutta välttää liian hienojakoisen pilkkomisen.
+
+  1. input-line-classification.md
+     Sointu-, sävel- ja tekstirivien tunnistaminen, tyhjät rivit ja sallitut riviyhdistelmät.
+
+  2. transposition-settings.md
+     Lähtösävellaji, duuri/molli, askelmäärä −11…11, kohdesävellajin laskenta sekä pakollinen #/b-valinta.
+
+  3. chord-transposition.md
+     Sointujen transponointi, tuetut sointutyypit, bassosoinnut, modulaatiot sekä H/B/Bb-säännöt.
+
+  4. note-transposition.md
+     Sävelrivien jäsentäminen, yhteen kirjoitetut sävelet, pieni b, iso B, transponointi ja sävelnimien muuttaminen isoiksi.
+
+  5. rich-text-formatting.md
+     Sävelten korkeusalueita ilmaisevat lihavointi ja kursivointi, fonttikoko sekä sointurivin pakollinen lihavointi.
+
+  6. alignment-preservation.md
+     Sointujen, sävelryhmien, tahtien ja tekstin kohdistus sekä välilyöntien ja yhdysmerkkien lisääminen.
+
+  7. result-and-copy.md
+     Tulosnäkymä ja kopiointi sekä HTML- että tekstimuodossa esimerkiksi Google Docsia varten.
+
+  8. chord-notes.md
+     Sointuun kuuluvien sävelten hakeminen, sama sointusanasto ja virheellisten sointujen käsittely.
+
+  Varoitukset kannattaa sijoittaa niiden omiin spekseihin:
+
+  - runsas teksti sävelrivillä → rivien tunnistamisen speksi
+  - epäilyttävä sointu → sointujen transponointispeksi
+  - virheellinen askel tai puuttuva valinta → asetusspeksi
+  - tuntematon haettu sointu → soinnun sävelten speksi
+
+  Pianon, kitaran ja ukulelen otteet eivät kuulu vielä näihin kahdeksaan. Myöhemmin niistä kannattaa tehdä omat speksinsä, koska eri soittimilla on erilaiset tietomallit ja hyväksymiskriteerit:
+
+  - piano-chord-view.md
+  - guitar-chord-diagrams.md
+  - ukulele-chord-diagrams.md
+
+  Näin kokonaismäärä olisi ensimmäisessä vaiheessa 8 speksiä ja myöhemmässä vaiheessa yhteensä noin 11. Aloittaisin rivien tunnistamisesta, koska lähes kaikki muut ominaisuudet riippuvat siitä.
