@@ -1,0 +1,85 @@
+• ## Suositeltu lähestymistapa
+
+  Sovellus käsittelisi syötteen säkeistöinä, joissa voi esiintyä kolmenlaisia rivejä:
+
+  1. Sointurivi
+  2. Sävelrivi
+  3. Laulun sanallinen rivi
+
+  Esimerkiksi:
+
+  C    |Am    |G       |C      |
+  c c  aa a   gb g  g  c d   c
+  onpa ihanaa laulella sateessa
+
+  Sointurivi tunnistetaan ensisijaisesti putkimerkeistä ja isoilla kirjaimilla alkavista sointumerkinnöistä. Rivi ei välttämättä ala tai pääty putkimerkkiin. Putket merkitsevät tahtien vaihtumiskohtia ja ne säilytetään tuloksessa. Tulosteessa koko sointurivi, mukaan lukien putket
+  ja soinnut, esitetään lihavoituna.
+
+  Sävelrivillä ei välttämättä ole putkimerkkejä. Sävelet kirjoitetaan pienillä kirjaimilla, mikä erottaa ne isolla alkavista soinnuista. Sävelrivin tunnistamisessa voidaan käyttää yhdessä:
+
+  - pienillä kirjaimilla kirjoitettuja sävelmerkkejä
+  - sävelten mahdollisia ylennys- ja alennusmerkkejä
+  - sävelten muotoilua
+  - rivin sijaintia sointurivin ja laulun sanojen välissä
+  - sitä, kuinka suuri osa rivin sisällöstä voidaan tulkita säveliksi
+
+  Sävelten lihavointi ja kursivointi sisältävät musiikillista tietoa sävelkorkeudesta. Siksi muotoilu ei ole vain ulkoasua, vaan se täytyy säilyttää yksittäisen sävelen ominaisuutena transponnin aikana. Sävel voi olla:
+
+  - tavallinen
+  - lihavoitu
+  - kursivoitu
+  - sekä lihavoitu että kursivoitu
+
+  Syöte kannattaa siksi käsitellä rikastekstinä, ei pelkkänä merkkijonona. Jokaisen tunnistetun sävelen yhteydessä säilytetään alkuperäinen muotoilu ja sen sijainti rivillä.
+
+  Sävelrivillä peräkkäin kirjoitetut sävelet, kuten aa tai gb, tarkoittavat saman tavun aikana laulettavaa sävelkulkua. Ne pitää käsitellä erillisinä sävelinä, mutta yhtenä saman tavun sävelryhmänä. Välilyönti erottaa tavuun tai seuraavaan laulettavaan kohtaan kuuluvia ryhmiä.
+
+  Esimerkiksi:
+
+  c c  aa a   gb g  g  c d   c
+
+  voidaan jäsentää suunnilleen näin:
+
+  [c] [c]  [a a] [a]   [g b] [g] [g] [c] [d] [c]
+
+  Transponointi saattaa pidentää merkintöjä. Esimerkiksi C voi muuttua muotoon C# ja c muotoon c#. Tällöin alkuperäisten merkkipohjaisten sarakkeiden säilyttäminen ei yksin riitä, koska soinnut, sävelet ja sanat siirtyvät eri määrän.
+
+  Sovelluksen pitäisi muodostaa musiikin ja sanojen välille looginen kohdistus ennen transponointia:
+
+  sointu tai tahti → sävelryhmä → laulun tavu
+
+  Kun transponointi pidentää sävelmerkintöjä, tulosteessa voidaan lisätä tavuihin yhdysmerkkejä kohdistuksen selventämiseksi:
+
+  C#    |A#m      |G#       |C#      |
+  c# c# a# a# a#  g# c g# g# c# d#  c#
+  on-pa i--ha-naa lau-lella sa-teessa
+
+  Yhdysmerkkejä ei kuitenkaan lisätä pelkän merkkimäärän perusteella. Niiden pitäisi perustua sävelryhmien ja tavujen väliseen yhteyteen. Esimerkiksi yhteen kirjoitetut gb-sävelet kuuluvat samaan tavuun, vaikka ne transponoidaan erillisinä sävelinä.
+
+  Sointu- ja sävelriveillä voi olla myös muuta tekstiä, kuten pilkkuja tai esitysohjeita. Jäsentäjän pitää muuttaa vain varmasti tunnistetut soinnut ja sävelet. Putket, pilkut, välilyönnit ja tuntematon teksti säilytetään sellaisinaan. Epävarmaa sisältöä ei pidä yrittää
+  transponoida.
+
+  Useita säkeistöjä käsitellään samojen sääntöjen mukaan. Tyhjät rivit säilytetään ja niitä voidaan käyttää säkeistöjen rajojen tunnistamiseen:
+
+  C    |Am    |G       |C      |
+  c c  aa a   g  g  g  c d   c
+  onpa ihanaa laulella sateessa
+
+  C    |Am    |G       |C      |
+  c c  aa a   g  g  g  c d   c
+  onpa ihanaa laulella sateessa
+
+  Kokonaisprosessi olisi:
+
+  1. Luetaan rikastekstisyöte riveineen ja muotoiluineen.
+  2. Jaetaan sisältö tyhjien rivien avulla säkeistöihin.
+  3. Luokitellaan rivit sointu-, sävel- ja sanallisiksi riveiksi.
+  4. Tunnistetaan vain varmasti tulkittavat soinnut ja sävelet.
+  5. Ryhmitellään yhteen kirjoitetut sävelet saman tavun sävelkuluiksi.
+  6. Muodostetaan sointujen, sävelryhmien ja laulun tavujen kohdistus.
+  7. Transponoidaan soinnut ja sävelet yhden puolisävelaskeleen pykälissä.
+  8. Säilytetään sävelten alkuperäiset lihavointi- ja kursivointitiedot.
+  9. Säilytetään sanallinen sisältö ja muu tuntematon teksti.
+  10. Sovitetaan tulos uudelleen ja lisätään tarvittaessa tavutusta selventäviä yhdysmerkkejä.
+  11. Esitetään sointurivit kokonaan lihavoituina.
+  12. Näytetään tulos rikastekstinä kopiointia tai myöhempää tiedostovientiä varten.

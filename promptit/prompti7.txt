@@ -1,0 +1,262 @@
+ antaisitko esimerkkinä soinnut A# ja Bb sävellajeille
+
+
+• Jos tarkoitetaan duurisävellajien diatonisia kolmisointuja:
+
+   Aste    A#-duuri    Bb-duuri
+  ━━━━━━  ━━━━━━━━━━  ━━━━━━━━━━
+   I       A#          Bb
+  ──────  ──────────  ──────────
+   ii      B#m         Cm
+  ──────  ──────────  ──────────
+   iii     C##m        Dm
+  ──────  ──────────  ──────────
+   IV      D#          Eb
+  ──────  ──────────  ──────────
+   V       E#          F
+  ──────  ──────────  ──────────
+   vi      F##m        Gm
+  ──────  ──────────  ──────────
+   vii°    G##dim      Adim
+
+  A#-duurissa asteikko on:
+
+  A# – B# – C## – D# – E# – F## – G##
+
+  Bb-duurissa asteikko on:
+
+  Bb – C – D – Eb – F – G – A
+
+  Nämä soivat enharmonisesti samalla tavalla, mutta Bb-duuri on huomattavasti selkeämpi ja normaalisti käytetty kirjoitusasu. A#-duuri vaatii kaksoisylennyksiä (##), joten sovelluksen olisi järkevää suosia tässä tapauksessa Bb-duuria ja sen sointuja:
+
+  Bb – Cm – Dm – Eb – F – Gm – Adim
+
+  Tämä havainnollistaa, miksi kohdesävellajin tai enharmonisen kirjoitusasun valinta vaikuttaa sekä säveliin että sointuihin.
+
+
+› onko muidenkin näiden korotettujen / alennettujen kanssa niin että osassa on nuo tuplaylennykset
+
+ Kyllä. Kaikki ylennetyt ja alennetut duurisävellajit eivät ole keskenään yhtä käyttökelpoisia kirjoitusasuja. Joissakin enharmonisissa sävellajeissa tarvitaan kaksoisylennyksiä tai kaksoisalennuksia.
+
+  Käytännölliset duurisävellajit:
+
+   Sävellaji    Etumerkintä
+  ━━━━━━━━━━━  ━━━━━━━━━━━━━━━━
+   C            ei etumerkkejä
+  ───────────  ────────────────
+   G            1 ylennys
+  ───────────  ────────────────
+   D            2 ylennystä
+  ───────────  ────────────────
+   A            3 ylennystä
+  ───────────  ────────────────
+   E            4 ylennystä
+  ───────────  ────────────────
+   B            5 ylennystä
+  ───────────  ────────────────
+   F#           6 ylennystä
+  ───────────  ────────────────
+   C#           7 ylennystä
+  ───────────  ────────────────
+   F            1 alennus
+  ───────────  ────────────────
+   Bb           2 alennusta
+  ───────────  ────────────────
+   Eb           3 alennusta
+  ───────────  ────────────────
+   Ab           4 alennusta
+  ───────────  ────────────────
+   Db           5 alennusta
+  ───────────  ────────────────
+   Gb           6 alennusta
+  ───────────  ────────────────
+   Cb           7 alennusta
+
+  Näissä ei tarvita kaksoisylennyksiä tai kaksoisalennuksia tavallisen duuri-asteikon kirjoittamiseen.
+
+  Ongelmallisia teoreettisia vastineita ovat esimerkiksi:
+
+   Hankala sävellaji    Käytännöllinen vastine
+  ━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━
+   A#-duuri             Bb-duuri
+  ───────────────────  ────────────────────────
+   D#-duuri             Eb-duuri
+  ───────────────────  ────────────────────────
+   G#-duuri             Ab-duuri
+  ───────────────────  ────────────────────────
+   E#-duuri             F-duuri
+  ───────────────────  ────────────────────────
+   B#-duuri             C-duuri
+  ───────────────────  ────────────────────────
+   Fb-duuri             E-duuri
+
+  Esimerkiksi G#-duurin asteikko olisi:
+
+  G# – A# – B# – C# – D# – E# – F##
+
+  Viimeinen sävel tarvitsee kaksoisylennyksen F##. Siksi käytetään tavallisesti Ab-duuria:
+
+  Ab – Bb – C – Db – Eb – F – G
+
+  D#-duurissa ongelma on vielä selvempi:
+
+  D# – E# – F## – G# – A# – B# – C##
+
+  Käytännössä se kirjoitetaan Eb-duurina:
+
+  Eb – F – G – Ab – Bb – C – D
+
+  Sama ilmiö toimii myös toiseen suuntaan. Esimerkiksi Fb-duuri sisältäisi Bbb-sävelen, joten yleensä käytetään E-duuria.
+
+  Sovellukselle järkevä ensimmäisen version linja olisi:
+
+  - Tuetaan 15 tavallista duurisävellajia: C, G, D, A, E, B, F#, C#, F, Bb, Eb, Ab, Db, Gb ja Cb.
+  - Vältetään teoreettisia sävellajeja, jotka vaativat kaksoisylennyksiä tai kaksoisalennuksia.
+  - Valitaan enharmoninen vastine automaattisesti, esimerkiksi A# → Bb sävellajin nimenä.
+  - Yksittäisissä muunnesoinnuissa tai lainasoinnuissa kaksoismerkkien tarve voi silti teoriassa tulla vastaan, mutta ensimmäisessä versiossa ne voidaan normalisoida helpommin luettavaan enharmoniseen muotoon.
+
+
+  1. Miten käyttäjä ilmoittaa kohdesävellajin?
+
+     Pelkkä askelmäärä ei aina riitä määräämään kirjoitusasua. Esimerkiksi yhden puolisävelaskeleen päässä oleva sävel voidaan nimetä C# tai Db. Tarvitaanko askelkentän lisäksi valinta kuten “kohdesävellaji: Db-duuri”?
+
+  2. Miten sävelrivi tunnistetaan, kun säveletkin kirjoitetaan isoilla kirjaimilla eikä rivillä ole putkia?
+
+     Voisiko käyttöliittymässä merkitä rivin tyypin erikseen, vai päätelläänkö sävelrivi sen sijainnista suoraan sointurivin alapuolella?
+
+- täsmennys luetteloon: sointu- ja sävelrivit erottuvat toisistaan  niin, että sointuriveillä on putkia ja sävelriveillä ei
+- sävelrivi sijaitsee sointu- ja tekstirivien välissä, mikäli kaikki on. olisi mahdollista myös käyttää ilman jotain näistä riveistä tai vaikka pelkän melodian transponointiin
+- näkisin että rivit tunnistetaan niin että:
+  - sointuriveillä on putket
+  - sävelriveillä on syötteessä joko pieniä tai isoja kirjaimia, mutta tuloksessa isoja. näillä voi olla myös muotoiluja, mutta vain vähän tavallista tekstiä
+  -  tekstirivit sisältävät tekstiä
+  nämä esiintyvät myös aina tässä järjestyksessä. esimerkkejä mahdollisista syötteistä:
+
+
+C    |Am     |G       |C      |
+c c  a a a   gb g  g  c d   c 
+onpa i-hanaa laulella sateessa
+
+C    |Am     |G       |C      |
+onpa i-hanaa laulella sateessa
+
+c c  a a a   gb g  g  c d   c 
+onpa i-hanaa laulella sateessa
+
+C    |Am     |G       |C      |
+c c  a a a   gb g  g  c d   c 
+
+C    |Am     |G       |C      |
+
+c c  a a a   gb g  g  c d   c 
+
+
+  3. Miten saman tavun sävelkulku merkitään yksiselitteisesti?
+
+     Isoilla kirjaimilla GB voitaisiin tulkita kahdeksi saman tavun säveleksi, mutta G#C vaatii jo jäsentämissäännön. Hyväksytäänkö esimerkiksi suljemerkintä [G B] tai yhdysmerkki G-B, jotta sävelryhmän rajat ovat selvät? - korotus tai alennus kohdistuu aina edelläolevaan 
+
+  4. Mitä “muut merkit lihavoidaan” tarkoittaa tarkasti? - kaikki ei-tekstuaaliset voidaan lihavoida, kaikki sointuihin kuuluvat myös
+
+     Kannattaako lihavoida kaikki sointurivin ei-tekstuaaliset merkit vai vain ennalta sovittu joukko, kuten | , . - : / ( )? Vinoviiva voi esimerkiksi olla osa sointua G/B.
+
+  5. Säilytetäänkö fonttikoko koko tekstijaksolta täsmälleen alkuperäisenä, vai riittääkö muutama sallittu kokoluokka? -fonttikoko on oletuksena sama koko syötteessä, joten voidaan käyttää sitä kokoa missä ensimmäiset merkit ovat
+
+  Näistä erityisesti sävellajin syöttötapa ja sävelrivin tunnistaminen täytyy ratkaista ennen kuin transponoinnin käyttäytymisestä voidaan tehdä yksiselitteinen.
+
+• Täsmennysten perusteella rivien käsittely voidaan kuvata näin:
+
+  ## Rivien tunnistaminen
+
+  Rivityypit esiintyvät aina järjestyksessä:
+
+  tekstirivi
+
+  Kaikkien kolmen ei tarvitse esiintyä. Sallitut yhdistelmät ovat esimerkiksi:
+
+  soinnut + sävelet + sanat
+  soinnut + sanat
+  sävelet + sanat
+  soinnut + sävelet
+  - kaikki ei-tekstuaaliset merkit lihavoidaan
+  - esimerkiksi |, /, ,, ., -, :, ( ja ) voidaan lihavoida
+  - tavallinen teksti, kuten intro tai x2, säilytetään mutta sitä ei lihavoida
+
+  Fonttikooksi voidaan ottaa syötteen ensimmäisten merkkien fonttikoko ja käyttää sitä oletuksena koko tuloksessa. Sävelten lihavointi ja kursivointi säilytetään edelleen sävelkohtaisesti, koska ne ilmaisevat sävelkorkeutta.
+
+  ## Vielä ratkaisematta
+
+  Kaksi asiaa jäi edelleen aidosti epäselväksi.
+
+  ### 1. Kohdesävellajin ilmoittaminen
+
+  Tähän ei vielä tullut valintaa. Käyttääkö käyttäjä:
+
+  - vain askelmäärää, jolloin ensimmäisessä versiossa käytetään aina alennusmerkkejä, vai
+  - askelmäärää ja erillistä kohdesävellajia, esimerkiksi Db-duuri?
+
+  Aiemman päätöksen perusteella oletus voisi olla alennusmerkkinen tulos, mutta kohdesävellajin mukaista kirjoitusasua varten tarvittaisiin myöhemmin erillinen sävellajivalinta.
+
+  ### 2. b sävelenä ja alennusmerkkinä
+
+  Sääntö “alennus kohdistuu aina edeltävään säveleen” tekee merkinnästä gb alennetun G-sävelen eli Gb.
+
+  Se ei silloin voi samanaikaisesti tarkoittaa saman tavun sävelkulkua G + B, kuten aikaisemmassa esimerkissä:
+
+  gb
+
+  Ylennysmerkinnässä ongelmaa ei ole:
+
+  G#C = G# + C
+
+  mutta alennusmerkissä pieni b on sekä alennusmerkki että mahdollinen B-sävel.
+
+  Miten saman tavun G + B pitäisi tämän vuoksi merkitä? Esimerkiksi G-B, G_B, [GB] tai jollakin muulla tavalla? Tätä ei voi päätellä yksiselitteisesti ilman yhtä lisäsääntöä.
+
+
+› smaan tavun G + B pitäisi merkitä GB eikä gb tai Gb eli tämä olisi se poikkeus, mikä syötteen antajan tulee huomioida, mikäli syöte annetaan gb, tulee se tulkita kuin se olisi Gb, syötteen antaja käyttää GB tai gB mikäli tarkoittaa kahta säveltä
+
+
+• Selvä. Sävelten jäsentämissääntö täsmentyy näin:
+
+  - Pieni b tulkitaan edeltävän sävelen alennusmerkiksi.
+  - Iso B tulkitaan itsenäiseksi B-säveleksi.
+  - Sävelten muut kirjaimet voivat olla syötteessä pieniä tai isoja.
+  - Tuloksessa kaikki sävelnimet kirjoitetaan isoilla kirjaimilla.
+  - Yhteen kirjoitetut sävelet kuuluvat samaan tavuun.
+
+  Esimerkkejä:
+
+
+   Syöte    Tulkinta                   Tulosmuoto
+  ━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━
+   gb       yksi Gb-sävel              Gb
+  ───────  ─────────────────────────  ────────────
+
+ Selvä. Sävelten jäsentämissääntö täsmentyy näin:
+
+  - Pieni b tulkitaan edeltävän sävelen alennusmerkiksi.
+  - Iso B tulkitaan itsenäiseksi B-säveleksi.
+  - Sävelten muut kirjaimet voivat olla syötteessä pieniä tai isoja.
+  - Tuloksessa kaikki sävelnimet kirjoitetaan isoilla kirjaimilla.
+  - Yhteen kirjoitetut sävelet kuuluvat samaan tavuun.
+
+  Esimerkkejä:
+
+   Syöte    Tulkinta                   Tulosmuoto
+  ━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━
+   gb       yksi Gb-sävel              Gb
+  ───────  ─────────────────────────  ────────────
+   Gb       yksi Gb-sävel              Gb
+  ───────  ─────────────────────────  ────────────
+   GB       G ja B samassa tavussa     GB
+  ───────  ─────────────────────────  ────────────
+   gB       G ja B samassa tavussa     GB
+  ───────  ─────────────────────────  ────────────
+   G#C      G# ja C samassa tavussa    G#C
+  ───────  ─────────────────────────  ────────────
+   abC      Ab ja C samassa tavussa    AbC
+  ───────  ─────────────────────────  ────────────
+   A#B      A# ja B samassa tavussa    A#B
+
+  Syötteen antajan vastuulla on siis käyttää isoa B:tä, kun tarkoitetaan itsenäistä B-säveltä heti toisen sävelen jälkeen. Syöte gb tulkitaan aina Gb-säveleksi, ei G–B-sävelkuluksi.
+

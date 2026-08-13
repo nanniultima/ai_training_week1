@@ -1,0 +1,121 @@
+• ## Suositeltu lähestymistapa
+
+  Sovellus käsittelisi syötteen säkeistöinä, joissa voi esiintyä kolmenlaisia rivejä:
+
+  1. Sointurivi
+  2. Sävelrivi
+  3. Laulun sanallinen rivi
+
+  Esimerkiksi:
+
+  C    |Am     |G       |C      |
+  c c  a a a   gb g  g  c d   c
+  onpa i-hanaa laulella sateessa
+
+  Sointurivi tunnistetaan putkimerkeistä ja isoilla kirjaimilla alkavista sointumerkinnöistä. Rivi ei välttämättä ala tai pääty putkimerkkiin. Putket osoittavat tahtien vaihtumiskohdat ja säilytetään tuloksessa. Tulosteessa koko sointurivi, mukaan lukien putket, esitetään
+  lihavoituna.
+
+  Sävelrivillä ei välttämättä ole putkia. Sävelet kirjoitetaan pienillä kirjaimilla, mikä erottaa ne isolla alkavista soinnuista. Sävelrivin tunnistamisessa voidaan käyttää yhdessä:
+
+  - pienillä kirjaimilla kirjoitettuja sävelmerkkejä
+  - sävelten mahdollisia ylennys- ja alennusmerkkejä
+  - sävelten lihavointia ja kursivointia
+  - rivin sijaintia sointurivin ja laulun sanojen välissä
+  - sitä, kuinka suuri osa rivistä voidaan tulkita säveliksi
+
+  Sävelten lihavointi ja kursivointi sisältävät musiikillista tietoa sävelkorkeudesta. Muotoilu pitää siksi säilyttää jokaisen sävelen ominaisuutena transponoinnin aikana. Sävel voi olla tavallinen, lihavoitu, kursivoitu tai molempia.
+
+  Syöte käsitellään rikastekstinä, jotta rivit, välit ja yksittäisten sävelten muotoilut voidaan säilyttää.
+
+  ### Sävelryhmät ja tavut
+
+  Välilyönnillä erotetut sävelet tulkitaan eri sävelryhmiksi:
+
+  c c  a a a   gb g  g  c d   c
+
+  Yhteen kirjoitetut sävelet, kuten gb, tulkitaan saman tavun aikana laulettavaksi sävelkuluksi:
+
+  gb → [g, b], yksi sävelryhmä ja yksi laulettava tavu
+
+  Sen sijaan:
+
+  g b → [g], [b], kaksi sävelryhmää
+
+  tarkoittaisi lähtökohtaisesti kahta eri laulettavaa kohtaa.
+
+  Yhteen kirjoittaminen ei ole ainoa mahdollinen merkintätapa, mutta se on yksinkertaisin ilman kokonaan uuden nuottimerkintäkielen käyttöönottoa. Se toimii, jos sovelluksessa sovitaan selvästi seuraava sääntö:
+
+  > Välilyönti erottaa sävelryhmät. Saman ryhmän sisällä olevat peräkkäiset sävelet lauletaan samalla tavulla.
+
+  Ryhmästä gb pitää silti pystyä erottamaan kaksi säveltä. Sen vuoksi sävelten kieliopin täytyy olla yksiselitteinen myös ylennys- ja alennusmerkkien kanssa. Esimerkiksi g#c tarkoittaisi ryhmää [g#, c], ei yhtä säveltä.
+
+  ### Kohdistuksen säilyttäminen
+
+  Transponointi voi pidentää sekä sointuja että säveliä:
+  Am → A#m
+  g  → g#
+
+  Tämän vuoksi sovellus ei voi säilyttää kohdistusta luotettavasti pelkästään kopioimalla alkuperäiset välilyönnit. Ennen transponointia sen pitää muodostaa looginen yhteys:
+
+  tahti → sointu → sävelryhmä → laulun tavu
+
+  Esimerkiksi lähtötilanne:
+
+  C    |Am     |G       |C      |
+  c c  a a a   gb g  g  c d   c
+  onpa i-hanaa laulella sateessa
+
+  voisi yhden puolisävelaskeleen noston jälkeen olla:
+
+  C#    |A#m      |G#       |C#      |
+  c# c# a# a# a#  g#c g# g# c# d#  c#
+  on-pa i--ha-naa lau-lella sa-teessa
+
+  Tässä g#c on yksi sävelryhmä. Molemmat sävelet kuuluvat lau-tavuun, koska alkuperäinen gb oli kirjoitettu yhteen.
+
+  Sovelluksen ei pidä päätellä tavutusta pelkästään suomen kielen perusteella. Kohdistuksen pitäisi ensisijaisesti perustua:
+
+  - sävelryhmien välilyönteihin
+  - sanoissa valmiiksi oleviin yhdysmerkkeihin
+  - rivien vaakasuuntaisiin aloituskohtiin
+  - käyttäjän antamaan alkuperäiseen kohdistukseen
+
+  Jos transponointi lisää merkkejä, tulosteeseen voidaan lisätä yhdysmerkkejä kohdistuksen havainnollistamiseksi. Jo olemassa olevat yhdysmerkit pitää erottaa sovelluksen lisäämistä kohdistusmerkeistä, jotta alkuperäistä tekstiä ei muuteta hallitsemattomasti.
+
+  ### Muu sisältö
+
+  Sointu- ja sävelriveillä voi esiintyä muutakin tekstiä, kuten pilkkuja tai esitysohjeita. Jäsentäjä muuttaa vain varmasti tunnistetut soinnut ja sävelet. Putket, pilkut, välilyönnit ja tuntematon sisältö säilytetään.
+
+  Useita säkeistöjä käsitellään samoilla säännöillä. Tyhjät rivit säilytetään:
+
+  C    |Am     |G       |C      |
+  c c  a a a   gb g  g  c d   c
+  onpa i-hanaa laulella sateessa
+
+  C    |Am     |G       |C      |
+  c c  a a a   g  g  g  c d   c
+  onpa i-hanaa laulella sateessa
+
+  Kokonaisprosessi olisi:
+
+  1. Luetaan rikastekstisyöte riveineen ja muotoiluineen.
+  2. Jaetaan sisältö tyhjien rivien avulla säkeistöihin.
+  3. Luokitellaan rivit sointu-, sävel- ja sanallisiksi riveiksi.
+  4. Tunnistetaan vain varmasti tulkittavat soinnut ja sävelet.
+  5. Ryhmitellään yhteen kirjoitetut sävelet saman tavun sävelkuluiksi.
+  6. Kohdistetaan sävelryhmät laulun tavuihin alkuperäisten välien ja yhdysmerkkien avulla.
+  7. Transponoidaan soinnut ja yksittäiset sävelet puolisävelaskelina.
+  8. Säilytetään jokaisen sävelen lihavointi ja kursivointi.
+  9. Säilytetään putket, pilkut, sanat ja tuntematon teksti.
+  10. Lasketaan rivien välit uudelleen pidentyneiden merkintöjen perusteella.
+  11. Lisätään tarvittaessa kohdistusta havainnollistavia yhdysmerkkejä.
+  12. Esitetään sointurivit kokonaan lihavoituina.
+  13. Näytetään tulos rikastekstinä kopiointia tai tiedostovientiä varten.
+
+› lisätään listaan vielä se, että tuloksessa putket ja soinnut ovat aina lihavoituja
+
+
+• Lisätään kokonaisprosessin listaan täsmennetty kohta:
+
+  12. Muotoillaan tuloksen sointuriveillä kaikki tunnistetut soinnut ja kaikki putkimerkit aina lihavoiduiksi riippumatta niiden alkuperäisestä muotoilusta.
+  13. Näytetään tulos rikastekstinä kopiointia tai tiedostovientiä varten.

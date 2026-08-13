@@ -1,0 +1,57 @@
+ onko vielä avoimia kysymyskiä
+
+
+• Kyllä. Suurimmat avoimet kysymykset ovat seuraavat:
+
+  1. Sävellajin laatu
+
+     Annettaessa lähtösävellaji pitääkö valita myös duuri tai molli, esimerkiksi C-duuri tai C-molli?
+
+  2. Sävelten muotoilun merkitys
+
+     Tiedetään, että tavallinen, lihavoitu, kursivoitu ja molempia tarkoittavat eri sävelkorkeuksia, mutta niiden keskinäistä oktaavijärjestystä ei ole määritelty.
+
+  3. Epävarman sävelrivin tunnistaminen
+
+     Kuinka paljon tavallista tekstiä sävelrivillä saa olla? Mitä tehdään, jos ohjelma ei pysty varmasti erottamaan sävelriviä tekstirivistä:
+      - jätetäänkö rivi muuttamatta
+      - näytetäänkö varoitus
+      - vai saako käyttäjä korjata rivityypin?
+
+  4. Säkeistöjen ja ryhmien rajat
+
+     Tulkitaanko tyhjä rivi aina uuden kokonaisuuden rajaksi? Tämä vaikuttaa tilanteisiin, joissa syötteessä on erikseen vain sointu- ja sävelrivejä.
+
+  5. Tavujen ja sävelryhmien kohdistaminen
+
+     Miten toimitaan, jos sävelryhmien ja laulun tavujen määrä ei täsmää? Saako sovellus lisätä yhdysmerkkejä automaattisesti vai pitäisikö sen pyytää käyttäjää korjaamaan kohdistus?
+
+  6. Alkuperäisten sanojen muuttaminen
+
+     Saako esimerkiksi:
+
+     onpa
+
+     muuttua tuloksessa muotoon:
+
+     on-pa
+
+     vai saako yhdysmerkkejä lisätä vain sanoihin, joissa käyttäjä on jo merkinnyt tavurajat?
+
+  7. #/b-kysymyksen tarkka ehto
+
+     Kysytäänkö kirjoitusasu aina, kun kohdesävelkorkeus voidaan nimetä kahdella tavalla, vai ainoastaan silloin, kun koko kohdesävellajilla on kaksi järkevää kirjoitusasua, kuten C#/Db ja F#/Gb?
+
+  8. Sointurivin tekstin tunnistaminen
+
+     Esimerkiksi x2: sisältää numeron ja kirjaimen. Lihavoidaanko numero mutta jätetään x tavalliseksi, vai säilytetäänkö koko x2 tavallisena yhtenä tekstimerkintänä?
+
+  9. Kopioinnin sisältö
+
+     Kopioidaanko tulos painikkeella leikepöydälle sekä HTML- että tekstimuodossa, jotta se toimii Google Docsissa mutta voidaan liittää myös tavallisena tekstinä?
+
+  10. Virheellisen soinnun käsittely
+
+  Jos putkirivillä on soinnulta näyttävä mutta tuntematon merkintä, jätetäänkö se ennalleen ja näytetään varoitus vai estetäänkö koko transponointi?
+
+  Näistä tärkeimmät ennen toteutusta ovat mielestäni kohdat 2, 3, 5–7. Ne vaikuttavat suoraan siihen, voidaanko tulos muodostaa yksiselitteisesti.

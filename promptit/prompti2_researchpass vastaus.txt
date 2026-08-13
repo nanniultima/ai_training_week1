@@ -1,0 +1,129 @@
+ Tutkimuskierros tehty. Tiedostoja ei muutettu eikä määrittelyä kirjoitettu.
+
+  ## Suositeltu lähestymistapa
+
+  Tekisin sovelluksen pieninä, toisistaan erotettuina osina:
+
+  1. Rikastekstieditori vastaanottaa sanat ja musiikkirivit.
+  2. Syöte muunnetaan rakenteeksi, jossa tekstirivit ja putkimerkillä tunnistetut musiikkirivit ovat erillisiä.
+  3. Vain musiikkirivien tunnistetut sävel- ja sointimerkit transponoidaan.
+  4. Sanarivit ja alkuperäinen muotoilu säilytetään.
+  5. Transponoidut musiikkirivit merkitään lihavoiduiksi.
+  6. Tulos näytetään toisessa rikastekstikentässä, josta sen voi kopioida tai myöhemmin tallentaa tiedostoksi.
+  7. Soinnun sävelet toteutetaan erillisenä, pienempänä ominaisuutena.
+
+  Putkimerkki kannattaa tulkita rivin luokittelijaksi, ei varsinaiseksi musiikilliseksi tiedostomuodoksi. Esimerkiksi:
+
+  | C | Am | F | G |
+  Tämä on laulun sanallinen rivi
+
+  Ensimmäinen rivi käsitellään musiikkina ja toinen jätetään täysin ennalleen.
+
+  Rikastekstille contenteditable="true" on yksinkertaisin ensimmäinen ratkaisu. Selain säilyttää siihen liitettäessä
+  muotoiluja, kun taas contenteditable="plaintext-only" poistaa ne. MDN:n contenteditable-dokumentaatio
+  (https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/contenteditable) vahvistaa tämän.
+  Editorin HTML pitää kuitenkin rajata sallittuihin elementteihin, kuten rivinvaihtoihin, <strong>- ja
+  <em>-elementteihin.
+
+  ## Mitä käyttäisin valmiina
+
+  Ensisijainen vaihtoehto musiikkilogiikkaan olisi Tonal:
+
+  - Chord.transpose() osaa transponoida sointumerkkejä.
+  - Chord.get() ja Chord.notes() osaavat tulkita sointuja ja palauttaa niiden sävelet.
+  - Note.transpose() käsittelee yksittäisiä säveliä.
+  - Kirjasto on TypeScript-pohjainen, toimii selaimessa ja käyttää puhtaita funktioita.
+  - Sointusanasto kattaa paljon enemmän kuin itse tehty ensimmäinen lista. Tonalin dokumentaatio
+    (https://tonaljs.github.io/tonal/docs), sointutoiminnot (https://tonaljs.github.io/tonal/docs/groups/chords),
+    GitHub-projekti (https://github.com/tonaljs/tonal).
+
+  Tonal ei kuitenkaan ratkaise koko tekstin jäsentämistä. Sovelluksen pitäisi edelleen itse:
+
+  - tunnistaa putkitetut rivit
+  - löytää niistä soinnut ja yksittäiset sävelet
+  - säilyttää välit, tahdit, sanat ja muotoilut
+  - päättää käytetäänkö tuloksessa ylennys- vai alennusmerkkejä
+
+  chord-transposer ratkaisee valmiiksi sointujen tunnistamista vapaamuotoisesta tekstistä ja säilyttää sanoja sekä
+  välistystä. Se tukee myös esimerkiksi Am7- ja G7/B-merkintöjä. Paketti on kuitenkin kapeampi, viimeisin julkaisu on
+  vanhempi ja yksittäisten sävelten sekä sointuun kuuluvien sävelten käsittely vaatisi silti toisen ratkaisun.
+  chord-transposer npm:ssä (https://www.npmjs.com/package/chord-transposer).
+
+  ChordPro tarjoaa valmiin CLI:n, joka osaa transponoida kokonaisia lauluja, valita ylennys- tai alennusmerkit ja
+  tuottaa tiedostoja. Sen --transpose-toiminto on käytännössä valmis vertailumalli. ChordPro käyttää kuitenkin omaa
+  [C]sanat-merkintätapaansa, joka ei vastaa suoraan tämän sovelluksen putkirivejä ja rikastekstiä. Se olisi hyvä
+  referenssi tai myöhempi tuonti-/vientimuoto, ei mielestäni tämän käyttöliittymän ydin. ChordPro CLI
+  (https://www.chordpro.org/beta/using-chordpro/), transponointidirektiivi
+  (https://www.chordpro.org/beta/directives-transpose/).
+
+  Käytännössä valitsisin siis:
+
+  - Tonal musiikkiteorian sanastoksi ja toimintojen vertailukohdaksi
+  - oman pienen rivien ja muotoilun käsittelykerroksen
+  - selaimen contenteditable-editorin ensimmäiseen versioon
+  - ChordPron myöhemmäksi tuonti-/vientivaihtoehdoksi
+
+  AGENTS.md kuitenkin määrää, että transponoinnin pitää perustua tietokantahakuihin eikä laskentaan. Tämä on
+  ristiriidassa Tonalin käytön kanssa. Jos sääntö on ehdoton, Tonalia voisi käyttää vain sointumerkintöjen validointiin
+  tai vertailutesteihin, ja varsinainen transponointi hakisi tuloksen omasta säveltaulusta.
+
+  ## Mitä harjoitusesimerkit osoittavat
+
+  session-1-greenfield ei sisällä valmista sovelluskoodia. Se sisältää etenemismallin ja esimerkkimäärittelyjä:
+
+  - C:/Users/nanni/Documents/_Nanni/Opiskelu/AI_training/ai_training/session-1-greenfield/README.md ohjaa etenemään
+    runko → määrittely → TDD → seuraava ominaisuus.
+
+  - Todo-esimerkissä käyttöliittymän argumenttien käsittely erotetaan testattavasta liiketoimintalogiikasta.
+  - Weather-esimerkissä ulkoinen tai mock-data erotetaan palvelulogiikasta.
+  - Bookmark-esimerkissä validointi, tallennus ja reititys erotetaan toisistaan.
+  - Hyväksymiskriteereissä odotetaan täsmällisiä syötteitä, tuloksia, oletusarvoja ja virheilmoituksia.
+  - Jokainen ominaisuus toteutetaan ensin pienimmällä onnistuvalla tapauksella, sitten virhe- ja reunatapauksilla.
+
+  Tähän projektiin sovellettuna ensimmäinen varsinainen ominaisuus olisi hyvä rajata esimerkiksi yhteen putkitettuun
+  riviin, perussointuihin ja yhteen transponointiaskeleeseen. Rikastekstin, tiedostoviennin ja laajan sointusanaston
+  voisi lisätä erillisinä ominaisuuksina.
+  En ratkaissut näitä itse, koska vastaukset muuttavat olennaisesti toteutusta:
+
+  1. Tarkoittaako “askel” aina yhtä puolisävelaskelta?
+  2. Mitä yksittäisen sävelen syöttömuotoja pitää tukea?
+
+     Esimerkiksi vain C, F#, Bb, vai myös oktaavit kuten C4 ja F#5?
+
+  3. Millä perusteella enharmoninen tulos valitaan?
+
+     Esimerkiksi pitääkö C + 1 näyttää muodossa C# vai Db? Valitaanko se suunnan, alkuperäisen sävellajin vai käyttäjän
+     asetuksen mukaan?
+
+  4. Mitkä sointumerkinnät kuuluvat ensimmäiseen versioon?
+
+     Vain duuri ja molli, vai myös esimerkiksi C7, Cmaj7, Cm7, Csus4, Cdim, Caug, Cadd9 ja G/B?
+
+  5. Miten musiikkirivillä erotetaan sointu yksittäisestä sävelestä?
+
+     C voi tarkoittaa kumpaa tahansa. Vaikuttaako ero transponointiin lainkaan, vai riittääkö että molemmat siirtyvät
+     samalla tavalla?
+
+  6. Saako putkitetulla rivillä olla muuta tekstiä?
+
+     Esimerkiksi | C | Am | intro 2x |, ja pitääkö tuntematon teksti säilyttää vai aiheuttaa virhe?
+
+  7. Mitä “muotoilut säilyvät” tarkoittaa tarkasti?
+
+     Riittävätkö lihavointi, kursivointi ja rivinvaihdot, vai pitääkö myös värit, fonttikoot, listat ja linkit
+     säilyttää?
+
+  8. Missä tiedostomuodossa tulos kopioidaan?
+
+     Tavallinen .txt ei säilytä lihavointia. Vaihtoehtoja ovat esimerkiksi .html, .docx, Markdown tai molemmat
+     leikepöytämuodot: muotoiltu HTML ja pelkkä teksti.
+
+  9. Onko AGENTS.md:n tietokantavaatimus ehdoton?
+
+     Pitääkö sävelten transponointitaulukko todella tallentaa tietokantaan, vai hyväksytäänkö sovelluksen mukana
+     toimitettava staattinen hakutaulu? Ensimmäiseen selainversioon jälkimmäinen olisi huomattavasti yksinkertaisempi.
+
+  10. Mitä “sointuun kuuluvat sävelet” tarkoittaa käyttöliittymässä?
+
+     Riittääkö yksi hakukenttä ja sävelnimilista, esimerkiksi Cmaj7 → C, E, G, B, vai halutaanko myös koskettimisto,
+     otteet, oktaavit tai eri käännökset?

@@ -1,0 +1,46 @@
+vaustauksia: 
+
+En ratkaissut näitä itse, koska vastaukset muuttavat olennaisesti toteutusta:
+
+  1. Tarkoittaako “askel” aina yhtä puolisävelaskelta? -kyllä
+  2. Mitä yksittäisen sävelen syöttömuotoja pitää tukea? -sävelet ovat pieniä kirjaimia, oktaaveja ei tueta tässä, bb sävel on Bb sävel (myös muoto a# on käytössä toki) (samassa tavussa jos erotellaan, sävel muuttuu eikä pysy samana. esimerkki gb aiemmin) Oikeastaan voitaisi tehdä linjaus, että epäselvyyden välttämiseksi sävelet kirjoitetaan aina korotuksina, jotta vältytään siltä, onko gb alennettu g vai gb yhden tavun sisällä. en täysin pidä töstää rajauksesta, mutta mennään sillä eteenpäin.
+
+     Esimerkiksi vain C, F#, Bb, vai myös oktaavit kuten C4 ja F#5?
+
+  3. Millä perusteella enharmoninen tulos valitaan? - haluaisin valita sen sävellajin mukaan, joten voisimme toisaalta vaihtaa siihen, että myös sävelet kirjoitetaan isoilla kirjaimilla, niin ei musiikin teorian tarvitse tässä joustaa.
+
+     Esimerkiksi pitääkö C + 1 näyttää muodossa C# vai Db? Valitaanko se suunnan, alkuperäisen sävellajin vai käyttäjän
+     asetuksen mukaan?
+
+  4. Mitkä sointumerkinnät kuuluvat ensimmäiseen versioon? listatut esimerkit ovat hyvät perussointujen duuri ja molli lisäksi
+
+     Vain duuri ja molli, vai myös esimerkiksi C7, Cmaj7, Cm7, Csus4, Cdim, Caug, Cadd9 ja G/B?
+
+  5. Miten musiikkirivillä erotetaan sointu yksittäisestä sävelestä? ovat erillisiä rivejä, käytännössä molemmat siirtyvät samalla tavalla, mutta olisi suotavaa käyttää sävellajin säveliä
+
+     C voi tarkoittaa kumpaa tahansa. Vaikuttaako ero transponointiin lainkaan, vai riittääkö että molemmat siirtyvät
+     samalla tavalla?
+
+  6. Saako putkitetulla rivillä olla muuta tekstiä? - saa olla, ei ole virhe. kuitenkin vain soinnut, putket, pilkut, pisteet, viivat ja muut merkit lihavoidaan, tekstiä ei (esim x2)
+
+     Esimerkiksi | C | Am | intro 2x |, ja pitääkö tuntematon teksti säilyttää vai aiheuttaa virhe?
+
+  7. Mitä “muotoilut säilyvät” tarkoittaa tarkasti? -syötteessä ei ole värejä, listoja, linkkejä. fonttikoko saisi säilyä, tarkoittaa myös sitä että sävelet ja tahdit pysyvät tekstin kanssa samassa kohdassa. tästä olikin jo selvennyksiä aiemmin
+
+     Riittävätkö lihavointi, kursivointi ja rivinvaihdot, vai pitääkö myös värit, fonttikoot, listat ja linkit
+     säilyttää?
+
+  8. Missä tiedostomuodossa tulos kopioidaan? tulos kopioidaan ja liitetään esim google docsiin, ei tarvitse vielä tallentaa tiedostoa, mutta muotoilujen täytyy tulla mukana
+
+     Tavallinen .txt ei säilytä lihavointia. Vaihtoehtoja ovat esimerkiksi .html, .docx, Markdown tai molemmat
+     leikepöytämuodot: muotoiltu HTML ja pelkkä teksti.
+
+  9. Onko AGENTS.md:n tietokantavaatimus ehdoton? -ei ole ehdoton, se on sitä varten, että ajattelin sen lisäävän toiminnan nopeutta. Voin käydä korjaamassa vaatimusta.
+
+     Pitääkö sävelten transponointitaulukko todella tallentaa tietokantaan, vai hyväksytäänkö sovelluksen mukana
+     toimitettava staattinen hakutaulu? Ensimmäiseen selainversioon jälkimmäinen olisi huomattavasti yksinkertaisempi.
+
+  10. Mitä “sointuun kuuluvat sävelet” tarkoittaa käyttöliittymässä? - oikeasti haluaisin otteet pianolle, kitaralle ja ukulelelle näytettävän (voisi valita itse mikä soittimista) mutta voimme aloittaa siitä että näyttää vain säevelet.
+
+     Riittääkö yksi hakukenttä ja sävelnimilista, esimerkiksi Cmaj7 → C, E, G, B, vai halutaanko myös koskettimisto,
+     otteet, oktaavit tai eri käännökset?

@@ -1,0 +1,39 @@
+1. kyllä sävellaji annetaan ja kerrotaan onko duuri vai molli. 
+mikäli kappaleessa tapahtuu modulaatio tai siinä on muuten vaikka vaihtuva sävellaji tai sävellajin kuulumattomia sointuja, ne transponoidaan puolisävelaskeleiden mukaisesti
+
+2. Matalin on sekä kursivoitu että lihavoitu, sitten on lihavoitu, tavallinen ja kursivoitu
+
+3. sävelrivillä ei käytännössä ole tekstiä, esim joku x2 tms voi esiintyä, mutta jos tuntuu olevan paljon tekstiä, voisi antaa varoituksen syötteestä
+
+4. tyhjällä rivillä voidaan erotella esimerkiksi säkeistöt, kertosäkeet, välisoitot yms
+
+5. ohejlman ei tarvitse ottaa kantaa tavuihin, toimii sen mukaan miten syöte on
+
+6. onpa voi muuttua muotoon on-pa esim tilanteessa jossa
+
+
+c c 
+onpa
+
+transponoidaan puoli askelta
+
+ja tulos olisi 
+
+C#C#
+onpa
+
+tällöin näyttää siltä että ennen erilliset sävelet menisivätkin yhteen, jolloin lisätään viiva
+
+C# C#
+on-pa
+
+kuuluu siis lisätä jos muuten sanat menisivät yhteen. myös välilyöntejä tulee lisätä niin että tahdit säilyvät samoissa kohdissa
+
+7. riittää kysyä kun on kaksi järkvää vaihtoehtoa eli ne tuplakorotukset jää pois ja säästämme myös tilaa
+
+8. mikäli ei tunnisteta että kyseessä on sointu (ei ole x-sointua), numeroakaan ei lihavoida vaan sen muotoilu säilyy
+
+9. mikäli ymmärsin oikein, voidaan lähteä tästä ehdotuksesta ainakin liikkeelle
+
+10. transponoidaan, mutta voidaan antaa siitä ilmoitus ja esimerkki siitä mikä herätti ihmetystä
+

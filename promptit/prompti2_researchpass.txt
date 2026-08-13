@@ -1,0 +1,22 @@
+
+
+Run a research pass — read-only, no code, no spec.
+
+Task: Ohjelmalla tehdään nopeasti transponointi, eli sävellajin muutos soinnuille ja sävelille, syötteelle, joka sisältää niitä sekä mahdollisesti sanat kodistettuna musiikkiin. Tuloksen voi kopioida tiedostoksi.
+
+Syötteennä annetaan tahdistetut soinnut ja/tai sävelet sekä laulun sanat kohdistettuna musiikkiin. 
+Lisäsyötteenä annetaan myös luku väliltä -12 - 12, joka kertoo, monta askelta sävellajia muutetaan. -12, 0 ja 12 palauttaa alkuperäisen syötteen. Ohjelma tunnistaa soinnut ja sävelet siitä, että niillä riveillä tahdit erotetaan putkimerkillä |. Sanariveillä putkea ei käytetä, joten teksti säilyy ennallaan. 
+
+Putkitetut sointurivit palautetaan lihavoituina. Mielellään tarvittaisiin syöteboksi, joka ottaa myös vastaan muotoilut (lihavointi ,kursiivi).
+
+Toisena toimintoja ohjelmalta voi kysyä sointuihin kuuluvat sävelet. Tässä on vähän epäselvää laajuus, mitkä kaikki soinnut voi kysyä ja millainen käyttöliittymä olisi hyvä.
+
+
+This is a fresh project, so research the problem, not a
+codebase: the simplest approach that could work, what a CLI or
+library already solves for me, and what the worked examples in
+ai_training/session-1-greenfield/ already show.
+
+Report: the approach you would take, what to reuse, and what
+was unclear enough that you had to guess. Ask me about the
+guesses — do not resolve them yourself.

@@ -1,0 +1,101 @@
+• Hyvä, näillä lähes kaikki keskeiset toimintaperiaatteet ratkesivat.
+
+  ## Sovitut toimintaperiaatteet
+
+  1. Käyttäjä antaa lähtösävellajin sekä tiedon siitä, onko se duuri vai molli.
+  2. Puolisävelaskelten määrä määrää varsinaisen transponoinnin. Kaikki tunnistetut soinnut ja sävelet siirretään saman verran, vaikka kappaleessa olisi:
+      - modulaatio
+      - vaihtuva sävellaji
+      - lähtösävellajiin kuulumattomia sointuja
+
+  3. #/b-kirjoitusasu kysytään vain silloin, kun kohdesävellajilla on kaksi järkevää vaihtoehtoa. Kaksoisylennyksiä ja kaksoisalennuksia vaativia vaihtoehtoja ei tarjota.
+  4. Sävelten korkeusjärjestys matalimmasta korkeimpaan on:
+      1. lihavoitu ja kursivoitu
+      2. lihavoitu
+      3. tavallinen
+      4. kursivoitu
+
+  5. Sävelrivillä ei normaalisti ole tekstiä. Lyhyt merkintä, kuten x2, sallitaan. Runsaasta tekstistä näytetään varoitus.
+  6. Tyhjät rivit säilytetään. Niillä voidaan erottaa säkeistöjä, kertosäkeitä, välisoittoja ja muita kappaleen osia.
+  7. Ohjelma ei analysoi kielen tavutusta. Se käyttää käyttäjän antamaa rakennetta.
+  8. Ohjelma voi kuitenkin lisätä yhdysmerkkejä ja välilyöntejä, jos transponoinnin pidentämät sävel- tai sointimerkit muuten rikkoisivat näkyvän kohdistuksen.
+
+     Esimerkiksi:
+
+     C C
+     onpa
+
+     voidaan puoli askelta ylöspäin esittää:
+
+     C# C#
+     on-pa
+
+     Lisäys tehdään kohdistuksen säilyttämiseksi, ei kielellisen tavutuksen perusteella.
+
+  9. Sointurivillä tuntematon kokonaisuus, kuten x2, säilyttää alkuperäisen muotoilunsa kokonaan. Sen numeroa tai muita osia ei lihavoida erikseen.
+  10. Kopiointiin voidaan tuottaa sekä muotoiltu HTML että tavallinen tekstiversio. Google Docs käyttää tällöin muotoiltua versiota.
+  11. Epäilyttävästä sointumerkinnästä annetaan varoitus ja näytetään ongelmallinen kohta, mutta koko käsittelyä ei pysäytetä.
+
+  ## Yksi tekninen tarkennus jää
+
+  Tuntematon sointu voidaan transponoida vain, jos sen perussävel voidaan tunnistaa.
+
+  Esimerkiksi:
+
+  Cfoo → Dbfoo
+
+  voidaan tehdä tulkitsemalla C perussäveleksi ja säilyttämällä tuntematon foo-osa. Samalla näytetään varoitus.
+
+  Sen sijaan:
+
+  Hfoo
+
+  ei sisällä tuettua perussäveltä, joten sille ei voida laskea puolisävelsiirtoa. Se pitäisi jättää ennalleen ja ilmoittaa varoituksessa.
+
+  Tämä olisi luonteva sääntö epävarmoille soinnuille: transponoi tunnistettava perus- ja bassosävel, säilytä tuntemattomat lisäosat ja varoita käyttäjää.
+
+
+• Tonal ei näytä tunnistavan H-säveltä tai H7-sointua suoraan. Se käyttää kansainvälistä merkintätapaa, jossa:
+
+  B = suomalais-saksalaisen käytännön H
+  Bb = alennettu H
+
+  Tonalin dokumentaation esimerkissä h suodattuu pois virheellisenä sävelenä, kun taas B hyväksytään. Myös sointujen perussävelet perustuvat kansainvälisiin sävelnimiin A–G. Tonalin säveldokumentaatio (https://tonaljs.github.io/tonal/docs/basics/notes), sointudokumentaatio
+  (https://tonaljs.github.io/tonal/docs/groups/chords).
+
+  Sovellukseen voidaan tehdä pieni normalisointikerros ennen Tonalia:
+
+  H   → B
+  Hm  → Bm
+  H7  → B7
+  H/B → B/B
+
+  Transponoinnin jälkeen tulos voidaan näyttää valitun nimeämiskäytännön mukaan.
+
+  Tässä on kuitenkin yksi merkintätapojen välinen ristiriita:
+
+   Kansainvälinen    Suomalais-saksalainen
+  ━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   B                 H
+  ────────────────  ───────────────────────────────
+   Bb                B tai Bb käytännöstä riippuen
+
+  Jos sovelluksessa hyväksytään sekä H7 että B7 saman soinnun niminä, ratkaisu on yksinkertainen:
+
+  H7 = B7
+
+  Tällöin Bb7 tarkoittaa aina alennettua B/H-sointua. Tämä olisi mielestäni sovellukselle selkein linja:
+
+  - hyväksytään H vaihtoehtoisena nimenä kansainväliselle B:lle
+  - hyväksytään myös B
+  - alennettu sävel kirjoitetaan aina Bb
+  - tuloksessa käytetään oletusarvoisesti kansainvälistä B-merkintää
+  - myöhemmin voidaan lisätä valinta “käytä H-merkintää”
+
+  Näin Tonalia voidaan käyttää normaalisti muuntamalla syötteen H ensin B:ksi. Esimerkiksi:
+
+  H7 + 1 → C7
+  B7 + 1 → C7
+  Bb7 + 1 → B7
+
+  Tämä kannattaa kirjata tuettuihin syöttömuotoihin, koska muuten B voi vanhemmassa suomalaisessa lähteessä tarkoittaa Bb:tä. Pelkästä merkistä ohjelma ei pysty varmasti tietämään, kumpaa nimeämisjärjestelmää lähde käyttää.

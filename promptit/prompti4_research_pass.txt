@@ -1,0 +1,21 @@
+edellisessä viestissäni oli virhe, eli jos yhteenkirjoitetut sävelet tulkitaan samassa tavussa laulettaviksi, olisi syötteen pitänyt olla
+
+C    |Am     |G       |C      |
+c c  a a a   gb g  g  c d   c 
+onpa i-hanaa laulella sateessa
+
+Koska ihanaa tavutetaan i-ha-naa.
+
+myös antamassasi vastauksessa on esimerkissä virhe:
+
+C#    |A#m      |G#       |C#      |
+c# c# a# a# a#  g# c g# g# c# d#  c#
+on-pa i--ha-naa lau-lella sa-teessa
+
+eli tässä tapauksessa lau-tavun sävelet kuuluisivat yhteen (onko tämä hyvä merkintätapa ylipäätään...vai ainoa mahdollinen?). Mutta tällä muokkauksella viimeinen tahti menee oikein:
+
+C#    |A#m      |G#       |C#      |
+c# c# a# a# a#  g#c g# g# c# d#  c#
+on-pa i--ha-naa lau-lella sa-teessa
+
+korjaisitko vielä tämänn perusteella suositeltua lähestymistapaa, ei muuta

@@ -40,7 +40,7 @@ Toisena toimintoja ohjelmalta voi kysyä sointuihin kuuluvat sävelet.
 
 \- ES-moduulit
 
-\- tallennetaan tarvittavia tietoja tietokantaan, jotta voidaan tehdä transponointi tietokantahakuihin pohjautuen, eikä laskentaan
+\- tehdään sellaisia tallennnuksia, mitkä toimivat ja antavat suoritustehoa 
 
 
 

@@ -1,0 +1,37 @@
+ Kiitos, nämä ratkaisevat suuren osan avoimista kysymyksistä. Päivitetty linja on seuraava:
+
+  - Yksi askel tarkoittaa aina yhtä puolisävelaskelta.
+  - Sävelissä ei käytetä oktaavinumeroita.
+  - Sävelet kirjoitetaan isoilla kirjaimilla.
+  - Sointu- ja sävelmerkinnät erotetaan toisistaan rivien perusteella, eivät kirjainkoon avulla.
+  - Ensimmäinen versio tukee ainakin merkintöjä C, Cm, C7, Cmaj7, Cm7, Csus4, Cdim, Caug, Cadd9 ja G/B.
+  - Soinnuissa ja sävelissä käytetään kohdesävellajiin sopivia ylennys- tai alennusmerkkejä.
+  - Sointurivillä saa olla tunnistamatonta tekstiä. Se säilytetään, mutta sitä ei transponoida eikä lihavoida.
+  - Tuloksessa tunnistetut soinnut sekä putket, pilkut, pisteet, viivat ja muut musiikin jäsentämiseen käytetyt merkit lihavoidaan. Esimerkiksi x2 säilyy tavallisena tekstinä.
+  - Sävelten lihavointi, kursivointi, niiden yhdistelmä ja fonttikoko säilytetään.
+  - Sointujen, sävelryhmien ja laulun tavujen kohdistus säilytetään.
+  - Tulos kopioidaan rikastekstinä esimerkiksi Google Docsiin. Tiedostovientiä ei vielä tarvita.
+  - Ensimmäinen toteutus voi käyttää staattista hakutaulua tai Tonal-kirjastoa tietokannan sijasta.
+  - Sointuhaun ensimmäinen versio näyttää vain soinnun sävelet. Pianon, kitaran ja ukulelen otteet voidaan lisätä myöhemmin.
+
+  Muutama ratkaiseva asia jäi vielä avoimeksi:
+
+  1. Miten käyttäjä ilmoittaa kohdesävellajin?
+
+     Pelkkä askelmäärä ei aina riitä määräämään kirjoitusasua. Esimerkiksi yhden puolisävelaskeleen päässä oleva sävel voidaan nimetä C# tai Db. Tarvitaanko askelkentän lisäksi valinta kuten “kohdesävellaji: Db-duuri”?
+
+  2. Miten sävelrivi tunnistetaan, kun säveletkin kirjoitetaan isoilla kirjaimilla eikä rivillä ole putkia?
+
+     Voisiko käyttöliittymässä merkitä rivin tyypin erikseen, vai päätelläänkö sävelrivi sen sijainnista suoraan sointurivin alapuolella?
+
+  3. Miten saman tavun sävelkulku merkitään yksiselitteisesti?
+
+     Isoilla kirjaimilla GB voitaisiin tulkita kahdeksi saman tavun säveleksi, mutta G#C vaatii jo jäsentämissäännön. Hyväksytäänkö esimerkiksi suljemerkintä [G B] tai yhdysmerkki G-B, jotta sävelryhmän rajat ovat selvät?
+
+  4. Mitä “muut merkit lihavoidaan” tarkoittaa tarkasti?
+
+     Kannattaako lihavoida kaikki sointurivin ei-tekstuaaliset merkit vai vain ennalta sovittu joukko, kuten | , . - : / ( )? Vinoviiva voi esimerkiksi olla osa sointua G/B.
+
+  5. Säilytetäänkö fonttikoko koko tekstijaksolta täsmälleen alkuperäisenä, vai riittääkö muutama sallittu kokoluokka?
+
+  Näistä erityisesti sävellajin syöttötapa ja sävelrivin tunnistaminen täytyy ratkaista ennen kuin transponoinnin käyttäytymisestä voidaan tehdä yksiselitteinen.

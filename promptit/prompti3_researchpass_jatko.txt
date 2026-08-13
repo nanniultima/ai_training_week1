@@ -1,0 +1,37 @@
+ aika monta asiaa tuli. Ensinnäkin tekstin muotoilusta: sointuriveillä putket ja soinnut ovat lihavoituja. Tai eivät välttämättä syötteessä, mutta tulosteessa ovat.
+Sävelrivillä ei ole putkia (miten tunnistetaan, onko sävelrivejä?), mutta sävelet saattavat olla lihavoituja, kursivoituja, molempia tai tavallisia. Tämä viittaa siihen, miten korkea sävel on. Sävelet kirjoitetaan pienillä kirjaimilla ja soinnut isoilla etukirjaimilla. Putket osoittavat tahtien muutoskohdan. Rivi ei siis välttämättä ala putkella tai pääty putkeen. Myös sekä sointu että sävelrivi voi esiintyä, ja tulee huomata, että soinnut ja sävelet asttuvat tekstin kanssa siihen kohtaan, missä ne soitetaan tai lauletaan, esimerkiksi:
+
+C    |Am    |G       |C      |
+c c  aa a   g  g  g  c d   c 
+onpa ihanaa laulella sateessa
+
+tässä puolen sävelaskeleen (yhden pykälän) nosto (nyt merkittynä korotuksina, saattaa oikeasti olla osa myös alennuksia) lisää merkkejä, mikä tuo haasteen tekstin ja sävelten täsmäämisessä.
+Haasteen voisi kiertää esim lisäämällä viivoja kohtiin, joissa sävelmerkit liittyisivät toisiinsa
+
+C#    |A#m      |G#      |C#      |
+c# c# a# a# a#  g# g# g# c# d#  c# 
+on-pa i--ha-naa laulella sa-teessa
+
+on myös mahdollista, että jossain tavussa lauletaan useampi sävel, eli yhteenkirjoitetut sävelet viittaavat saman tavun sisällä olevaan sävelkulkuun:
+
+C    |Am    |G       |C      |
+c c  aa a   gb g  g  c d   c 
+onpa ihanaa laulella sateessa
+
+tälle esimerkille sama muutos olisi
+
+C#    |A#m      |G#       |C#      |
+c# c# a# a# a#  g#c g# g# c# d#  c# 
+on-pa i--ha-naa lau-lella sa-teessa
+
+sointu / sävelrivillä voi olla myös muuta tekstiä, eikä se saisi rikkoa toimintoja. Esim pilkulla voidaan myös merkata tarvittaessa tahdin puoliväliä. usein tekstiä tulee syltteenä myös useampia rivejä, esim:
+
+C    |Am    |G       |C      |
+c c  aa a   g  g  g  c d   c 
+onpa ihanaa laulella sateessa
+
+C    |Am    |G       |C      |
+c c  aa a   g  g  g  c d   c 
+onpa ihanaa laulella sateessa
+
+korjaisitko osiota "suositeltu lähestymistpa" tällä perusteella, älä vielä korjaa muuta
