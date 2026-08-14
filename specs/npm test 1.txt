@@ -1,0 +1,8 @@
+• npm test onnistui:
+
+  - 3 testitiedostoa läpäisi
+  - 5 testiä läpäisi
+  - 0 epäonnistunutta testiä
+  - suoritusaika noin 2 sekuntia
+
+  Kaksi testeistä vahvistaa vielä tarkoituksellisesti not implemented -virheen. Tulos kertoo siis nykyisen projektirungon olevan ehjä, ei vielä sitä, että transponointitoiminnot olisi toteutettu.

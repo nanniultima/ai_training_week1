@@ -6,6 +6,7 @@
   "scripts": {
     "start": "vite",
     "test": "vitest run",
+    "test:color": "vitest run --color",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
