@@ -14,8 +14,8 @@ kirjoittamisessa käytettävän pohjan.
 | 1 | [Syötteen rivien tunnistaminen](features/input-line-classification.md) | Kirjoitettu | Tunnistaa sointu-, sävel-, teksti- ja tyhjät rivit sekä epäselvät syötteet. | Ei riippuvuuksia |
 | 2 | [Transponointiasetusten valinta](features/transposition-settings.md) | Kirjoitettu | Valitsee duurin tai mollin, lähtösävellajin ja askelmäärän sekä ratkaisee mahdollisen enharmonisen lisävalinnan. | Ei toteutusriippuvuutta speksistä 1 |
 | 3 | `features/chord-transposition.md` | Suunniteltu | Transponoi soinnut, bassosoinnut ja H/B-merkinnät sekä käsittelee epäilyttävät soinnut. | 1 ja 2 |
-| 4 | `features/note-transposition.md` | Suunniteltu | Jäsentää ja transponoi sävelryhmät sekä käsittelee `b`, `B`, `H` ja `#` -merkinnät. | 1 ja 2 |
-| 5 | `features/rich-text-formatting.md` | Suunniteltu | Säilyttää sävelten korkeusalueita ilmaisevat muotoilut ja muodostaa sointurivien lihavoinnin. | 1, 3 ja 4 |
+| 4 | [Sävelten transponointi](features/note-transposition.md) | Kirjoitettu | Jäsentää ja transponoi sävelryhmät sekä käsittelee `b`, `B`, `H` ja `#` -merkinnät. | 1 ja 2 |
+| 5 | [Rikastekstin muotoilut](features/rich-text-formatting.md) | Kirjoitettu | Säilyttää sävelten korkeusalueita ilmaisevat muotoilut ja muodostaa sointurivien lihavoinnin. | 1, 3 ja 4 |
 | 6 | `features/alignment-preservation.md` | Suunniteltu | Säilyttää tahtien, sointujen, sävelryhmien ja sanojen kohdistuksen lisäämällä tarvittavat välit ja yhdysmerkit. | 1, 3, 4 ja 5 |
 | 7 | `features/result-and-copy.md` | Suunniteltu | Näyttää rikastekstituloksen ja kopioi sen HTML- ja tekstimuodossa. | 3–6 |
 | 8 | `features/chord-notes.md` | Suunniteltu | Näyttää käyttäjän antamaan sointuun kuuluvat sävelet. | Sointusanasto speksistä 3 |
@@ -74,4 +74,3 @@ Speksi on valmis toteutettavaksi vasta, kun:
 - speksin readiness-tarkistuslista on käyty läpi
 - speksi ei jätä toteutuksen kannalta ratkaisevia käyttäytymissääntöjä
   avoimeksi
-
