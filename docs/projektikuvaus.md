@@ -62,6 +62,11 @@ ole virhe, eikä sitä muuteta tai lihavoida. Tuloksessa tunnistetut soinnut ja
 kaikki sointurivin ei-tekstuaaliset merkit lihavoidaan. Sointuun kuuluvat
 merkit, kuten bassosoinnun vinoviiva, ovat osa lihavoitavaa sointua.
 
+Tuettua sointua vastaava mutta pienellä alkava token, kuten `c`, `am` tai
+`g7`, jätetään muuttamatta ja siitä annetaan `LOWERCASE_CHORD`-varoitus.
+Varoitus yksilöi rivin ja merkkikohdan. Pienellä alkavaa tavallista sanaa ei
+varoiteta, ellei koko token vastaa tuettua sointumerkintää.
+
 ### Sävelrivi
 
 Sävelrivi ei sisällä putkimerkkejä. Se koostuu pääasiassa sävelistä,
@@ -179,6 +184,11 @@ Ohjelma ei päättele, miten sana pitäisi tavuttaa. Kohdistus perustuu
 syötteessä oleviin sävelryhmiin, välilyönteihin ja merkkien sijainteihin.
 
 ## Validointi ja varoitukset
+
+Editorissa näytetään loogisten syöterivien numerot. Sisäinen nollasta alkava
+rivi-indeksi muunnetaan käyttäjälle yhdestä alkavaksi rivinumeroksi.
+Automaattisesti näytölle kääriytyvä pitkä rivi säilyy yhtenä loogisena
+rivinä.
 
 Virheellinen askelmäärä tai puuttuva pakollinen valinta estää käsittelyn.
 Epävarma sisältö ei normaalisti estä koko transponointia.

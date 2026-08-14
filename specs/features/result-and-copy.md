@@ -78,6 +78,9 @@ rivi- ja merkkisijainti näytetään käyttäjälle yhdestä alkavana.
 - `SUSPICIOUS_CHORD` näytetään muodossa
   `Rivi {lineIndex + 1}, kohta {startIndex + 1}: epäilyttävä sointu
   "{original}" muutettiin muotoon "{output}".`
+- `LOWERCASE_CHORD` näytetään muodossa
+  `Rivi {lineIndex + 1}, kohta {startIndex + 1}: mahdollinen sointu
+  "{original}" alkaa pienellä kirjaimella eikä sitä muutettu.`
 - `AMBIGUOUS_NOTE_LINE` näytetään muodossa
   `Rivi {lineIndex + 1}: rivi tulkittiin tekstiksi: "{content}".`
 
@@ -218,6 +221,11 @@ onnistumisviestiä näytetä. Epäonnistuminen ei poista näkyvää tulosta.
 **When** tulosalue muodostetaan
 **Then** alueella on täsmälleen yksi tulostoimintopainike tekstillä `Kopioi tulos` eikä alueella ole `download`-attribuutilla varustettua elementtiä
 
+### AC25: Pienellä kirjoitettu sointu näytetään täsmällisenä varoituksena
+**Given** varoitus on `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 3, original: "am" }`
+**When** tulosesitys muodostetaan
+**Then** ainoa varoitusteksti on `Rivi 3, kohta 4: mahdollinen sointu "am" alkaa pienellä kirjaimella eikä sitä muutettu.`
+
 ## Files to Modify
 
 | File | Change |
@@ -277,6 +285,7 @@ onnistumisviestiä näytetä. Epäonnistuminen ei poista näkyvää tulosta.
 | käyttöliittymä | AC22 käsittelyvirhe | Vanha C-rivi, uusi valintavirhe | Näytetään virhe | Tulos hidden, kopiointi disabled, täsmällinen virheteksti |
 | käyttöliittymä | AC23 nolla askelta | 0 ja käsitelty C-rivi | Valmistuu | Tulos näkyy ja kopiointi käytössä |
 | käyttöliittymä | AC24 ei latausta | Onnistunut tulos | Muodostetaan | Yksi `Kopioi tulos` -painike, ei download-elementtiä |
+| `createResultPresentation` | AC25 pieni sointu | LOWERCASE_CHORD rivillä 2, kohdassa 3, token am | Muodostetaan | `Rivi 3, kohta 4: mahdollinen sointu "am" alkaa pienellä kirjaimella eikä sitä muutettu.` |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

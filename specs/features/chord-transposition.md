@@ -99,13 +99,28 @@ Esimerkiksi `Cfoo` + 1 alennusmerkkisellä kirjoitusasulla tuottaa `Dbfoo` ja
 `SUSPICIOUS_CHORD`-varoituksen. Token `Xfoo` ei sisällä tunnistettavaa
 perussäveltä, joten se säilytetään tavallisena tekstinä ilman varoitusta.
 
-Varoitus sisältää täsmälleen:
+Jos token alkaa pienellä kirjaimella mutta vastaa täsmälleen jotakin tuettua
+sointumerkintää, token säilytetään muuttumattomana ja palautetaan
+`LOWERCASE_CHORD`-varoitus. Esimerkiksi `c`, `am`, `g7` ja `cm7/bb` ovat
+todennäköisiä pienellä kirjoitettuja sointuja. Niitä ei korjata tai
+transponoida automaattisesti, jotta tavallista tekstiä ei muuteta käyttäjän
+puolesta. Token `cafe` ei vastaa tuettua sointumerkintää eikä aiheuta tätä
+varoitusta.
+
+`SUSPICIOUS_CHORD`-varoitus sisältää täsmälleen:
 
 - koodin `SUSPICIOUS_CHORD`
 - nollasta alkavan rivi-indeksin
 - tokenin nollasta alkavan aloitusindeksin rivillä
 - alkuperäisen tokenin
 - tuotetun tokenin
+
+`LOWERCASE_CHORD`-varoitus sisältää täsmälleen:
+
+- koodin `LOWERCASE_CHORD`
+- nollasta alkavan rivi-indeksin
+- tokenin nollasta alkavan aloitusindeksin rivillä
+- alkuperäisen tokenin
 
 Muotoilua, fonttikokoa ja muiden rivien kohdistusta ei käsitellä tässä
 ominaisuudessa.
@@ -232,12 +247,22 @@ ominaisuudessa.
 **When** kukin rivi yritetään käsitellä `transposeChordLine`-toiminnolla
 **Then** jokainen kutsu heittää virheen täsmällisellä viestillä `Rivin tyypin pitää olla chord`
 
+### AC25: Pienellä kirjoitettu tuettu sointu varoittaa
+**Given** sointurivi-indeksi on `2`, rivi on `c |am |g7 |cm7/bb |C |`, askelmäärä on `2` ja kohdesävellaji on D-duuri
+**When** sointurivi transponoidaan
+**Then** tulosrivi on täsmälleen `c |am |g7 |cm7/bb |D |` ja varoitukset ovat tässä järjestyksessä täsmälleen `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 0, original: "c" }`, `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 3, original: "am" }`, `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 7, original: "g7" }` ja `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 11, original: "cm7/bb" }`
+
+### AC26: Pienellä alkava tavallinen sana ei varoita
+**Given** sointurivi on `cafe |C |`, askelmäärä on `2` ja kohdesävellaji on D-duuri
+**When** sointurivi transponoidaan
+**Then** tulosrivi on täsmälleen `cafe |D |` eikä `cafe`-tokenista palauteta `LOWERCASE_CHORD`- tai `SUSPICIOUS_CHORD`-varoitusta
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `package.json` | Lisää Tonal-riippuvuus, jos kirjasto hyväksytään toteutuksessa sointujen jäsentämiseen ja transponointiin. |
-| `src/types.ts` | Lisää sointutransponoinnin syöte-, tulos- ja `SUSPICIOUS_CHORD`-varoitustyypit. |
+| `src/types.ts` | Lisää sointutransponoinnin syöte-, tulos-, `SUSPICIOUS_CHORD`- ja `LOWERCASE_CHORD`-varoitustyypit. |
 | `src/logic/transposeChord.ts` | Lisää yhden sointumerkin validointi, H/B-normalisointi ja transponointi. |
 | `src/logic/transposeChord.test.ts` | Lisää yhden soinnun onnistumis-, enharmoniset ja virhetestit. |
 | `src/logic/transposeChordLine.ts` | Lisää sointurivin tokenisointi, tekstin säilyttäminen ja varoitusten muodostus. |
@@ -290,6 +315,8 @@ ominaisuudessa.
 | `transposeChordSymbol` | AC22 tyhjä | Tyhjä merkkijono | Transponoidaan | Virhe `Sointu ei saa olla tyhjä` |
 | `transposeChordLine` | AC23 keskeneräinen basso | `G/ \|C \|`, `+2` | Transponoidaan | `A/ \|D \|` ja täsmällinen varoitus |
 | `transposeChordLine` | AC24 väärä rivityyppi | Tyypit `note`, `text`, `empty` | Transponoidaan kukin | Jokaisesta virhe `Rivin tyypin pitää olla chord` |
+| `transposeChordLine` | AC25 pienet soinnut | Rivi 2, `c \|am \|g7 \|cm7/bb \|C \|`, `+2` | Transponoidaan | Pienet tokenit ennallaan, C→D ja neljä täsmällistä `LOWERCASE_CHORD`-varoitusta |
+| `transposeChordLine` | AC26 tavallinen sana | `cafe \|C \|`, `+2` | Transponoidaan | `cafe \|D \|`, ei cafe-varoitusta |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
@@ -298,4 +325,3 @@ ominaisuudessa.
 - [x] Every AC can fail — one that cannot fail proves nothing
 - [x] Error and edge cases have ACs of their own
 - [x] Every AC appears in the testing strategy table
-

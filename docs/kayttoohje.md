@@ -141,6 +141,12 @@ alkuperäisessä muodossaan.
 Tuloksessa soinnut sekä putket ja muut ei-tekstuaaliset merkit ovat aina
 lihavoituja. Muu teksti säilyttää alkuperäisen muotoilunsa.
 
+Kirjoita soinnun perussävel isolla alkukirjaimella. Jos esimerkiksi `c`,
+`am` tai `g7` esiintyy sointurivillä, ohjelma jättää tokenin muuttamatta ja
+varoittaa mahdollisesta pienellä kirjoitetusta soinnusta. Varoitus kertoo
+editorissa näkyvän rivinumeron ja merkkikohdan. Tavallista sanaa, kuten
+`cafe`, ei tulkita tämän perusteella soinnuksi.
+
 Tuettaviksi suunniteltuja sointuja ovat muun muassa:
 
 ```text
@@ -246,6 +252,9 @@ kohdistamiseen, ohjelma voi poistaa sen lyhenemisen yhteydessä. Esimerkiksi
 `C C#` ja `onpa`.
 
 ## Varoitukset
+
+Editorin vasemmassa reunassa näytetään loogisten rivien numerot. Pitkän rivin
+automaattinen jakautuminen usealle näyttöriville ei lisää rivinumeroa.
 
 Sävelrivillä voi olla lyhyt merkintä, kuten `x2`. Jos sävelriviltä näyttää
 löytyvän paljon tavallista tekstiä, ohjelma varoittaa epäselvästä syötteestä.

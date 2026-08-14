@@ -72,6 +72,18 @@ rikastekstistä saatua muotoilutietoa. Muotoilua ei käytetä ensisijaisena
 rivityypin tunnisteena, koska myös tekstissä voi olla lihavointia tai
 kursivointia.
 
+### Editorin rivinumerot
+
+Käyttöliittymä näyttää editorin vasemmalla puolella synkronoidun
+rivinumeropalstan. Ensimmäinen looginen rivi on `1`. Käyttäjän tekemä
+rivinvaihto lisää seuraavan rivinumeron, mutta pitkän rivin automaattinen
+visuaalinen rivitys editorin reunassa ei lisää numeroa. Numeropalsta ei ole
+osa muokattavaa sisältöä eikä sitä kopioida syötteen mukana.
+
+Sisäisen luokitellun rivin `index: 0` vastaa käyttäjälle näkyvää riviä `1`.
+Näin varoituksen `lineIndex` voidaan näyttää suoraan muodossa
+`Rivi {lineIndex + 1}`.
+
 ## Acceptance Criteria
 
 ### AC1: Tyhjä rivi säilytetään
@@ -189,6 +201,21 @@ kursivointia.
 **When** rivit luokitellaan
 **Then** rivityypit ovat täsmälleen `[chord, note, chord, note]`, kaikki neljä sisältöä säilyvät muuttumattomina eikä varoituksia palauteta
 
+### AC24: Editorin loogiset rivit numeroidaan yhdestä alkaen
+**Given** editorin tekstisisältö on `Kertosäe\nC |G |\nonpa`
+**When** rivinumeropalsta muodostetaan
+**Then** palstalla on täsmälleen kolme numeroa tekstisisällöillä `1`, `2` ja `3` tässä järjestyksessä
+
+### AC25: Automaattinen visuaalinen rivitys ei lisää rivinumeroa
+**Given** editorissa on yksi pitkä looginen rivi ilman rivinvaihtomerkkiä ja se jakautuu näytöllä kolmelle visuaaliselle riville
+**When** rivinumeropalsta muodostetaan
+**Then** palstalla on täsmälleen yksi numero, jonka tekstisisältö on `1`
+
+### AC26: Näkyvä rivinumero vastaa varoituksen sisäistä indeksiä
+**Given** luokitellun rivin indeksi on `2`
+**When** varoituksen käyttäjälle näkyvä rivinumero muodostetaan
+**Then** rivinumero on täsmälleen `3`
+
 ## Files to Modify
 
 | File | Change |
@@ -196,6 +223,10 @@ kursivointia.
 | `src/types.ts` | Lisää rivityyppi-, luokiteltu rivi-, varoitus- ja luokittelutulostyypit. |
 | `src/logic/classifyLines.ts` | Lisää puhdas rivien luokittelulogiikka ja syötteen validointi. |
 | `src/logic/classifyLines.test.ts` | Lisää hyväksymiskriteerit kattavat Vitest-testit lähdekoodin viereen. |
+| `src/ui/lineNumbers.ts` | Lisää loogisten editoririvien numerointi ja nollasta alkavan indeksin muuntaminen näkyväksi rivinumeroksi. |
+| `src/ui/lineNumbers.test.ts` | Lisää rivinvaihtojen, visuaalisen rivityksen ja indeksimuunnoksen testit. |
+| `src/ui/ui.ts` | Lisää editorin vieressä näkyvä, vierityksen kanssa synkronoitu rivinumeropalsta. |
+| `style.css` | Lisää editorin ja rivinumeropalstan rinnakkainen asettelu. |
 
 ## Risk
 
@@ -240,6 +271,9 @@ kursivointia.
 | `classifyLines` | AC21 ohje kokonaisuuksien välissä | Sointu, sanat, `Välisoitto`, sointu | Luokitellaan | `[chord, text, text, chord]`; Välisoitto säilyy; ei varoituksia |
 | `classifyLines` | AC22 peräkkäiset soinnut | Kolme sointuriviä | Luokitellaan | `[chord, chord, chord]`; sisällöt säilyvät; ei varoituksia |
 | `classifyLines` | AC23 sointu ja melodia vuorottelevat | Sointu, sävel, sointu, sävel | Luokitellaan | `[chord, note, chord, note]`; sisällöt säilyvät; ei varoituksia |
+| `renderLineNumbers` | AC24 kolme riviä | `Kertosäe\nC \|G \|\nonpa` | Muodostetaan | Numerot `1`, `2`, `3` järjestyksessä |
+| `renderLineNumbers` | AC25 visuaalinen rivitys | Yksi looginen rivi näkyy kolmella rivillä | Muodostetaan | Vain numero `1` |
+| `toVisibleLineNumber` | AC26 indeksimuunnos | Indeksi `2` | Muunnetaan | `3` |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
