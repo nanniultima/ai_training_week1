@@ -32,6 +32,11 @@ Luokittelu noudattaa seuraavia sääntöjä tässä järjestyksessä:
    `N` on positiivinen kokonaisluku.
 4. Muu putketon, ei-tyhjä rivi on `text`.
 
+Kun kaikki rivit on luokiteltu, syötteessä pitää olla vähintään yksi `chord`-
+tai `note`-rivi. Pelkkiä `text`- ja `empty`-rivejä sisältävä syöte hylätään
+virheellä `Syötteestä ei löytynyt sointu- tai sävelrivejä`. Näin sovellus ei
+hyväksy transponoitavaksi sisältöä, jossa ei ole tunnistettavaa musiikkia.
+
 Sävelryhmässä:
 
 - sävelkirjaimet ovat `A`–`G` tai `a`–`g`
@@ -104,14 +109,14 @@ kursivointia.
 **Then** rivin tyyppi on `note`, `x2` säilyy alkuperäisessä sisällössä eikä varoituksia palauteta
 
 ### AC9: Laulun sanat tunnistetaan tekstiriviksi
-**Given** syöte sisältää rivin `"onpa i-hanaa laulella sateessa"`
+**Given** syöte sisältää rivit `"C |G |"` ja `"onpa i-hanaa laulella sateessa"`
 **When** rivit luokitellaan
-**Then** rivin tyyppi on `text` eikä varoituksia palauteta
+**Then** jälkimmäisen rivin tyyppi on `text` eikä varoituksia palauteta
 
 ### AC10: Säveliä ja tavallista tekstiä sisältävä putketon rivi varoittaa epäselvyydestä
-**Given** syöte sisältää rivin `"C D lauletaan hiljaa"`
+**Given** syöte sisältää rivit `"C |G |"` ja `"C D lauletaan hiljaa"`
 **When** rivit luokitellaan
-**Then** rivin tyyppi on `text` ja palautetaan täsmälleen yksi `AMBIGUOUS_NOTE_LINE`-varoitus, jonka rivi-indeksi on `0` ja sisältö `"C D lauletaan hiljaa"`
+**Then** jälkimmäisen rivin tyyppi on `text` ja palautetaan täsmälleen yksi `AMBIGUOUS_NOTE_LINE`-varoitus, jonka rivi-indeksi on `1` ja sisältö `"C D lauletaan hiljaa"`
 
 ### AC11: Sointu-, sävel- ja tekstirivit tunnistetaan samasta kokonaisuudesta
 **Given** syöte sisältää rivit `"C |Am |G |C |"`, `"c c a a g g c"` ja `"onpa ihanaa"` tässä järjestyksessä
@@ -137,6 +142,26 @@ kursivointia.
 **Given** syöte ei sisällä yhtään riviä
 **When** rivit yritetään luokitella
 **Then** toiminto heittää virheen täsmällisellä viestillä `Syöte ei saa olla tyhjä`
+
+### AC16: Soinnut ja melodia hyväksytään ilman tekstiriviä
+**Given** syöte sisältää rivit `"C |Am |G |C |"` ja `"c c a a g g c"`
+**When** rivit luokitellaan
+**Then** palautettujen rivityyppien järjestys on täsmälleen `chord`, `note` eikä puuttuvasta tekstirivistä palauteta virhettä tai varoitusta
+
+### AC17: Melodia ja sanat hyväksytään ilman sointuriviä
+**Given** syöte sisältää rivit `"c c a a g g c"` ja `"onpa ihanaa"`
+**When** rivit luokitellaan
+**Then** palautettujen rivityyppien järjestys on täsmälleen `note`, `text` eikä puuttuvasta sointurivistä palauteta virhettä tai varoitusta
+
+### AC18: Pelkät soinnut hyväksytään
+**Given** syöte sisältää ainoan rivin `"C |Am |G |C |"`
+**When** rivit luokitellaan
+**Then** rivin tyyppi on `chord` eikä puuttuvista sävel- tai tekstiriveistä palauteta virhettä tai varoitusta
+
+### AC19: Syöte ilman tunnistettavaa musiikkia hylätään
+**Given** syöte sisältää rivit `"onpa ihanaa"`, `""` ja `"laulella sateessa"`
+**When** rivit yritetään luokitella
+**Then** toiminto heittää virheen täsmällisellä viestillä `Syötteestä ei löytynyt sointu- tai sävelrivejä`
 
 ## Files to Modify
 
@@ -174,13 +199,17 @@ kursivointia.
 | `classifyLines` | AC6 b/B-tapaukset | `gb`, `Gb`, `GB`, `gB` | Luokitellaan | Kaikki `note`, sisällöt muuttumattomia |
 | `classifyLines` | AC7 H-merkintä | `h H BH` | Luokitellaan | Tyyppi `note`, ei varoituksia |
 | `classifyLines` | AC8 toistomerkintä | `c c g g x2` | Luokitellaan | Tyyppi `note`, `x2` säilyy |
-| `classifyLines` | AC9 tekstirivi | `onpa i-hanaa laulella sateessa` | Luokitellaan | Tyyppi `text`, ei varoituksia |
-| `classifyLines` | AC10 epäselvä rivi | `C D lauletaan hiljaa` | Luokitellaan | Tyyppi `text`, yksi yksilöity `AMBIGUOUS_NOTE_LINE` |
+| `classifyLines` | AC9 tekstirivi | `C \|G \|` ja `onpa i-hanaa laulella sateessa` | Luokitellaan | Jälkimmäinen tyyppi `text`, ei varoituksia |
+| `classifyLines` | AC10 epäselvä rivi | `C \|G \|` ja `C D lauletaan hiljaa` | Luokitellaan | Jälkimmäinen tyyppi `text`, yksi riville 1 yksilöity `AMBIGUOUS_NOTE_LINE` |
 | `classifyLines` | AC11 kaikki rivityypit | Sointu-, sävel- ja tekstirivi | Luokitellaan | Tyypit `chord`, `note`, `text` samassa järjestyksessä |
 | `classifyLines` | AC12 puuttuva sävelrivi | Sointu- ja tekstirivi | Luokitellaan | Tyypit `chord`, `text`, ei varoitusta puuttuvasta rivistä |
 | `classifyLines` | AC13 pelkkä melodia | Yksi sävelrivi | Luokitellaan | Tyyppi `note`, ei puuttuvien rivien varoituksia |
 | `classifyLines` | AC14 osien raja | Sointurivi, tyhjä rivi, sointurivi | Luokitellaan | Kolme riviä ja tyypit `chord`, `empty`, `chord` |
 | `classifyLines` | AC15 virhe | Tyhjä rivilista | Luokitellaan | Virhe `Syöte ei saa olla tyhjä` |
+| `classifyLines` | AC16 soinnut ja melodia | Sointurivi ja sävelrivi | Luokitellaan | Tyypit `chord`, `note`, ei puuttuvan tekstirivin varoitusta |
+| `classifyLines` | AC17 melodia ja sanat | Sävelrivi ja tekstirivi | Luokitellaan | Tyypit `note`, `text`, ei puuttuvan sointurivin varoitusta |
+| `classifyLines` | AC18 pelkät soinnut | Yksi sointurivi | Luokitellaan | Tyyppi `chord`, ei puuttuvien rivien varoituksia |
+| `classifyLines` | AC19 vain tekstiä | Tekstirivi, tyhjä rivi ja tekstirivi | Luokitellaan | Virhe `Syötteestä ei löytynyt sointu- tai sävelrivejä` |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
