@@ -17,7 +17,7 @@ kirjoittamisessa käytettävän pohjan.
 | 4 | [Sävelten transponointi](features/note-transposition.md) | Kirjoitettu | Jäsentää ja transponoi sävelryhmät sekä käsittelee `b`, `B`, `H` ja `#` -merkinnät. | 1 ja 2 |
 | 5 | [Rikastekstin muotoilut](features/rich-text-formatting.md) | Kirjoitettu | Säilyttää sävelten korkeusalueita ilmaisevat muotoilut ja muodostaa sointurivien lihavoinnin. | 1, 3 ja 4 |
 | 6 | [Rivien välisen kohdistuksen säilyttäminen](features/alignment-preservation.md) | Kirjoitettu | Säilyttää tahtien, sointujen, sävelryhmien ja sanojen kohdistuksen lisäämällä tai poistamalla tarvittavat välit ja yhdysmerkit. | 1, 3, 4 ja 5 |
-| 7 | `features/result-and-copy.md` | Suunniteltu | Näyttää rikastekstituloksen ja kopioi sen HTML- ja tekstimuodossa. | 3–6 |
+| 7 | [Tuloksen näyttäminen ja kopiointi](features/result-and-copy.md) | Kirjoitettu | Näyttää rikastekstituloksen ja kopioi sen HTML- ja tekstimuodossa. | 3–6 |
 | 8 | `features/chord-notes.md` | Suunniteltu | Näyttää käyttäjän antamaan sointuun kuuluvat sävelet. | Sointusanasto speksistä 3 |
 
 ## Suositeltu toteutusjärjestys

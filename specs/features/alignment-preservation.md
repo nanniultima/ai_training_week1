@@ -253,6 +253,16 @@ eikä muodosta HTML:ää.
 **When** kokonaisuus yritetään kohdistaa
 **Then** toiminto heittää virheen `Kohdistettavalta tokenilta puuttuu alkuperäinen sijainti`
 
+### AC30: Peräkkäiset sointurivit muodostavat erilliset kokonaisuudet
+**Given** rivityypit ja sisällöt ovat `[chord:"C |G |", chord:"Am |F |", chord:"Dm |G |"]`
+**When** rivit ryhmitellään
+**Then** tuloksena on täsmälleen kolme kokonaisuutta, joista jokainen sisältää yhden chord-rivin, ja niiden sisällöt ovat järjestyksessä `C |G |`, `Am |F |` ja `Dm |G |`
+
+### AC31: Sointu- ja sävelrivien vuorottelu muodostaa parit
+**Given** rivityypit ovat `[chord, note, chord, note]`
+**When** rivit ryhmitellään
+**Then** tuloksena on täsmälleen kaksi kokonaisuutta ja kummankin rivityypit ovat täsmälleen `[chord, note]`
+
 ## Files to Modify
 
 | File | Change |
@@ -313,6 +323,8 @@ eikä muodosta HTML:ää.
 | `alignLineGroup` | AC27 ei musiikkia | Vain text `onpa ihanaa` | Kohdistetaan | Virhe `Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi` |
 | `alignLineGroup` | AC28 sarkain | `C\t\|G \|` | Kohdistetaan | Virhe `Kohdistettava syöte ei saa sisältää sarkainmerkkejä` |
 | `alignLineGroup` | AC29 sijainti puuttuu | Sävelryhmältä puuttuu aloitussarake | Kohdistetaan | Virhe `Kohdistettavalta tokenilta puuttuu alkuperäinen sijainti` |
+| `groupAlignedLines` | AC30 peräkkäiset soinnut | Kolme chord-riviä | Ryhmitellään | Kolme yhden chord-rivin kokonaisuutta alkuperäisessä järjestyksessä |
+| `groupAlignedLines` | AC31 sointu ja melodia vuorottelevat | `[chord, note, chord, note]` | Ryhmitellään | Kaksi `[chord, note]`-kokonaisuutta |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

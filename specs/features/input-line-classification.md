@@ -179,6 +179,16 @@ kursivointia.
 **When** rivit luokitellaan
 **Then** rivityypit ovat täsmälleen `[chord, text, text, chord]`, kolmannen rivin sisältö on `"Välisoitto"` eikä varoituksia palauteta
 
+### AC22: Peräkkäiset sointurivit hyväksytään
+**Given** syöte sisältää rivit `"C |G |"`, `"Am |F |"` ja `"Dm |G |"`
+**When** rivit luokitellaan
+**Then** rivityypit ovat täsmälleen `[chord, chord, chord]`, kaikki kolme sisältöä säilyvät muuttumattomina eikä varoituksia palauteta
+
+### AC23: Sointu- ja sävelrivien vuorottelu hyväksytään
+**Given** syöte sisältää rivit `"C |G |"`, `"c d e f"`, `"Am |F |"` ja `"a c e f"`
+**When** rivit luokitellaan
+**Then** rivityypit ovat täsmälleen `[chord, note, chord, note]`, kaikki neljä sisältöä säilyvät muuttumattomina eikä varoituksia palauteta
+
 ## Files to Modify
 
 | File | Change |
@@ -228,6 +238,8 @@ kursivointia.
 | `classifyLines` | AC19 vain tekstiä | Tekstirivi, tyhjä rivi ja tekstirivi | Luokitellaan | Virhe `Syötteestä ei löytynyt sointu- tai sävelrivejä` |
 | `classifyLines` | AC20 otsikko ennen musiikkia | `Kertosäe`, sointurivi ja laulunsanat | Luokitellaan | `[text, chord, text]`; Kertosäe säilyy; ei varoituksia |
 | `classifyLines` | AC21 ohje kokonaisuuksien välissä | Sointu, sanat, `Välisoitto`, sointu | Luokitellaan | `[chord, text, text, chord]`; Välisoitto säilyy; ei varoituksia |
+| `classifyLines` | AC22 peräkkäiset soinnut | Kolme sointuriviä | Luokitellaan | `[chord, chord, chord]`; sisällöt säilyvät; ei varoituksia |
+| `classifyLines` | AC23 sointu ja melodia vuorottelevat | Sointu, sävel, sointu, sävel | Luokitellaan | `[chord, note, chord, note]`; sisällöt säilyvät; ei varoituksia |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

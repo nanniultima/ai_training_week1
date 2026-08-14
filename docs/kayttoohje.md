@@ -98,6 +98,28 @@ onpa ihanaa laulella
 Otsikko voi olla ennen musiikkia tai musiikkikokonaisuuksien välissä. Se
 säilytetään tuloksessa, mutta sitä ei kohdisteta sointuihin tai säveliin.
 
+Esimerkiksi välisoitossa voi olla monta peräkkäistä sointuriviä:
+
+```text
+Välisoitto
+C    |G    |
+Am   |F    |
+Dm   |G    |
+```
+
+Sointu- ja sävelrivit voivat myös vuorotella. Kukin sointurivi kohdistetaan
+heti sitä seuraavaan sävelriviin:
+
+```text
+Välisoitto
+C    |G    |
+c d   e f
+Am   |F    |
+a c   e f
+```
+
+Laulunsanoja ei vaadita näihin kokonaisuuksiin.
+
 ## Sointurivin kirjoittaminen
 
 Sointurivillä pitää olla vähintään yksi putkimerkki (`|`). Putket osoittavat

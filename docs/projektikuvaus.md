@@ -44,6 +44,12 @@ laulunsanoja. Esimerkiksi `Kertosäe` tai `Välisoitto` voi esiintyä ennen
 seuraavaa sointu- tai sävelkokonaisuutta. Tällainen rivi säilytetään
 paikallaan, mutta sitä ei kohdisteta musiikkitapahtumiin.
 
+Instrumentaalinen osa voi sisältää useita peräkkäisiä sointurivejä tai
+vuorottelevia sointu- ja sävelrivejä ilman laulunsanoja. Peräkkäiset
+sointurivit käsitellään omina kokonaisuuksinaan. Vuorottelussa kukin
+sointurivi ja sitä välittömästi seuraava sävelrivi muodostavat yhteisen
+kohdistettavan kokonaisuuden.
+
 ## Rivien tunnistaminen
 
 ### Sointurivi
