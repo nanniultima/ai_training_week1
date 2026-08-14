@@ -12,6 +12,12 @@ pelkät soinnut, pelkkä melodia sekä sointujen, sävelten ja sanojen eri
 sallitut yhdistelmät. Alkuperäinen sisältö, rivijärjestys ja tyhjät rivit
 eivät saa muuttua luokittelun aikana.
 
+Tekstirivi ei aina ole laulunsanoja. Se voi olla itsenäinen kappaleen osan
+otsikko tai esitysohje, kuten `Kertosäe` tai `Välisoitto`. Tällainen rivi voi
+esiintyä ennen musiikkirivejä, niiden välissä tai tyhjien rivien yhteydessä.
+Luokittelu merkitsee sen tavalliseksi `text`-riviksi; yhteys laulunsanoihin
+ratkaistaan myöhemmässä kohdistusvaiheessa.
+
 ## Proposed Change
 
 Lisätään puhdas liiketoimintalogiikan toiminto, joka vastaanottaa
@@ -163,6 +169,16 @@ kursivointia.
 **When** rivit yritetään luokitella
 **Then** toiminto heittää virheen täsmällisellä viestillä `Syötteestä ei löytynyt sointu- tai sävelrivejä`
 
+### AC20: Musiikkia edeltävä itsenäinen tekstirivi hyväksytään
+**Given** syöte sisältää rivit `"Kertosäe"`, `"C |G |"` ja `"onpa ihanaa"`
+**When** rivit luokitellaan
+**Then** rivityypit ovat täsmälleen `[text, chord, text]`, ensimmäisen rivin sisältö on `"Kertosäe"` eikä varoituksia palauteta
+
+### AC21: Musiikkikokonaisuuksien välissä oleva tekstirivi hyväksytään
+**Given** syöte sisältää rivit `"C |G |"`, `"onpa ihanaa"`, `"Välisoitto"` ja `"Am |F |"`
+**When** rivit luokitellaan
+**Then** rivityypit ovat täsmälleen `[chord, text, text, chord]`, kolmannen rivin sisältö on `"Välisoitto"` eikä varoituksia palauteta
+
 ## Files to Modify
 
 | File | Change |
@@ -210,6 +226,8 @@ kursivointia.
 | `classifyLines` | AC17 melodia ja sanat | Sävelrivi ja tekstirivi | Luokitellaan | Tyypit `note`, `text`, ei puuttuvan sointurivin varoitusta |
 | `classifyLines` | AC18 pelkät soinnut | Yksi sointurivi | Luokitellaan | Tyyppi `chord`, ei puuttuvien rivien varoituksia |
 | `classifyLines` | AC19 vain tekstiä | Tekstirivi, tyhjä rivi ja tekstirivi | Luokitellaan | Virhe `Syötteestä ei löytynyt sointu- tai sävelrivejä` |
+| `classifyLines` | AC20 otsikko ennen musiikkia | `Kertosäe`, sointurivi ja laulunsanat | Luokitellaan | `[text, chord, text]`; Kertosäe säilyy; ei varoituksia |
+| `classifyLines` | AC21 ohje kokonaisuuksien välissä | Sointu, sanat, `Välisoitto`, sointu | Luokitellaan | `[chord, text, text, chord]`; Välisoitto säilyy; ei varoituksia |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

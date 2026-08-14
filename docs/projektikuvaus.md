@@ -39,6 +39,11 @@ Mahdollisia kokonaisuuksia ovat esimerkiksi:
 Tyhjillä riveillä voidaan erottaa säkeistöjä, kertosäkeitä, välisoittoja ja
 muita kappaleen osia. Tyhjät rivit säilytetään tuloksessa.
 
+Syötteessä voi lisäksi olla itsenäisiä tekstirivejä, jotka eivät ole
+laulunsanoja. Esimerkiksi `Kertosäe` tai `Välisoitto` voi esiintyä ennen
+seuraavaa sointu- tai sävelkokonaisuutta. Tällainen rivi säilytetään
+paikallaan, mutta sitä ei kohdisteta musiikkitapahtumiin.
+
 ## Rivien tunnistaminen
 
 ### Sointurivi
@@ -157,6 +162,13 @@ jotta tahdit ja musiikin aloituskohdat säilyvät samoissa kohdissa. Se voi
 lisätä myös yhdysmerkin sanojen väliin, jos kaksi aiemmin erillistä
 sävelkohtaa näyttäisi transponoinnin jälkeen liittyvän yhteen.
 
+Transponointi voi myös lyhentää merkintää, esimerkiksi `C#` voi muuttua
+muotoon `C`. Tällöin myöhempi musiikkitapahtuma voi siirtyä vasemmalle saman
+verran, jos mikään rinnakkainen musiikkirivi ei tarvitse pidempää väliä. Jos
+laulunsanoissa oleva yhdysmerkki oli
+tarpeen vain aiemman pidemmän kohdistuksen vuoksi, se voidaan poistaa, kun
+lyhyempi tulos ei enää tarvitse sitä.
+
 Ohjelma ei päättele, miten sana pitäisi tavuttaa. Kohdistus perustuu
 syötteessä oleviin sävelryhmiin, välilyönteihin ja merkkien sijainteihin.
 
@@ -189,4 +201,3 @@ Myöhemmin soinnulle voidaan näyttää käyttäjän valinnan mukaan:
 - pianon koskettimet tai ote
 - kitaran ote
 - ukulelen ote
-

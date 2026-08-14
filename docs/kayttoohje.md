@@ -86,6 +86,18 @@ c c  a a a   gB g  g  c d   c
 
 Voit erottaa säkeistöt, kertosäkeet ja välisoitot tyhjillä riveillä.
 
+Voit käyttää myös itsenäisiä tekstirivejä kappaleen osien otsikkoina tai
+esitysohjeina. Niiden ei tarvitse olla laulunsanoja:
+
+```text
+Kertosäe
+C    |Am   |G    |C    |
+onpa ihanaa laulella
+```
+
+Otsikko voi olla ennen musiikkia tai musiikkikokonaisuuksien välissä. Se
+säilytetään tuloksessa, mutta sitä ei kohdisteta sointuihin tai säveliin.
+
 ## Sointurivin kirjoittaminen
 
 Sointurivillä pitää olla vähintään yksi putkimerkki (`|`). Putket osoittavat
@@ -196,6 +208,21 @@ on-pa
 Ohjelma ei tarkista sanojen oikeaa tavutusta, vaan säilyttää syötteen
 osoittaman kohdistuksen.
 
+Transponointi voi myös lyhentää merkintöjä. Tällöin myöhempi tapahtuma voi
+siirtyä vasemmalle saman verran, jos rinnakkainen musiikkirivi ei tarvitse
+pidempää väliä:
+
+```text
+C# D    -> C C#
+Db G    -> C F#
+C# |G|  -> C |F#|
+```
+
+Jos sanoissa oleva yhdysmerkki oli tarpeen vain pidemmän musiikkimerkinnän
+kohdistamiseen, ohjelma voi poistaa sen lyhenemisen yhteydessä. Esimerkiksi
+`C# D` ja `on-pa` voivat yhden puolisävelaskeleen laskulla muuttua muotoihin
+`C C#` ja `onpa`.
+
 ## Varoitukset
 
 Sävelrivillä voi olla lyhyt merkintä, kuten `x2`. Jos sävelriviltä näyttää
@@ -228,4 +255,3 @@ C, E, G, B
 
 Pianon, kitaran ja ukulelen otteet on suunniteltu myöhemmäksi
 jatkokehitykseksi.
-
