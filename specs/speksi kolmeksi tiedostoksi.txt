@@ -1,0 +1,14 @@
+otetaan speksi 2 työn alle: Read specs/features/«feature».md and @AGENTS.md.
+
+  Produce three files. Do not write implementation code yet.
+
+  1. docs/architecture.md — which files, what owns what, and what
+     will NOT be built. Justify each file in one line; if you
+     cannot, it is not needed.
+  2. docs/test-plan.md — one row per AC: which test proves it and
+     with what input. Mark [?] when an AC is not machine-checkable
+     — do not invent a test for one.
+  3. TASKS.md — smallest sensible step at a time, in order. Each
+     task names the AC it closes.
+
+  Report at the end: which AC has no test, and why.

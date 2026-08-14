@@ -201,11 +201,13 @@ sointuja, säveliä tai rikastekstiä.
 
 | File | Change |
 |---|---|
+| `package.json` | Lisää `happy-dom` kehitysriippuvuudeksi käyttöliittymätestien DOM-ympäristöä varten. |
+| `package-lock.json` | Lukitse asennettu `happy-dom`-versio ja sen riippuvuudet toistettavia asennuksia varten. |
 | `src/types.ts` | Lisää sävellajin laatu-, toonika-, enharmoninen valinta-, asetussyöte- ja asetustulostyypit. |
 | `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, H/B-normalisointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
 | `src/logic/transpositionSettings.test.ts` | Lisää liiketoimintalogiikan onnistumis-, raja- ja virhetestit. |
 | `src/ui/ui.ts` | Lisää ehdolliset laatu-, lähtösävellaji- ja enharmoniset valinnat sekä vahvistamisen käyttöliittymätoiminta. |
-| `src/ui/ui.test.ts` | Testaa valintojen näkyvyys, listojen sisältö, laadun vaihtaminen ja käyttöliittymävirheet. |
+| `src/ui/ui.test.ts` | Testaa Happy DOM -ympäristössä valintojen näkyvyys, listojen sisältö, laadun vaihtaminen ja käyttöliittymävirheet. |
 
 ## Risk
 

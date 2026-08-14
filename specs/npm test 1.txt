@@ -5,4 +5,4 @@
   - 0 epäonnistunutta testiä
   - suoritusaika noin 2 sekuntia
 
-  Kaksi testeistä vahvistaa vielä tarkoituksellisesti not implemented -virheen. Tulos kertoo siis nykyisen projektirungon olevan ehjä, ei vielä sitä, että transponointitoiminnot olisi toteutettu.
+  Kaksi testeistä vahvistaa vielä tarkoituksellisesti not implemented -virheen. Tulos kertoo siis nykyisen projektirungon olevan ehjä, ei vielä sitä, että transponointitoiminnot olisi toteutettu.aloitetaan tekemä
