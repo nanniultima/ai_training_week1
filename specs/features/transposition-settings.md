@@ -246,6 +246,7 @@ sointuja, säveliä tai rikastekstiä.
 | `src/types.ts` | Lisää sävellajin laatu-, toonika-, enharmoninen valinta-, asetussyöte- ja asetustulostyypit. |
 | `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, H/B-normalisointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
 | `src/logic/transpositionSettings.major.fixture.ts` | Tallenna AC4:n kaikki 345 duuriyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
+| `src/logic/transpositionSettings.minor.fixture.ts` | Tallenna AC5:n kaikki 345 molliyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.test.ts` | Lisää liiketoimintalogiikan onnistumis-, raja- ja virhetestit. |
 | `src/ui/ui.ts` | Lisää ehdolliset laatu-, lähtösävellaji- ja enharmoniset valinnat sekä vahvistamisen käyttöliittymätoiminta. |
 | `src/ui/ui.test.ts` | Testaa Happy DOM -ympäristössä valintojen näkyvyys, listojen sisältö, laadun vaihtaminen ja käyttöliittymävirheet. |

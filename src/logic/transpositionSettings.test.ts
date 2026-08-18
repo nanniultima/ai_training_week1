@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import * as transpositionSettings from './transpositionSettings.js';
 import { MAJOR_TRANSPOSITION_MATRIX } from './transpositionSettings.major.fixture.js';
+import { MINOR_TRANSPOSITION_MATRIX } from './transpositionSettings.minor.fixture.js';
 
 interface ResolverInput {
   readonly mode: 'major' | 'minor';
@@ -17,41 +18,6 @@ const resolve = (
     readonly resolveTranspositionSettings?: Resolver;
   }
 ).resolveTranspositionSettings;
-
-const MINOR_SOURCE_FIXTURE = [
-  { tonic: 'C', chroma: 0 },
-  { tonic: 'C#', chroma: 1 },
-  { tonic: 'D', chroma: 2 },
-  { tonic: 'D#', chroma: 3 },
-  { tonic: 'Eb', chroma: 3 },
-  { tonic: 'E', chroma: 4 },
-  { tonic: 'F', chroma: 5 },
-  { tonic: 'F#', chroma: 6 },
-  { tonic: 'G', chroma: 7 },
-  { tonic: 'G#', chroma: 8 },
-  { tonic: 'Ab', chroma: 8 },
-  { tonic: 'A', chroma: 9 },
-  { tonic: 'A#', chroma: 10 },
-  { tonic: 'Bb', chroma: 10 },
-  { tonic: 'B', chroma: 11 },
-] as const;
-
-const MINOR_TARGET_FIXTURE = [
-  ['C'],
-  ['C#'],
-  ['D'],
-  ['D#', 'Eb'],
-  ['E'],
-  ['F'],
-  ['F#'],
-  ['G'],
-  ['G#', 'Ab'],
-  ['A'],
-  ['A#', 'Bb'],
-  ['B'],
-] as const;
-
-const ALLOWED_STEPS = Array.from({ length: 23 }, (_, index) => index - 11);
 
 describe('resolveTranspositionSettings', () => {
   it('AC4 ratkaisee kaikki 345 duuritoonikan ja sallitun askeleen yhdistelmää', () => {
@@ -74,34 +40,17 @@ describe('resolveTranspositionSettings', () => {
   it('AC5 ratkaisee kaikki 345 mollitoonikan ja sallitun askeleen yhdistelmää', () => {
     expect(resolve).toBeTypeOf('function');
 
-    for (const source of MINOR_SOURCE_FIXTURE) {
-      for (const step of ALLOWED_STEPS) {
-        const targetChroma = (source.chroma + step + 12) % 12;
-        const targetNames = MINOR_TARGET_FIXTURE[targetChroma];
+    expect(MINOR_TRANSPOSITION_MATRIX).toHaveLength(345);
 
-        expect(targetNames).toBeDefined();
-
-        const expected =
-          step !== 0 && targetNames !== undefined && targetNames.length === 2
-            ? {
-                status: 'requiresEnharmonicChoice',
-                mode: 'minor',
-                sourceTonic: source.tonic,
-                options: [...targetNames],
-              }
-            : {
-                status: 'ready',
-                mode: 'minor',
-                sourceTonic: source.tonic,
-                targetTonic:
-                  step === 0 ? source.tonic : targetNames?.[0],
-              };
-
-        expect(
-          resolve?.({ mode: 'minor', sourceTonic: source.tonic, step }),
-          `${source.tonic}-molli, askel ${step}`,
-        ).toEqual(expected);
-      }
+    for (const row of MINOR_TRANSPOSITION_MATRIX) {
+      expect(
+        resolve?.({
+          mode: 'minor',
+          sourceTonic: row.sourceTonic,
+          step: row.step,
+        }),
+        `${row.sourceTonic}-molli, askel ${row.step}, kohdekorkeus ${row.targetChroma}`,
+      ).toEqual(row.expected);
     }
   });
 

@@ -1,4 +1,7 @@
-import { getAvailableTonics } from '../logic/transpositionSettings.js';
+import {
+  getAvailableTonics,
+  resolveTranspositionSettings,
+} from '../logic/transpositionSettings.js';
 
 /** Luo sovelluksen ensimmäisen käyttöliittymärungon. */
 export function initializeUi(root: HTMLElement | null): void {
@@ -87,6 +90,7 @@ export function initializeUi(root: HTMLElement | null): void {
         </div>
 
         <div class="transpose-actions">
+          <p id='target-key-preview' aria-live='polite' hidden></p>
           <p>Vahvistamisen jälkeen mahdollinen lisävalinta avautuu tähän.</p>
           <button type="button" disabled>Transponoi</button>
         </div>
@@ -117,6 +121,77 @@ export function initializeUi(root: HTMLElement | null): void {
     'input[name=key-mode][value=minor]',
   );
   const sourceKey = root.querySelector<HTMLSelectElement>('#source-key');
+  const stepInput =
+    root.querySelector<HTMLInputElement>('#transpose-step');
+  const targetKeyPreview =
+    root.querySelector<HTMLElement>('#target-key-preview');
+  const enharmonicChoice =
+    root.querySelector<HTMLElement>('#enharmonic-choice');
+
+  const updateTargetKeyPreview = (): void => {
+    if (
+      sourceKey === null ||
+      stepInput === null ||
+      targetKeyPreview === null ||
+      enharmonicChoice === null
+    ) {
+      return;
+    }
+
+    targetKeyPreview.hidden = true;
+    targetKeyPreview.textContent = '';
+    enharmonicChoice.hidden = true;
+    enharmonicChoice.replaceChildren();
+
+    const mode = root.querySelector<HTMLInputElement>(
+      'input[name=key-mode]:checked',
+    )?.value;
+    const step = Number(stepInput.value);
+
+    if (
+      (mode !== 'major' && mode !== 'minor') ||
+      sourceKey.value === '' ||
+      !Number.isInteger(step) ||
+      step < -11 ||
+      step > 11
+    ) {
+      return;
+    }
+
+    const result = resolveTranspositionSettings({
+      mode,
+      sourceTonic: sourceKey.value,
+      step,
+    });
+
+    if (result.status === 'ready') {
+      const modeName = result.mode === 'major' ? 'duuri' : 'molli';
+      targetKeyPreview.textContent =
+        `Kohdesävellaji: ${result.targetTonic}-${modeName}`;
+      targetKeyPreview.hidden = false;
+      return;
+    }
+
+    const modeName = result.mode === 'major' ? 'duuri' : 'molli';
+    const choices = result.options.map((tonic) => {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'enharmonic-choice';
+      input.value = tonic;
+      label.append(input, `${tonic}-${modeName}`);
+      input.addEventListener('click', () => {
+        targetKeyPreview.textContent =
+          `Kohdesävellaji: ${tonic}-${modeName}`;
+        targetKeyPreview.hidden = false;
+        enharmonicChoice.hidden = true;
+      });
+      return label;
+    });
+
+    enharmonicChoice.replaceChildren(...choices);
+    enharmonicChoice.hidden = false;
+  };
 
   majorChoice?.addEventListener('click', () => {
     if (sourceKey === null) {
@@ -132,6 +207,7 @@ export function initializeUi(root: HTMLElement | null): void {
 
     sourceKey.replaceChildren(...options);
     sourceKey.disabled = false;
+    updateTargetKeyPreview();
   });
 
   minorChoice?.addEventListener('click', () => {
@@ -149,5 +225,9 @@ export function initializeUi(root: HTMLElement | null): void {
     sourceKey.replaceChildren(...options);
     sourceKey.selectedIndex = -1;
     sourceKey.disabled = false;
+    updateTargetKeyPreview();
   });
+
+  sourceKey?.addEventListener('change', updateTargetKeyPreview);
+  stepInput?.addEventListener('input', updateTargetKeyPreview);
 }

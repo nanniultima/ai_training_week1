@@ -57,6 +57,21 @@ const MAJOR_TARGET_TONICS = [
   ['B', 'Cb'],
 ] as const;
 
+const MINOR_TARGET_TONICS = [
+  ['C'],
+  ['C#'],
+  ['D'],
+  ['D#', 'Eb'],
+  ['E'],
+  ['F'],
+  ['F#'],
+  ['G'],
+  ['G#', 'Ab'],
+  ['A'],
+  ['A#', 'Bb'],
+  ['B'],
+] as const;
+
 /** Palauttaa AC1:ssä määritellyt duurin lähtötoonikat. */
 export function getAvailableTonics(
   mode: KeyMode,
@@ -64,17 +79,16 @@ export function getAvailableTonics(
   return mode === 'major' ? MAJOR_TONICS : MINOR_TONICS;
 }
 
-/** Ratkaisee AC4:n mukaiset duurin kohdetoonikat. */
+/** Ratkaisee AC4:n ja AC5:n mukaiset kohdetoonikat. */
 export function resolveTranspositionSettings(
   input: TranspositionSettingsInput,
 ): TranspositionSettingsResult {
-  if (input.mode !== 'major') {
-    throw new Error('Mollisävellajien ratkaisemista ei ole vielä toteutettu');
-  }
-
   const sourceChroma = chroma(input.sourceTonic);
   const targetChroma = ((sourceChroma + input.step) % 12 + 12) % 12;
-  const targetTonics = MAJOR_TARGET_TONICS[targetChroma];
+  const targetTonics =
+    input.mode === 'major'
+      ? MAJOR_TARGET_TONICS[targetChroma]
+      : MINOR_TARGET_TONICS[targetChroma];
 
   if (targetTonics === undefined) {
     throw new Error('Kohdesävellajia ei voitu ratkaista');
@@ -83,7 +97,7 @@ export function resolveTranspositionSettings(
   if (input.step === 0) {
     return {
       status: 'ready',
-      mode: 'major',
+      mode: input.mode,
       sourceTonic: input.sourceTonic,
       targetTonic: input.sourceTonic,
     };
@@ -92,7 +106,7 @@ export function resolveTranspositionSettings(
   if (targetTonics.length === 2) {
     return {
       status: 'requiresEnharmonicChoice',
-      mode: 'major',
+      mode: input.mode,
       sourceTonic: input.sourceTonic,
       options: targetTonics,
     };
@@ -100,7 +114,7 @@ export function resolveTranspositionSettings(
 
   return {
     status: 'ready',
-    mode: 'major',
+    mode: input.mode,
     sourceTonic: input.sourceTonic,
     targetTonic: targetTonics[0],
   };
