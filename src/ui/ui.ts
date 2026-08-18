@@ -1,3 +1,5 @@
+import { getAvailableTonics } from '../logic/transpositionSettings.js';
+
 /** Luo sovelluksen ensimmäisen käyttöliittymärungon. */
 export function initializeUi(root: HTMLElement | null): void {
   if (root === null) {
@@ -103,4 +105,49 @@ export function initializeUi(root: HTMLElement | null): void {
       </div>
     </section>
   `;
+
+  if (typeof root.querySelector !== 'function') {
+    return;
+  }
+
+  const majorChoice = root.querySelector<HTMLInputElement>(
+    'input[name=key-mode][value=major]',
+  );
+  const minorChoice = root.querySelector<HTMLInputElement>(
+    'input[name=key-mode][value=minor]',
+  );
+  const sourceKey = root.querySelector<HTMLSelectElement>('#source-key');
+
+  majorChoice?.addEventListener('click', () => {
+    if (sourceKey === null) {
+      return;
+    }
+
+    const options = getAvailableTonics('major').map((tonic) => {
+      const option = document.createElement('option');
+      option.value = tonic;
+      option.textContent = tonic;
+      return option;
+    });
+
+    sourceKey.replaceChildren(...options);
+    sourceKey.disabled = false;
+  });
+
+  minorChoice?.addEventListener('click', () => {
+    if (sourceKey === null) {
+      return;
+    }
+
+    const options = getAvailableTonics('minor').map((tonic) => {
+      const option = document.createElement('option');
+      option.value = tonic;
+      option.textContent = tonic;
+      return option;
+    });
+
+    sourceKey.replaceChildren(...options);
+    sourceKey.selectedIndex = -1;
+    sourceKey.disabled = false;
+  });
 }

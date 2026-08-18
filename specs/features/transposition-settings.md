@@ -19,13 +19,28 @@ Transponointiasetukset valitaan seuraavassa järjestyksessä:
 3. Käyttäjä valitsee lähtösävellajin listasta.
 4. Käyttäjä antaa kokonaislukuna puolisävelaskelten määrän väliltä
    `-11`–`11`.
-5. Käyttäjä vahvistaa asetukset Enterillä tai Transponoi-painikkeella.
-6. Sovellus laskee kohdesävellajin.
+5. Kun laatu ja lähtösävellaji on valittu ja askelkentässä on kelvollinen
+   arvo, sovellus laskee kohdesävellajin automaattisesti.
+6. Jos kohteella on yksi käytännöllinen kirjoitusasu, sovellus näyttää
+   esikatselun muodossa `Kohdesävellaji: D-duuri`.
 7. Jos kohteella on kaksi käytännöllistä kirjoitusasua, sovellus näyttää
    niiden nimet ja vaatii käyttäjää valitsemaan toisen ennen jatkamista.
 
-Enharmoninen valinta ei ole näkyvissä ennen asetusten vahvistamista eikä
-silloin, kun kohdesävellajilla on vain yksi käytännöllinen nimi.
+Kohdesävellajin esikatselua tai enharmonista valintaa ei näytetä, jos laatu
+tai lähtösävellaji puuttuu tai askelkentän arvo ei ole kelvollinen.
+Enharmonista valintaa ei näytetä silloin, kun kohdesävellajilla on vain yksi
+käytännöllinen nimi.
+
+`Transponoi`-painike on varattu musiikkisyötteen varsinaiselle
+transponoinnille. Kohdesävellajin esikatselu ei vaadi painikkeen painamista
+eikä itsessään muuta musiikkisyötettä.
+
+### Laskentakirjasto
+
+Sävelnimien validointiin ja kromaattisen sävelkorkeuden (`0`–`11`)
+ratkaisemiseen käytetään `@tonaljs/note`-kirjastoa. Sovellus omistaa edelleen
+sallitut duuri- ja mollitoonikalistat sekä kohteen käytännöllisten nimien
+valinnan, jotta kirjasto ei päätä enharmonista kirjoitusasua speksin puolesta.
 
 ### Lähtösävellajilistat
 
@@ -36,13 +51,13 @@ etumerkillä.
 Duuri:
 
 ```text
-C, G, D, A, E, B, F#, C#, F, Bb, Eb, Ab, Db, Gb, Cb
+C, C#, Db, D, Eb, E, F, F#, Gb, G, Ab, A, Bb, B, Cb
 ```
 
 Molli:
 
 ```text
-A, E, B, F#, C#, G#, D#, A#, D, G, C, F, Bb, Eb, Ab
+C, C#, D, D#, Eb, E, F, F#, G, G#, Ab, A, A#, Bb, B
 ```
 
 Kun käyttäjä vaihtaa duurista molliin tai päinvastoin, lähtösävellajin
@@ -95,107 +110,132 @@ sointuja, säveliä tai rikastekstiä.
 ### AC1: Duurivalinta näyttää duurisävellajit
 **Given** sävellajin laatua ei ole vielä valittu
 **When** käyttäjä valitsee `duuri`
-**Then** lähtösävellajilista sisältää täsmälleen 15 arvoa `C, G, D, A, E, B, F#, C#, F, Bb, Eb, Ab, Db, Gb, Cb`
+**Then** lähtösävellajilista sisältää sävelkorkeusjärjestyksessä täsmälleen 15 arvoa `C, C#, Db, D, Eb, E, F, F#, Gb, G, Ab, A, Bb, B, Cb`
 
 ### AC2: Mollivalinta näyttää mollisävellajit
 **Given** sävellajin laatua ei ole vielä valittu
 **When** käyttäjä valitsee `molli`
-**Then** lähtösävellajilista sisältää täsmälleen 15 arvoa `A, E, B, F#, C#, G#, D#, A#, D, G, C, F, Bb, Eb, Ab`
+**Then** lähtösävellajilista sisältää sävelkorkeusjärjestyksessä täsmälleen 15 arvoa `C, C#, D, D#, Eb, E, F, F#, G, G#, Ab, A, A#, Bb, B`
 
 ### AC3: Laadun vaihtaminen tyhjentää lähtösävellajin
 **Given** käyttäjä on valinnut C-duurin
 **When** käyttäjä vaihtaa laaduksi `molli`
 **Then** lähtösävellajin valinta on tyhjä ja mollisävellajilista on näkyvissä
 
-### AC4: Duurisävellaji transponoidaan ylöspäin
+### AC4: Kaikki duuritoonikat ja sallitut askeleet lasketaan
+**Given** lähtösävellaji on mikä tahansa AC1:n 15 duuritoonikasta ja askel on mikä tahansa kokonaisluku väliltä `-11`–`11`
+**When** asetukset ratkaistaan jokaisella 345 yhdistelmällä
+**Then** kohteen kromaattinen sävelkorkeus on täsmälleen `(lähtö + askel) modulo 12`, laatu on `major`, askel `0` säilyttää lähtötoonikan nimen, epäselvä ei-nolla-kohde palauttaa speksin kaksi käytännöllistä vaihtoehtoa ja muu kohde speksin ainoan käytännöllisen nimen
+
+### AC5: Kaikki mollitoonikat ja sallitut askeleet lasketaan
+**Given** lähtösävellaji on mikä tahansa AC2:n 15 mollitoonikasta ja askel on mikä tahansa kokonaisluku väliltä `-11`–`11`
+**When** asetukset ratkaistaan jokaisella 345 yhdistelmällä
+**Then** kohteen kromaattinen sävelkorkeus on täsmälleen `(lähtö + askel) modulo 12`, laatu on `minor`, askel `0` säilyttää lähtötoonikan nimen, epäselvä ei-nolla-kohde palauttaa speksin kaksi käytännöllistä vaihtoehtoa ja muu kohde speksin ainoan käytännöllisen nimen
+
+### AC6: Duurisävellaji transponoidaan ylöspäin
 **Given** käyttäjä on valinnut C-duurin ja askelmäärän `2`
-**When** asetukset vahvistetaan
-**Then** kohdesävellaji on D-duuri, tila on `ready` eikä enharmonista valintaa näytetä
+**When** kaikki kolme valintaa ovat kelvollisia
+**Then** kohdesävellaji lasketaan automaattisesti D-duuriksi, tila on `ready`, esikatselu on `Kohdesävellaji: D-duuri` eikä enharmonista valintaa näytetä
 
-### AC5: Mollisävellaji transponoidaan alaspäin
+### AC7: Mollisävellaji transponoidaan alaspäin
 **Given** käyttäjä on valinnut A-mollin ja askelmäärän `-2`
-**When** asetukset vahvistetaan
-**Then** kohdesävellaji on G-molli, tila on `ready` eikä enharmonista valintaa näytetä
+**When** kaikki kolme valintaa ovat kelvollisia
+**Then** kohdesävellaji lasketaan automaattisesti G-molliksi, tila on `ready`, esikatselu on `Kohdesävellaji: G-molli` eikä enharmonista valintaa näytetä
 
-### AC6: Nolla askelta säilyttää lähtösävellajin
+### AC8: Nolla askelta säilyttää lähtösävellajin
 **Given** käyttäjä on valinnut Gb-duurin ja askelmäärän `0`
-**When** asetukset vahvistetaan
+**When** kaikki kolme valintaa ovat kelvollisia
 **Then** kohdesävellaji on Gb-duuri, tila on `ready` eikä enharmonista valintaa näytetä
 
-### AC7: Kaksi järkevää duurivaihtoehtoa avaa valinnan
+### AC9: Kaksi järkevää duurivaihtoehtoa avaa valinnan
 **Given** käyttäjä on valinnut C-duurin ja askelmäärän `1`
-**When** asetukset vahvistetaan
-**Then** tila on `requiresEnharmonicChoice`, näkyviin tulevat täsmälleen vaihtoehdot `C#-duuri` ja `Db-duuri`, eikä transponointia jatketa
+**When** kaikki kolme valintaa ovat kelvollisia
+**Then** tila on `requiresEnharmonicChoice`, näkyviin tulevat automaattisesti täsmälleen vaihtoehdot `C#-duuri` ja `Db-duuri`, kohdesävellajin esikatselua ei vielä näytetä eikä musiikkisyötettä transponoida
 
-### AC8: Duurin enharmoninen valinta vahvistaa asetukset
+### AC10: Duurin enharmoninen valinta vahvistaa asetukset
 **Given** näkyvissä ovat vaihtoehdot C#-duuri ja Db-duuri
 **When** käyttäjä valitsee `Db-duuri`
 **Then** kohdesävellaji on Db-duuri, tila on `ready` ja lisävalinta suljetaan
 
-### AC9: Kaksi järkevää mollivaihtoehtoa avaa valinnan
+### AC11: Kaksi järkevää mollivaihtoehtoa avaa valinnan
 **Given** käyttäjä on valinnut D-mollin ja askelmäärän `1`
-**When** asetukset vahvistetaan
-**Then** tila on `requiresEnharmonicChoice`, näkyviin tulevat täsmälleen vaihtoehdot `D#-molli` ja `Eb-molli`, eikä transponointia jatketa
+**When** kaikki kolme valintaa ovat kelvollisia
+**Then** tila on `requiresEnharmonicChoice`, näkyviin tulevat automaattisesti täsmälleen vaihtoehdot `D#-molli` ja `Eb-molli`, kohdesävellajin esikatselua ei vielä näytetä eikä musiikkisyötettä transponoida
 
-### AC10: Epäkäytännöllistä duurinimeä ei tarjota
+### AC12: Epäkäytännöllistä duurinimeä ei tarjota
 **Given** käyttäjä on valinnut A-duurin ja askelmäärän `1`
-**When** asetukset vahvistetaan
+**When** kaikki kolme valintaa ovat kelvollisia
 **Then** kohdesävellaji on Bb-duuri, tila on `ready` eikä A#-duuria tai enharmonista valintaa näytetä
 
-### AC11: Epäkäytännöllistä mollinimeä ei tarjota
+### AC13: Epäkäytännöllistä mollinimeä ei tarjota
 **Given** käyttäjä on valinnut C-mollin ja askelmäärän `1`
-**When** asetukset vahvistetaan
+**When** kaikki kolme valintaa ovat kelvollisia
 **Then** kohdesävellaji on C#-molli, tila on `ready` eikä Db-mollia tai enharmonista valintaa näytetä
 
-### AC12: Positiivinen enimmäisaskel hyväksytään
+### AC14: Positiivinen enimmäisaskel hyväksytään
 **Given** käyttäjä on valinnut C-duurin ja askelmäärän `11`
-**When** asetukset vahvistetaan
+**When** kaikki kolme valintaa ovat kelvollisia
 **Then** tila on `requiresEnharmonicChoice` ja vaihtoehdot ovat täsmälleen `B-duuri` ja `Cb-duuri`
 
-### AC13: Negatiivinen enimmäisaskel hyväksytään
+### AC15: Negatiivinen enimmäisaskel hyväksytään
 **Given** käyttäjä on valinnut C-duurin ja askelmäärän `-11`
-**When** asetukset vahvistetaan
+**When** kaikki kolme valintaa ovat kelvollisia
 **Then** tila on `requiresEnharmonicChoice` ja vaihtoehdot ovat täsmälleen `C#-duuri` ja `Db-duuri`
 
-### AC14: Liian pieni askelmäärä hylätään
+### AC16: Liian pieni askelmäärä hylätään
 **Given** lähtösävellaji on C-duuri ja askelmäärä on `-12`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
-### AC15: Liian suuri askelmäärä hylätään
+### AC17: Liian suuri askelmäärä hylätään
 **Given** lähtösävellaji on C-duuri ja askelmäärä on `12`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
-### AC16: Desimaalinen askelmäärä hylätään
+### AC18: Desimaalinen askelmäärä hylätään
 **Given** lähtösävellaji on C-duuri ja askelmäärä on `1.5`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
-### AC17: Puuttuva lähtösävellaji estää vahvistamisen
+### AC19: Puuttuva lähtösävellaji estää vahvistamisen
 **Given** käyttäjä on valinnut duurin ja askelmäärän `1`, mutta ei lähtösävellajia
 **When** käyttäjä yrittää vahvistaa asetukset
 **Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse lähtösävellaji`
 
-### AC18: Puuttuva duuri- tai mollivalinta estää vahvistamisen
+### AC20: Puuttuva duuri- tai mollivalinta estää vahvistamisen
 **Given** käyttäjä ei ole valinnut sävellajin laatua
 **When** käyttäjä yrittää vahvistaa asetukset
 **Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse duuri tai molli`
 
-### AC19: H normalisoidaan ohjelmallisessa syötteessä B:ksi
+### AC21: H normalisoidaan ohjelmallisessa syötteessä B:ksi
 **Given** asetustoiminnolle annetaan H-duuri ja askelmäärä `0`
 **When** asetukset ratkaistaan
 **Then** normalisoitu lähtötoonika ja kohdetoonika ovat `B`
 
-### AC20: Tuntematon ohjelmallinen toonika hylätään
+### AC22: Tuntematon ohjelmallinen toonika hylätään
 **Given** asetustoiminnolle annetaan J-duuri ja askelmäärä `1`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Tuntematon lähtösävellaji: J`
 
-### AC21: Tarpeeton enharmoninen valinta hylätään
+### AC23: Tarpeeton enharmoninen valinta hylätään
 **Given** asetustoiminnolle annetaan C-duuri, askelmäärä `2` ja enharmoninen valinta `flat`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa`
+
+### AC24: Yksiselitteinen kohdesävellaji näytetään automaattisesti
+**Given** käyttäjä on valinnut C-duurin ja askelkentän arvo on `2`
+**When** käyttäjä valitsee lähtötoonikaksi `C`
+**Then** näkyviin tulee ilman Enteriä tai painikkeen painamista täsmälleen `Kohdesävellaji: D-duuri` eikä enharmonista valintaa näytetä
+
+### AC25: Enharmoniset vaihtoehdot näytetään automaattisesti
+**Given** käyttäjä on valinnut C-duurin ja askelkentän arvo on `1`
+**When** käyttäjä valitsee lähtötoonikaksi `C`
+**Then** ilman Enteriä tai painikkeen painamista näkyviin tulevat täsmälleen vaihtoehdot `C#-duuri` ja `Db-duuri`, eikä kohdesävellajin esikatselua vielä näytetä
+
+### AC26: Keskeneräiset tai virheelliset valinnat eivät näytä kohdetta
+**Given** vähintään yksi seuraavista toteutuu: laatua ei ole valittu, lähtötoonikaa ei ole valittu tai askelkentän arvo ei ole kokonaisluku väliltä `-11`–`11`
+**When** käyttöliittymän kohdesävellajitila päivitetään
+**Then** kohdesävellajin esikatselu ja enharmoninen valinta ovat molemmat piilossa eikä musiikkisyötettä muuteta
 
 ## Files to Modify
 
@@ -205,9 +245,14 @@ sointuja, säveliä tai rikastekstiä.
 | `package-lock.json` | Lukitse asennettu `happy-dom`-versio ja sen riippuvuudet toistettavia asennuksia varten. |
 | `src/types.ts` | Lisää sävellajin laatu-, toonika-, enharmoninen valinta-, asetussyöte- ja asetustulostyypit. |
 | `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, H/B-normalisointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
+| `src/logic/transpositionSettings.major.fixture.ts` | Tallenna AC4:n kaikki 345 duuriyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.test.ts` | Lisää liiketoimintalogiikan onnistumis-, raja- ja virhetestit. |
 | `src/ui/ui.ts` | Lisää ehdolliset laatu-, lähtösävellaji- ja enharmoniset valinnat sekä vahvistamisen käyttöliittymätoiminta. |
 | `src/ui/ui.test.ts` | Testaa Happy DOM -ympäristössä valintojen näkyvyys, listojen sisältö, laadun vaihtaminen ja käyttöliittymävirheet. |
+
+Lisäksi `package.json` ja `package-lock.json` lisäävät ja lukitsevat
+`@tonaljs/note`-tuotantoriippuvuuden kromaattisen sävelkorkeuden ratkaisemista
+varten.
 
 ## Risk
 
@@ -220,6 +265,12 @@ sointuja, säveliä tai rikastekstiä.
   B-säveltä ja alennettu B kirjoitetaan Bb.
 - What could break: Enterin ja Transponoi-painikkeen pitää käyttää samaa
   validointi- ja vahvistustoimintoa, jotta tulokset eivät eroa.
+- What could break: Automaattinen esikatselu voi näyttää vanhan tuloksen, jos
+  jokainen laatu-, toonika- ja askelmuutos ei kulje saman päivitystoiminnon
+  kautta.
+- What could break: Tonal voi valita enharmonisen nimen eri tavalla kuin
+  speksi. Kirjastolta käytetään vain validointia ja kromaattista sävelkorkeutta;
+  näkyvä nimi valitaan aina sovelluksen omasta taulukosta.
 - Rollback: Poista asetusten ratkaisutoiminto ja uudet käyttöliittymävalinnat.
   Nykyinen askelkenttä voidaan jättää takaisin näkyviin ilman integraatiota.
 
@@ -227,27 +278,32 @@ sointuja, säveliä tai rikastekstiä.
 
 | Function | Case | Given | When | Then |
 |---|---|---|---|---|
-| `getAvailableTonics` | AC1 duurilista | Laatu `major` | Haetaan lista | Täsmälleen määritellyt 15 duuritoonikaa |
-| `getAvailableTonics` | AC2 mollilista | Laatu `minor` | Haetaan lista | Täsmälleen määritellyt 15 mollitoonikaa |
+| `getAvailableTonics` | AC1 duurilista sävelkorkeusjärjestyksessä | Laatu `major` | Haetaan lista | Täsmälleen `C, C#, Db, D, Eb, E, F, F#, Gb, G, Ab, A, Bb, B, Cb` tässä järjestyksessä |
+| `getAvailableTonics` | AC2 mollilista sävelkorkeusjärjestyksessä | Laatu `minor` | Haetaan lista | Täsmälleen `C, C#, D, D#, Eb, E, F, F#, G, G#, Ab, A, A#, Bb, B` tässä järjestyksessä |
 | käyttöliittymä | AC3 laadun vaihto | C-duuri valittuna | Valitaan molli | Toonika tyhjenee ja mollilista näkyy |
-| `resolveTranspositionSettings` | AC4 duuri ylöspäin | C-duuri, `2` | Ratkaistaan | D-duuri, `ready`, ei lisävalintaa |
-| `resolveTranspositionSettings` | AC5 molli alaspäin | A-molli, `-2` | Ratkaistaan | G-molli, `ready`, ei lisävalintaa |
-| `resolveTranspositionSettings` | AC6 nolla | Gb-duuri, `0` | Ratkaistaan | Gb-duuri, `ready`, ei lisävalintaa |
-| `resolveTranspositionSettings` | AC7 duurivaihtoehdot | C-duuri, `1` | Ratkaistaan | C#/Db-vaihtoehdot, käsittely odottaa |
-| käyttöliittymä | AC8 vaihtoehdon valinta | C#/Db näkyvissä | Valitaan Db | Db-duuri, `ready`, valinta sulkeutuu |
-| `resolveTranspositionSettings` | AC9 mollivaihtoehdot | D-molli, `1` | Ratkaistaan | D#/Eb-vaihtoehdot, käsittely odottaa |
-| `resolveTranspositionSettings` | AC10 käytännöllinen duuri | A-duuri, `1` | Ratkaistaan | Bb-duuri, ei A#:a eikä valintaa |
-| `resolveTranspositionSettings` | AC11 käytännöllinen molli | C-molli, `1` | Ratkaistaan | C#-molli, ei Db:tä eikä valintaa |
-| `resolveTranspositionSettings` | AC12 positiivinen raja | C-duuri, `11` | Ratkaistaan | B/Cb-vaihtoehdot |
-| `resolveTranspositionSettings` | AC13 negatiivinen raja | C-duuri, `-11` | Ratkaistaan | C#/Db-vaihtoehdot |
-| `resolveTranspositionSettings` | AC14 liian pieni | C-duuri, `-12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
-| `resolveTranspositionSettings` | AC15 liian suuri | C-duuri, `12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
-| `resolveTranspositionSettings` | AC16 desimaali | C-duuri, `1.5` | Ratkaistaan | Täsmällinen askelmäärävirhe |
-| käyttöliittymä | AC17 toonika puuttuu | Duuri ja `1`, ei toonikaa | Vahvistetaan | Virhe `Valitse lähtösävellaji` |
-| käyttöliittymä | AC18 laatu puuttuu | Ei laatua | Vahvistetaan | Virhe `Valitse duuri tai molli` |
-| `resolveTranspositionSettings` | AC19 H-normalisointi | H-duuri, `0` | Ratkaistaan | Lähtö ja kohde B |
-| `resolveTranspositionSettings` | AC20 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
-| `resolveTranspositionSettings` | AC21 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
+| `resolveTranspositionSettings` | AC4 kaikki duuriyhdistelmät | AC1:n 15 toonikaa × 23 askelta | Ratkaistaan taulukkotestinä | Kaikki 345 kohdesävelkorkeutta, tilaa ja nimeä vastaavat eksplisiittistä fixture-taulukkoa |
+| `resolveTranspositionSettings` | AC5 kaikki molliyhdistelmät | AC2:n 15 toonikaa × 23 askelta | Ratkaistaan taulukkotestinä | Kaikki 345 kohdesävelkorkeutta, tilaa ja nimeä vastaavat eksplisiittistä fixture-taulukkoa |
+| `resolveTranspositionSettings` | AC6 duuri ylöspäin | C-duuri, `2` | Ratkaistaan | D-duuri, `ready`, ei lisävalintaa |
+| `resolveTranspositionSettings` | AC7 molli alaspäin | A-molli, `-2` | Ratkaistaan | G-molli, `ready`, ei lisävalintaa |
+| `resolveTranspositionSettings` | AC8 nolla | Gb-duuri, `0` | Ratkaistaan | Gb-duuri, `ready`, ei lisävalintaa |
+| `resolveTranspositionSettings` | AC9 duurivaihtoehdot | C-duuri, `1` | Ratkaistaan | C#/Db-vaihtoehdot, käsittely odottaa |
+| käyttöliittymä | AC10 vaihtoehdon valinta | C#/Db näkyvissä | Valitaan Db | Db-duuri, `ready`, valinta sulkeutuu |
+| `resolveTranspositionSettings` | AC11 mollivaihtoehdot | D-molli, `1` | Ratkaistaan | D#/Eb-vaihtoehdot, käsittely odottaa |
+| `resolveTranspositionSettings` | AC12 käytännöllinen duuri | A-duuri, `1` | Ratkaistaan | Bb-duuri, ei A#:a eikä valintaa |
+| `resolveTranspositionSettings` | AC13 käytännöllinen molli | C-molli, `1` | Ratkaistaan | C#-molli, ei Db:tä eikä valintaa |
+| `resolveTranspositionSettings` | AC14 positiivinen raja | C-duuri, `11` | Ratkaistaan | B/Cb-vaihtoehdot |
+| `resolveTranspositionSettings` | AC15 negatiivinen raja | C-duuri, `-11` | Ratkaistaan | C#/Db-vaihtoehdot |
+| `resolveTranspositionSettings` | AC16 liian pieni | C-duuri, `-12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
+| `resolveTranspositionSettings` | AC17 liian suuri | C-duuri, `12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
+| `resolveTranspositionSettings` | AC18 desimaali | C-duuri, `1.5` | Ratkaistaan | Täsmällinen askelmäärävirhe |
+| käyttöliittymä | AC19 toonika puuttuu | Duuri ja `1`, ei toonikaa | Vahvistetaan | Virhe `Valitse lähtösävellaji` |
+| käyttöliittymä | AC20 laatu puuttuu | Ei laatua | Vahvistetaan | Virhe `Valitse duuri tai molli` |
+| `resolveTranspositionSettings` | AC21 H-normalisointi | H-duuri, `0` | Ratkaistaan | Lähtö ja kohde B |
+| `resolveTranspositionSettings` | AC22 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
+| `resolveTranspositionSettings` | AC23 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
+| käyttöliittymä | AC24 automaattinen yksiselitteinen esikatselu | C-duuri, C, `2` | Viimeinen puuttuva valinta tehdään | `Kohdesävellaji: D-duuri` näkyy ilman vahvistusta |
+| käyttöliittymä | AC25 automaattiset enharmoniset vaihtoehdot | C-duuri, C, `1` | Viimeinen puuttuva valinta tehdään | C#-/Db-vaihtoehdot näkyvät ilman vahvistusta; esikatselu piilossa |
+| käyttöliittymä | AC26 keskeneräinen tai virheellinen tila | Puuttuva laatu, puuttuva toonika sekä askeleet `-12`, `12` ja `1.5` | Tila päivitetään | Esikatselu ja lisävalinta piilossa; musiikkisyöte muuttumaton |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

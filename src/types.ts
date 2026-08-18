@@ -1,6 +1,29 @@
 /** Transponointiaskeleiden sallittu kokonaislukuväli on -12...12. */
 export type TranspositionStep = number;
 
+export type KeyMode = 'major' | 'minor';
+
+export interface TranspositionSettingsInput {
+  readonly mode: KeyMode;
+  readonly sourceTonic: string;
+  readonly step: number;
+  readonly enharmonicChoice?: 'sharp' | 'flat';
+}
+
+export type TranspositionSettingsResult =
+  | {
+      readonly status: 'ready';
+      readonly mode: KeyMode;
+      readonly sourceTonic: string;
+      readonly targetTonic: string;
+    }
+  | {
+      readonly status: 'requiresEnharmonicChoice';
+      readonly mode: KeyMode;
+      readonly sourceTonic: string;
+      readonly options: readonly string[];
+    };
+
 export type MusicInput = string;
 export type TransposedMusic = string;
 export type ChordSymbol = string;

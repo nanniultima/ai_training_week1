@@ -76,6 +76,22 @@ Required for: new features, API changes, anything multi-file.
 Optional for: typo-class fixes, config tweaks, docs.
 Write specs/features/<name>.md — structure in specs/TEMPLATE.md.
 
+Jokaisen ominaisuusspeksin suunnitelmat tallennetaan speksin tiedostonimeä
+vastaavaan omaan kansioon:
+
+```text
+docs/features/<name>/architecture.md
+docs/features/<name>/test-plan.md
+docs/features/<name>/tasks.md
+```
+
+Esimerkiksi `specs/features/input-line-classification.md` käyttää kansiota
+`docs/features/input-line-classification/`. Älä luo ominaisuussuunnitelmille
+yleisiä tiedostoja `docs/architecture.md`, `docs/test-plan.md` tai `TASKS.md`.
+Jos myöhemmin tarvitaan koko projektin yhteinen arkkitehtuuri, testisuunnitelma
+tai tehtävälista, se luodaan erillisellä pyynnöllä kuvaavasti nimettyyn uuteen
+tiedostoon.
+
 Spec Readiness checklist — the spec is NOT ready until every box holds:
 - [ ] Every AC is Given/When/Then with a precise expected value
 - [ ] Files to modify are listed with what changes in each
