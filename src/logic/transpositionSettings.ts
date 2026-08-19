@@ -83,7 +83,25 @@ export function getAvailableTonics(
 export function resolveTranspositionSettings(
   input: TranspositionSettingsInput,
 ): TranspositionSettingsResult {
-  const sourceChroma = chroma(input.sourceTonic);
+  if (
+    !Number.isInteger(input.step) ||
+    input.step < -11 ||
+    input.step > 11
+  ) {
+    throw new Error(
+      'Askelmäärän pitää olla kokonaisluku väliltä -11–11',
+    );
+  }
+
+  const sourceTonic = input.sourceTonic;
+
+  if (!getAvailableTonics(input.mode).includes(sourceTonic)) {
+    throw new Error(
+      `Tuntematon lähtösävellaji: ${input.sourceTonic}`,
+    );
+  }
+
+  const sourceChroma = chroma(sourceTonic);
   const targetChroma = ((sourceChroma + input.step) % 12 + 12) % 12;
   const targetTonics =
     input.mode === 'major'
@@ -94,12 +112,24 @@ export function resolveTranspositionSettings(
     throw new Error('Kohdesävellajia ei voitu ratkaista');
   }
 
+  if (
+    input.enharmonicChoice !== undefined &&
+    (input.step === 0 || targetTonics.length === 1)
+  ) {
+    const targetTonic =
+      input.step === 0 ? sourceTonic : targetTonics[0];
+    const modeName = input.mode === 'major' ? 'duuri' : 'molli';
+    throw new Error(
+      `Kohdesävellaji ${targetTonic}-${modeName} ei tarvitse enharmonista valintaa`,
+    );
+  }
+
   if (input.step === 0) {
     return {
       status: 'ready',
       mode: input.mode,
-      sourceTonic: input.sourceTonic,
-      targetTonic: input.sourceTonic,
+      sourceTonic,
+      targetTonic: sourceTonic,
     };
   }
 
@@ -107,7 +137,7 @@ export function resolveTranspositionSettings(
     return {
       status: 'requiresEnharmonicChoice',
       mode: input.mode,
-      sourceTonic: input.sourceTonic,
+      sourceTonic,
       options: targetTonics,
     };
   }
@@ -115,7 +145,7 @@ export function resolveTranspositionSettings(
   return {
     status: 'ready',
     mode: input.mode,
-    sourceTonic: input.sourceTonic,
+    sourceTonic,
     targetTonic: targetTonics[0],
   };
 }

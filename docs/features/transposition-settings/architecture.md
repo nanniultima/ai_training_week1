@@ -10,10 +10,10 @@ tapahtumat tämän logiikan syötteiksi sekä näyttää tuloksen.
 | Tiedosto | Omistaa | Miksi tiedosto tarvitaan |
 |---|---|---|
 | `src/types.ts` | Sävellajin laadun, toonikan, enharmonisen valinnan, asetussyötteen ja diskriminoidun asetustuloksen tyypit. | Logiikka ja käyttöliittymä tarvitsevat yhden tiukan yhteisen rajapinnan ennen toteutusta. |
-| `src/logic/transpositionSettings.ts` | Duuri- ja mollitoonikalistat, Tonal-pohjainen validointi ja chroma, H–B-normalisointi, kohdesävelkorkeuden laskenta sekä enharmonisten vaihtoehtojen ratkaisu. | Musiikilliset päätökset pitää voida testata ilman DOM:ia ja näkyvät nimet pitää pitää speksin hallinnassa. |
-| `src/logic/transpositionSettings.test.ts` | AC1–AC2:n listatestit, AC4–AC5:n matriisit sekä AC6–AC9, AC11–AC18 ja AC21–AC23:n logiikkatestit. | Julkisen liiketoimintalogiikan onnistumis-, matriisi-, raja- ja virhetapaukset tarvitsevat lähdekoodin viereiset Vitest-testit. |
+| `src/logic/transpositionSettings.ts` | Duuri- ja mollitoonikalistat, Tonal-pohjainen validointi ja chroma, kohdesävelkorkeuden laskenta sekä enharmonisten vaihtoehtojen ratkaisu. | Musiikilliset päätökset pitää voida testata ilman DOM:ia ja näkyvät nimet pitää pitää speksin hallinnassa. |
+| `src/logic/transpositionSettings.test.ts` | AC1–AC2:n listatestit, AC4–AC5:n matriisit sekä AC6–AC9, AC11–AC18 ja AC21–AC22:n logiikkatestit. | Julkisen liiketoimintalogiikan onnistumis-, matriisi-, raja- ja virhetapaukset tarvitsevat lähdekoodin viereiset Vitest-testit. |
 | `src/ui/ui.ts` | Moodin, lähtötoonikan ja askeleen muutosten yhteinen päivitys, automaattinen kohde-esikatselu, enharmonisen valinnan näyttäminen ja käyttöliittymävirheet. | DOM-tapahtumat ja käyttäjälle näkyvä tila kuuluvat käyttöliittymärajalle. |
-| `src/ui/ui.test.ts` | AC1–AC3, AC6, AC10, AC19–AC20 ja AC24–AC26 oikeilla DOM-elementeillä ja tapahtumilla. | Käyttäjän valintojen, näkyvien listojen, esikatselun ja virheiden käyttäytyminen pitää todistaa Happy DOMissa. |
+| `src/ui/ui.test.ts` | AC1–AC3, AC6, AC10, AC19–AC20 ja AC23–AC25 oikeilla DOM-elementeillä ja tapahtumilla. | Käyttäjän valintojen, näkyvien listojen, esikatselun ja virheiden käyttäytyminen pitää todistaa Happy DOMissa. |
 | `package.json` | `@tonaljs/note`-tuotantoriippuvuus, Happy DOMin kehitysriippuvuus sekä testi- ja lint-komennot. | Laskenta tarvitsee ylläpidetyn sävelparserin ja UI-testit DOM-ympäristön. |
 | `package-lock.json` | Tonalin, Happy DOMin ja niiden riippuvuuksien lukitut versiot. | Paikallisen ja CI-asennuksen pitää käyttää samoja kirjastoja. |
 

@@ -1,0 +1,1 @@
+- Näytä käyttöliittymässä selkeä virhe, kun puolisävelaskelten arvo ei ole kokonaisluku väliltä −11–11 (esimerkiksi 19).

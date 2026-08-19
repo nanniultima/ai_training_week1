@@ -165,24 +165,14 @@ describe('resolveTranspositionSettings', () => {
     ).toThrow('Askelmäärän pitää olla kokonaisluku väliltä -11–11');
   });
 
-  it('AC21 normalisoi H-duurin B-duuriksi', () => {
-    expect(resolve).toBeTypeOf('function');
-    expect(resolve?.({ mode: 'major', sourceTonic: 'H', step: 0 })).toEqual({
-      status: 'ready',
-      mode: 'major',
-      sourceTonic: 'B',
-      targetTonic: 'B',
-    });
-  });
-
-  it('AC22 hylkää tuntemattoman J-toonikan', () => {
+  it('AC21 hylkää tuntemattoman J-toonikan', () => {
     expect(resolve).toBeTypeOf('function');
     expect(() =>
       resolve?.({ mode: 'major', sourceTonic: 'J', step: 1 }),
     ).toThrow('Tuntematon lähtösävellaji: J');
   });
 
-  it('AC23 hylkää tarpeettoman flat-valinnan', () => {
+  it('AC22 hylkää tarpeettoman flat-valinnan', () => {
     expect(resolve).toBeTypeOf('function');
     expect(() =>
       resolve?.({

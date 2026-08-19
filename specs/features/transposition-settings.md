@@ -95,8 +95,9 @@ tarjota, vaan samalla sävelkorkeudella käytetään C#-mollia.
 ### Liiketoimintalogiikan validointi
 
 Vaikka käyttöliittymä rajaa valinnat listoilla, asetukset validoidaan myös
-liiketoimintalogiikassa. H hyväksytään ohjelmallisessa syötteessä B:n
-vaihtoehdoksi ja normalisoidaan B:ksi. Alennettu B on aina `Bb`.
+liiketoimintalogiikassa. Ohjelmallisen syötteen toonikan pitää kuulua valitun
+laadun lähtösävellajilistaan. H:n tunnistaminen kuuluu sointujen ja sävelten
+tunnistus- ja transponointispekseihin, ei lähtösävellajin valintaan.
 
 Tarpeeton enharmoninen valinta hylätään ohjelmointivirheenä. Esimerkiksi
 C-duuri + 2 tuottaa yksiselitteisesti D-duurin, joten sille ei voi antaa
@@ -207,35 +208,30 @@ sointuja, säveliä tai rikastekstiä.
 **When** käyttäjä yrittää vahvistaa asetukset
 **Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse duuri tai molli`
 
-### AC21: H normalisoidaan ohjelmallisessa syötteessä B:ksi
-**Given** asetustoiminnolle annetaan H-duuri ja askelmäärä `0`
-**When** asetukset ratkaistaan
-**Then** normalisoitu lähtötoonika ja kohdetoonika ovat `B`
-
-### AC22: Tuntematon ohjelmallinen toonika hylätään
+### AC21: Tuntematon ohjelmallinen toonika hylätään
 **Given** asetustoiminnolle annetaan J-duuri ja askelmäärä `1`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Tuntematon lähtösävellaji: J`
 
-### AC23: Tarpeeton enharmoninen valinta hylätään
+### AC22: Tarpeeton enharmoninen valinta hylätään
 **Given** asetustoiminnolle annetaan C-duuri, askelmäärä `2` ja enharmoninen valinta `flat`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa`
 
-### AC24: Yksiselitteinen kohdesävellaji näytetään automaattisesti
+### AC23: Yksiselitteinen kohdesävellaji näytetään automaattisesti
 **Given** käyttäjä on valinnut C-duurin ja askelkentän arvo on `2`
 **When** käyttäjä valitsee lähtötoonikaksi `C`
 **Then** näkyviin tulee ilman Enteriä tai painikkeen painamista täsmälleen `Kohdesävellaji: D-duuri` eikä enharmonista valintaa näytetä
 
-### AC25: Enharmoniset vaihtoehdot näytetään automaattisesti
+### AC24: Enharmoniset vaihtoehdot näytetään automaattisesti
 **Given** käyttäjä on valinnut C-duurin ja askelkentän arvo on `1`
 **When** käyttäjä valitsee lähtötoonikaksi `C`
 **Then** ilman Enteriä tai painikkeen painamista näkyviin tulevat täsmälleen vaihtoehdot `C#-duuri` ja `Db-duuri`, eikä kohdesävellajin esikatselua vielä näytetä
 
-### AC26: Keskeneräiset tai virheelliset valinnat eivät näytä kohdetta
-**Given** vähintään yksi seuraavista toteutuu: laatua ei ole valittu, lähtötoonikaa ei ole valittu tai askelkentän arvo ei ole kokonaisluku väliltä `-11`–`11`
-**When** käyttöliittymän kohdesävellajitila päivitetään
-**Then** kohdesävellajin esikatselu ja enharmoninen valinta ovat molemmat piilossa eikä musiikkisyötettä muuteta
+### AC25: Keskeneräiset tai virheelliset valinnat eivät näytä kohdetta
+**Given** testattavat tilanteet ovat (1) käyttöliittymän alkutila ilman laatuvalintaa ja (2) C-duuri, toonika C sekä askel `2`, jolloin esikatselu on `Kohdesävellaji: D-duuri`
+**When** tilanteessa (1) alkutila näytetään ja tilanteessa (2) käyttäjä joko vaihtaa laaduksi mollin tai syöttää askelkenttään arvon `-12`, `12` tai `1.5`
+**Then** alkutilassa esikatselu ja enharmoninen valinta ovat piilossa; molliin vaihdettaessa lähtötoonikan valinta tyhjenee ja molemmat kohdenäytöt piiloutuvat; virheellisellä askelarvolla molemmat kohdenäytöt piiloutuvat; musiikkisyöte ei muutu missään tilanteessa
 
 ## Files to Modify
 
@@ -244,7 +240,7 @@ sointuja, säveliä tai rikastekstiä.
 | `package.json` | Lisää `happy-dom` kehitysriippuvuudeksi käyttöliittymätestien DOM-ympäristöä varten. |
 | `package-lock.json` | Lukitse asennettu `happy-dom`-versio ja sen riippuvuudet toistettavia asennuksia varten. |
 | `src/types.ts` | Lisää sävellajin laatu-, toonika-, enharmoninen valinta-, asetussyöte- ja asetustulostyypit. |
-| `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, H/B-normalisointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
+| `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
 | `src/logic/transpositionSettings.major.fixture.ts` | Tallenna AC4:n kaikki 345 duuriyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.minor.fixture.ts` | Tallenna AC5:n kaikki 345 molliyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.test.ts` | Lisää liiketoimintalogiikan onnistumis-, raja- ja virhetestit. |
@@ -261,9 +257,6 @@ varten.
   toonikalista voisi tarjota kaksoismerkkejä vaativia sävellajeja.
 - What could break: Enharmonisen valinnan näyttäminen jatkuvasti antaisi
   käyttäjälle mahdollisuuden tehdä ristiriitainen valinta.
-- What could break: H/B-normalisointi voi yllättää vanhaa merkintätapaa
-  käyttävän käyttäjän. Tässä sovelluksessa B tarkoittaa aina kansainvälistä
-  B-säveltä ja alennettu B kirjoitetaan Bb.
 - What could break: Enterin ja Transponoi-painikkeen pitää käyttää samaa
   validointi- ja vahvistustoimintoa, jotta tulokset eivät eroa.
 - What could break: Automaattinen esikatselu voi näyttää vanhan tuloksen, jos
@@ -299,12 +292,11 @@ varten.
 | `resolveTranspositionSettings` | AC18 desimaali | C-duuri, `1.5` | Ratkaistaan | Täsmällinen askelmäärävirhe |
 | käyttöliittymä | AC19 toonika puuttuu | Duuri ja `1`, ei toonikaa | Vahvistetaan | Virhe `Valitse lähtösävellaji` |
 | käyttöliittymä | AC20 laatu puuttuu | Ei laatua | Vahvistetaan | Virhe `Valitse duuri tai molli` |
-| `resolveTranspositionSettings` | AC21 H-normalisointi | H-duuri, `0` | Ratkaistaan | Lähtö ja kohde B |
-| `resolveTranspositionSettings` | AC22 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
-| `resolveTranspositionSettings` | AC23 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
-| käyttöliittymä | AC24 automaattinen yksiselitteinen esikatselu | C-duuri, C, `2` | Viimeinen puuttuva valinta tehdään | `Kohdesävellaji: D-duuri` näkyy ilman vahvistusta |
-| käyttöliittymä | AC25 automaattiset enharmoniset vaihtoehdot | C-duuri, C, `1` | Viimeinen puuttuva valinta tehdään | C#-/Db-vaihtoehdot näkyvät ilman vahvistusta; esikatselu piilossa |
-| käyttöliittymä | AC26 keskeneräinen tai virheellinen tila | Puuttuva laatu, puuttuva toonika sekä askeleet `-12`, `12` ja `1.5` | Tila päivitetään | Esikatselu ja lisävalinta piilossa; musiikkisyöte muuttumaton |
+| `resolveTranspositionSettings` | AC21 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
+| `resolveTranspositionSettings` | AC22 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
+| käyttöliittymä | AC23 automaattinen yksiselitteinen esikatselu | C-duuri, C, `2` | Viimeinen puuttuva valinta tehdään | `Kohdesävellaji: D-duuri` näkyy ilman vahvistusta |
+| käyttöliittymä | AC24 automaattiset enharmoniset vaihtoehdot | C-duuri, C, `1` | Viimeinen puuttuva valinta tehdään | C#-/Db-vaihtoehdot näkyvät ilman vahvistusta; esikatselu piilossa |
+| käyttöliittymä | AC25 keskeneräinen tai virheellinen tila | Alkutila ilman laatua; erikseen C-duuri, C ja `2`, jolloin D-duuri näkyy | Tarkista alkutila; vaihda kelvollisesta tilasta molliin; syötä kelvollisesta tilasta erikseen `-12`, `12` ja `1.5` | Alkutilassa kohdenäytöt piilossa; molliin vaihdettaessa toonika tyhjä ja kohdenäytöt piilossa; virheellisillä askelilla kohdenäytöt piilossa; musiikkisyöte muuttumaton |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

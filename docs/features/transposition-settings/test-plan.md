@@ -27,7 +27,7 @@ AC2 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 
 AC3 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 
-## AC4–AC26
+## AC4–AC25
 
 | Tila | AC | Testitiedosto ja testin nimi | Syöte ja toiminto | Täsmällinen odotus |
 |---|---|---|---|---|
@@ -48,11 +48,10 @@ AC3 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 | [ ] | AC18 | `transpositionSettings.test.ts` — `AC18 hylkää desimaalisen askeleen` | C-duuri, `1.5` | Speksin täsmällinen askelvirhe |
 | [ ] | AC19 | `ui.test.ts` — `AC19 näyttää virheen ilman lähtötoonikaa` | Duuri ja `1`, ei toonikaa; yritä varsinaista transponointia | `Valitse lähtösävellaji`; käsittely ei ala |
 | [ ] | AC20 | `ui.test.ts` — `AC20 näyttää virheen ilman moodia` | Ei moodia; yritä varsinaista transponointia | `Valitse duuri tai molli`; käsittely ei ala |
-| [ ] | AC21 | `transpositionSettings.test.ts` — `AC21 normalisoi H:n B:ksi` | H-duuri, `0` | Lähde ja kohde `B` |
-| [ ] | AC22 | `transpositionSettings.test.ts` — `AC22 hylkää J-toonikan` | J-duuri, `1` | `Tuntematon lähtösävellaji: J` |
-| [ ] | AC23 | `transpositionSettings.test.ts` — `AC23 hylkää tarpeettoman flat-valinnan` | C-duuri, `2`, valinta `flat` | `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa` |
-| [ ] | AC24 | `ui.test.ts` — `AC24 näyttää yksiselitteisen kohteen automaattisesti` | Valitse C-duuri, C ja `2` | `Kohdesävellaji: D-duuri` ilman Enteriä tai painiketta |
-| [ ] | AC25 | `ui.test.ts` — `AC25 näyttää enharmoniset vaihtoehdot automaattisesti` | Valitse C-duuri, C ja `1` | C#-/Db-vaihtoehdot näkyvät; kohde-esikatselu piilossa |
-| [ ] | AC26 | `ui.test.ts` — `AC26 piilottaa kohteen keskeneräisessä ja virheellisessä tilassa` | Puuttuva mode, puuttuva toonika, `-12`, `12`, `1.5` | Esikatselu ja vaihtoehdot piilossa; musiikkisyöte muuttumaton |
+| [ ] | AC21 | `transpositionSettings.test.ts` — `AC21 hylkää J-toonikan` | J-duuri, `1` | `Tuntematon lähtösävellaji: J` |
+| [ ] | AC22 | `transpositionSettings.test.ts` — `AC22 hylkää tarpeettoman flat-valinnan` | C-duuri, `2`, valinta `flat` | `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa` |
+| [ ] | AC23 | `ui.test.ts` — `AC23 näyttää yksiselitteisen kohteen automaattisesti` | Valitse C-duuri, C ja `2` | `Kohdesävellaji: D-duuri` ilman Enteriä tai painiketta |
+| [ ] | AC24 | `ui.test.ts` — `AC24 näyttää enharmoniset vaihtoehdot automaattisesti` | Valitse C-duuri, C ja `1` | C#-/Db-vaihtoehdot näkyvät; kohde-esikatselu piilossa |
+| [ ] | AC25 | `ui.test.ts` — `AC25 piilottaa kohteen keskeneräisessä ja virheellisessä tilassa` | Tarkista alkutila ilman moodia; muodosta erikseen C-duuri, C ja `2`, vaihda molliin tai syötä `-12`, `12`, `1.5` | Alkutilassa kohdenäytöt piilossa; molliin vaihdettaessa toonika tyhjä ja kohdenäytöt piilossa; virheellisillä askelilla kohdenäytöt piilossa; musiikkisyöte muuttumaton |
 
-Kaikki AC1–AC26 ovat koneellisesti tarkistettavia; `[?]`-rivejä ei ole.
+Kaikki AC1–AC25 ovat koneellisesti tarkistettavia; `[?]`-rivejä ei ole.

@@ -25,18 +25,17 @@ red-kierroksen jälkeen.
 - [ ] **AC18:** Hylkää desimaalinen askel `1.5` speksin täsmällisellä virheviestillä.
 - [ ] **AC19:** Estä UI-vahvistus ilman lähtötoonikaa ja näytä speksin virhe.
 - [ ] **AC20:** Estä UI-vahvistus ilman moodia ja näytä speksin virhe.
-- [ ] **AC21:** Normalisoi ohjelmallinen H-duuri B-duuriksi lähdössä ja kohteessa.
-- [ ] **AC22:** Hylkää tuntematon J-toonika speksin täsmällisellä virheviestillä.
-- [ ] **AC23:** Hylkää yksiselitteiselle D-duurille annettu tarpeeton flat-valinta.
-- [ ] **AC24:** Näytä yksiselitteinen kohdesävellaji automaattisesti viimeisen valinnan valmistuttua.
-- [ ] **AC25:** Näytä enharmoniset vaihtoehdot automaattisesti ja pidä kohde-esikatselu piilossa valintaan asti.
-- [ ] **AC26:** Piilota esikatselu ja vaihtoehdot kaikissa keskeneräisissä ja virheellisissä UI-tiloissa.
+- [ ] **AC21:** Hylkää tuntematon J-toonika speksin täsmällisellä virheviestillä.
+- [ ] **AC22:** Hylkää yksiselitteiselle D-duurille annettu tarpeeton flat-valinta.
+- [ ] **AC23:** Näytä yksiselitteinen kohdesävellaji automaattisesti viimeisen valinnan valmistuttua.
+- [ ] **AC24:** Näytä enharmoniset vaihtoehdot automaattisesti ja pidä kohde-esikatselu piilossa valintaan asti.
+- [ ] **AC25:** Piilota esikatselu ja vaihtoehdot kaikissa keskeneräisissä ja virheellisissä UI-tiloissa.
 
 ## Valmistumisen tarkistus
 
-- [ ] `docs/features/transposition-settings/test-plan.md` sisältää testirivin jokaiselle AC1–AC26:lle.
+- [ ] `docs/features/transposition-settings/test-plan.md` sisältää testirivin jokaiselle AC1–AC25:lle.
 - [ ] `npm run lint` läpäisee.
 - [ ] `npm test` läpäisee eikä olemassa olevia testejä ole poistettu.
-- [ ] Jokainen AC1–AC26 on suljettu yllä ja sitä vastaava testi läpäisee.
+- [ ] Jokainen AC1–AC25 on suljettu yllä ja sitä vastaava testi läpäisee.
 - [ ] Diffissä ei ole speksin ulkopuolista toteutusta.
 - [ ] Speksin tila voidaan päivittää `Done`-tilaan vasta review-workflown hyväksynnän jälkeen.

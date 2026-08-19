@@ -127,6 +127,19 @@ export function initializeUi(root: HTMLElement | null): void {
     root.querySelector<HTMLElement>('#target-key-preview');
   const enharmonicChoice =
     root.querySelector<HTMLElement>('#enharmonic-choice');
+  const transposeActions =
+    root.querySelector<HTMLElement>('.transpose-actions');
+  const transposeButton =
+    root.querySelector<HTMLButtonElement>('.transpose-actions button');
+  const transpositionError = document.createElement('p');
+  transpositionError.id = 'transposition-error';
+  transpositionError.setAttribute('role', 'alert');
+  transpositionError.hidden = true;
+  transposeActions?.prepend(transpositionError);
+
+  if (transposeButton !== null) {
+    transposeButton.disabled = false;
+  }
 
   const updateTargetKeyPreview = (): void => {
     if (
@@ -206,6 +219,7 @@ export function initializeUi(root: HTMLElement | null): void {
     });
 
     sourceKey.replaceChildren(...options);
+    sourceKey.selectedIndex = -1;
     sourceKey.disabled = false;
     updateTargetKeyPreview();
   });
@@ -230,4 +244,27 @@ export function initializeUi(root: HTMLElement | null): void {
 
   sourceKey?.addEventListener('change', updateTargetKeyPreview);
   stepInput?.addEventListener('input', updateTargetKeyPreview);
+  transposeButton?.addEventListener('click', () => {
+    if (sourceKey === null) {
+      return;
+    }
+
+    transpositionError.hidden = true;
+    transpositionError.textContent = '';
+
+    const mode = root.querySelector<HTMLInputElement>(
+      'input[name=key-mode]:checked',
+    )?.value;
+
+    if (mode !== 'major' && mode !== 'minor') {
+      transpositionError.textContent = 'Valitse duuri tai molli';
+      transpositionError.hidden = false;
+      return;
+    }
+
+    if (sourceKey.value === '') {
+      transpositionError.textContent = 'Valitse lähtösävellaji';
+      transpositionError.hidden = false;
+    }
+  });
 }

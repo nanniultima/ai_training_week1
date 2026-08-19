@@ -228,7 +228,7 @@ describe('initializeUi', () => {
     ).toBe(true);
   });
 
-  it('AC24 näyttää yksiselitteisen kohdesävellajin automaattisesti', () => {
+  it('AC23 näyttää yksiselitteisen kohdesävellajin automaattisesti', () => {
     const root = document.createElement('div');
     initializeUi(root);
 
@@ -249,7 +249,7 @@ describe('initializeUi', () => {
     expect(root.textContent).toContain('Kohdesävellaji: D-duuri');
   });
 
-  it('AC25 näyttää enharmoniset vaihtoehdot automaattisesti', () => {
+  it('AC24 näyttää enharmoniset vaihtoehdot automaattisesti', () => {
     const root = document.createElement('div');
     initializeUi(root);
 
@@ -276,32 +276,38 @@ describe('initializeUi', () => {
     expect(root.textContent).not.toContain('Kohdesävellaji:');
   });
 
-  it('AC26 piilottaa kohteen keskeneräisessä ja virheellisessä tilassa', () => {
+  it('AC25 piilottaa kohteen keskeneräisessä ja virheellisessä tilassa', () => {
+    const initialRoot = document.createElement('div');
+    initializeUi(initialRoot);
+    const initialMusic =
+      initialRoot.querySelector<HTMLElement>('#music-input')?.innerHTML;
+
+    expect(
+      initialRoot.querySelector<HTMLElement>('#target-key-preview')?.hidden,
+      'alkutila ilman moodia',
+    ).toBe(true);
+    expect(
+      initialRoot.querySelector<HTMLElement>('#enharmonic-choice')?.hidden,
+      'alkutila ilman moodia',
+    ).toBe(true);
+    expect(
+      initialRoot.querySelector<HTMLElement>('#music-input')?.innerHTML,
+      'alkutila ilman moodia',
+    ).toBe(initialMusic);
+
     const invalidCases: ReadonlyArray<{
       readonly name: string;
       readonly invalidate: (root: HTMLDivElement) => void;
+      readonly clearsSourceTonic?: boolean;
     }> = [
       {
-        name: 'puuttuva moodi',
+        name: 'vaihto duurista molliin',
         invalidate: (root) => {
-          const major = root.querySelector<HTMLInputElement>(
-            'input[name=key-mode][value=major]',
-          );
-          if (major !== null) {
-            major.checked = false;
-            major.dispatchEvent(new Event('change', { bubbles: true }));
-          }
+          root.querySelector<HTMLInputElement>(
+            'input[name=key-mode][value=minor]',
+          )?.click();
         },
-      },
-      {
-        name: 'puuttuva toonika',
-        invalidate: (root) => {
-          const sourceKey = root.querySelector<HTMLSelectElement>('#source-key');
-          if (sourceKey !== null) {
-            sourceKey.selectedIndex = -1;
-            sourceKey.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        },
+        clearsSourceTonic: true,
       },
       ...['-12', '12', '1.5'].map((value) => ({
         name: `virheellinen askel ${value}`,
@@ -343,6 +349,9 @@ describe('initializeUi', () => {
 
       invalidCase.invalidate(root);
 
+      if (invalidCase.clearsSourceTonic === true) {
+        expect(sourceKey?.value, invalidCase.name).toBe('');
+      }
       expect(
         root.querySelector<HTMLElement>('#target-key-preview')?.hidden,
         invalidCase.name,
