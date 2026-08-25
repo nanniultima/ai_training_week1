@@ -1,4 +1,4 @@
-/** Transponointiaskeleiden sallittu kokonaislukuväli on -12...12. */
+/** Transponointiaskeleiden sallittu kokonaislukuväli on -11...11. */
 export type TranspositionStep = number;
 
 export type KeyMode = 'major' | 'minor';

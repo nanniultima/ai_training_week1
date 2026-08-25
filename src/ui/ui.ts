@@ -2,6 +2,11 @@ import {
   getAvailableTonics,
   resolveTranspositionSettings,
 } from '../logic/transpositionSettings.js';
+import type { KeyMode } from '../types.js';
+
+function getModeName(mode: KeyMode): 'duuri' | 'molli' {
+  return mode === 'major' ? 'duuri' : 'molli';
+}
 
 /** Luo sovelluksen ensimmäisen käyttöliittymärungon. */
 export function initializeUi(root: HTMLElement | null): void {
@@ -178,14 +183,14 @@ export function initializeUi(root: HTMLElement | null): void {
     });
 
     if (result.status === 'ready') {
-      const modeName = result.mode === 'major' ? 'duuri' : 'molli';
+      const modeName = getModeName(result.mode);
       targetKeyPreview.textContent =
         `Kohdesävellaji: ${result.targetTonic}-${modeName}`;
       targetKeyPreview.hidden = false;
       return;
     }
 
-    const modeName = result.mode === 'major' ? 'duuri' : 'molli';
+    const modeName = getModeName(result.mode);
     const choices = result.options.map((tonic) => {
       const label = document.createElement('label');
       const input = document.createElement('input');
@@ -206,12 +211,12 @@ export function initializeUi(root: HTMLElement | null): void {
     enharmonicChoice.hidden = false;
   };
 
-  majorChoice?.addEventListener('click', () => {
+  const selectMode = (mode: KeyMode): void => {
     if (sourceKey === null) {
       return;
     }
 
-    const options = getAvailableTonics('major').map((tonic) => {
+    const options = getAvailableTonics(mode).map((tonic) => {
       const option = document.createElement('option');
       option.value = tonic;
       option.textContent = tonic;
@@ -222,25 +227,10 @@ export function initializeUi(root: HTMLElement | null): void {
     sourceKey.selectedIndex = -1;
     sourceKey.disabled = false;
     updateTargetKeyPreview();
-  });
+  };
 
-  minorChoice?.addEventListener('click', () => {
-    if (sourceKey === null) {
-      return;
-    }
-
-    const options = getAvailableTonics('minor').map((tonic) => {
-      const option = document.createElement('option');
-      option.value = tonic;
-      option.textContent = tonic;
-      return option;
-    });
-
-    sourceKey.replaceChildren(...options);
-    sourceKey.selectedIndex = -1;
-    sourceKey.disabled = false;
-    updateTargetKeyPreview();
-  });
+  majorChoice?.addEventListener('click', () => selectMode('major'));
+  minorChoice?.addEventListener('click', () => selectMode('minor'));
 
   sourceKey?.addEventListener('change', updateTargetKeyPreview);
   stepInput?.addEventListener('input', updateTargetKeyPreview);
