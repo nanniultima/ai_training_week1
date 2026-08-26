@@ -49,3 +49,34 @@ export interface MusicRecord {
   readonly output: TransposedMusic;
   readonly step: TranspositionStep;
 }
+
+export interface FormattedTextSegment {
+  readonly text: string;
+  readonly bold: boolean;
+  readonly italic: boolean;
+  readonly fontSizePx?: number;
+}
+
+export interface InputLine {
+  readonly segments: readonly FormattedTextSegment[];
+}
+
+export type LineType = 'chord' | 'note' | 'text' | 'empty';
+
+export interface ClassifiedLine {
+  readonly index: number;
+  readonly type: LineType;
+  readonly content: string;
+  readonly segments: readonly FormattedTextSegment[];
+}
+
+export interface AmbiguousNoteLineWarning {
+  readonly code: 'AMBIGUOUS_NOTE_LINE';
+  readonly lineIndex: number;
+  readonly content: string;
+}
+
+export interface ClassificationResult {
+  readonly lines: readonly ClassifiedLine[];
+  readonly warnings: readonly AmbiguousNoteLineWarning[];
+}

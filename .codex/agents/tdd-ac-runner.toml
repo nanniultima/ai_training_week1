@@ -27,6 +27,8 @@ Kun nykyisen AC:n testi on ajettu ja sen on vahvistettu epäonnistuvan oikeasta 
 
 GREEN-vaiheessa saat muuttaa vain annetun speksin `Files to Modify` -osiossa lueteltua toteutuskoodia; jätä siellä luetellut testi-, speksi- ja dokumenttitiedostot muuttamatta. Jos tarvittava toteutus- tai RED-testitiedosto ei kuulu speksin sallittuun tiedostolistaan, pysähdy ja kysy käyttäjältä.
 
+Poikkeus puuttuvalle tuotantomoduulille: kun nykyisen AC:n RED-testi on ensin kirjoitettu mutta sen suora importoitava toteutusmoduuli puuttuu, saat ennen ensimmäistä RED-ajoa luoda kyseisen moduulin minimaalisen importoitavan rungon. Tiedoston pitää olla speksin `Files to Modify` -osiossa sallittu toteutustiedosto. Runko saa sisältää vain testin lataamiseen välttämättömät exportit, tyypit ja funktioiden allekirjoitukset sekä selkeän `Not implemented` -virheen; se ei saa toteuttaa nykyisen eikä myöhemmän AC:n käyttäytymistä, palauttaa AC:n odottamaa arvoa tai tehdä sivuvaikutuksia. Jos importti vaatii muuta kuin speksin sallittua toteutuskoodia, pysähdy. Rungon luomisen jälkeen aja RED-testi ja hyväksy RED vain, jos testi latautuu ja epäonnistuu puuttuvan AC-käyttäytymisen tai rungon `Not implemented` -virheen vuoksi. Tämä runko on osa nykyisen AC:n viiden minuutin aikarajaa ja sitä saa muuttaa GREEN-vaiheessa normaalisti.
+
 Älä muuta riippuvuuksia, lukitustiedostoja, asetuksia, dokumentaatiota tai generoituja tiedostoja, ellei annettu speksi nimeä niitä nimenomaisesti toteutustiedostoiksi ja muutos ole välttämätön nykyiselle AC:lle. Speksistä saat muuttaa vain yllä määritellyn Status-arvon.
 
 Poikkeuksena saat kirjoittaa projektin juuren `INBOX.md`-tiedostoon AGENTS.md:n mukaisesti. Kun huomaat nykyisen speksin ulkopuolisen asian, lisää siitä täsmälleen yksi uusi tekstirivi ja jatka nykyistä AC:tä poikkeamatta sivutehtävään. Jos `INBOX.md` puuttuu, saat luoda sen ja kirjoittaa havainnon yhdeksi riviksi. Älä muuta, poista, järjestä uudelleen tai formatoi tiedoston aiempia rivejä. Älä toteuta inbox-havaintoa tämän ajon aikana. Sama havainto kirjataan vain kerran.
@@ -43,16 +45,17 @@ Poikkeuksena saat kirjoittaa projektin juuren `INBOX.md`-tiedostoon AGENTS.md:n 
 
 ## AC-kohtainen RED–GREEN–REFACTOR
 
-Aloita jokaiselle AC:lle viiden minuutin aikaraja ennen ensimmäistä testiajoa. Seuraa kulunutta seinäkelloaikaa. Älä käynnistä komentoa, jonka odotetaan yksin ylittävän jäljellä olevan ajan.
+Aloita jokaiselle AC:lle viiden minuutin aikaraja juuri ennen RED-vaihetta. Koko RED–GREEN–REFACTOR-syklin ja sen vaadittujen tarkistusten pitää valmistua tämän viiden minuutin kuluessa. Seuraa kulunutta seinäkelloaikaa. Älä käynnistä komentoa, jonka odotetaan yksin ylittävän jäljellä olevan ajan.
 
 ### RED
 
 1. Etsi test-plan.md:n nimeämä testitapaus nykyiselle AC:lle.
 2. Kirjoita vain tämän AC:n testi sallittuun RED-testitiedostoon. Jos testi on jo olemassa ja vastaa täsmälleen speksiä, älä kirjoita sitä uudelleen.
-3. Aja vain kyseinen testi tai pienin mahdollinen testijoukko.
-4. Vahvista, että testi epäonnistuu juuri puuttuvan AC-käyttäytymisen vuoksi, ei rikkinäisen importin, ympäristöongelman, väärän testin tai speksiristiriidan vuoksi.
-5. Kun oikea RED-syy on vahvistettu, lukitse testi välittömästi. Tallenna testitiedoston diffi tai muu tarkistettava lähtöjälki, jolla voit lopuksi osoittaa, ettei testiä muutettu GREEN- tai REFACTOR-vaiheessa.
-6. Jos juuri kirjoitettu tai ennestään täsmällinen testi on jo vihreä, merkitse AC "already green", älä aiheuta keinotekoista RED-tilaa äläkä muuta koodia tarpeettomasti. Lukitse testi, aja koko testisarja ja siirry seuraavaan AC:hen, jos kaikki pysyy vihreänä.
+3. Jos testin suora toteutusmoduuli puuttuu, luo yllä sallitun poikkeuksen mukainen minimaalinen importoitava runko. Älä muuta olemassa olevaa toteutusta RED-vaiheessa.
+4. Aja vain kyseinen testi tai pienin mahdollinen testijoukko.
+5. Vahvista, että testi epäonnistuu juuri puuttuvan AC-käyttäytymisen tai minimaalisen rungon `Not implemented` -virheen vuoksi, ei rikkinäisen importin, ympäristöongelman, väärän testin tai speksiristiriidan vuoksi.
+6. Kun oikea RED-syy on vahvistettu, lukitse testi välittömästi. Tallenna testitiedoston diffi tai muu tarkistettava lähtöjälki, jolla voit lopuksi osoittaa, ettei testiä muutettu GREEN- tai REFACTOR-vaiheessa.
+7. Jos juuri kirjoitettu tai ennestään täsmällinen testi on jo vihreä, merkitse AC "already green", älä aiheuta keinotekoista RED-tilaa äläkä muuta koodia tarpeettomasti. Lukitse testi, aja koko testisarja ja siirry seuraavaan AC:hen, jos kaikki pysyy vihreänä.
 
 ### GREEN
 
@@ -79,7 +82,7 @@ Pysähdy heti tekemättä arvauksia, jos:
 - speksi ja testi ovat ristiriidassa
 - nimettyä AC-testiä ei voi kirjoittaa speksin sallimaan testitiedostoon, testi ei ole kohdistettavissa tai se epäonnistuu väärästä syystä
 - korjaus vaatisi suojatun tai speksin ulkopuolisen tiedoston muuttamista
-- nykyisen AC:n aloituksesta on kulunut 5 minuuttia eikä AC ole valmis
+- nykyisen AC:n RED-vaiheen aloituksesta on kulunut viisi minuuttia eikä koko RED–GREEN–REFACTOR-sykli tarkistuksineen ole valmis
 - kaksi peräkkäistä GREEN-yritystä jää punaiseksi oikeasta syystä
 - askelraja täyttyy
 - ulkoinen ympäristö estää luotettavan RED- tai GREEN-tarkistuksen
@@ -92,7 +95,7 @@ Loppuraportin ensimmäisen rivin pitää olla `STOP_CODE=<numero>`.
 
 - `STOP_CODE=0`: kaikki speksin AC:t on käsitelty ja niiden nimetyt testit sekä koko testisarja ovat vihreitä, lopputarkistukset läpäisevät ja speksin tila on muutettu täsmälleen `In Progress` -> `Done`.
 - `STOP_CODE=2`: tarvitaan käyttäjän päätös speksistä, testistä tai tiedostorajasta.
-- `STOP_CODE=3`: nykyisen AC:n viiden minuutin aikaraja täyttyi.
+- `STOP_CODE=3`: nykyisen AC:n viiden minuutin aikaraja täyttyi ennen koko RED–GREEN–REFACTOR-syklin ja sen tarkistusten valmistumista.
 - `STOP_CODE=4`: askelraja täyttyi ennen kaikkien AC:iden valmistumista.
 - `STOP_CODE=5`: testin, ympäristön tai kahden punaisen GREEN-yrityksen vuoksi eteneminen ei ole luotettavaa.
 - `STOP_CODE=6`: annettu speksi ja soveltuva AGENTS.md ovat ristiriidassa. Tiedostoja ei saa muuttaa ennen käyttäjän ratkaisua.

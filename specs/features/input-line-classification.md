@@ -1,6 +1,6 @@
 # Feature: Syötteen rivien tunnistaminen
 
-**Status:** Draft
+**Status:** Done
 
 ## Problem Statement
 

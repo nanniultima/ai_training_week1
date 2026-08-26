@@ -3,6 +3,7 @@ import {
   resolveTranspositionSettings,
 } from '../logic/transpositionSettings.js';
 import type { KeyMode } from '../types.js';
+import { renderLineNumbers } from './lineNumbers.js';
 
 function getModeName(mode: KeyMode): 'duuri' | 'molli' {
   return mode === 'major' ? 'duuri' : 'molli';
@@ -33,16 +34,19 @@ export function initializeUi(root: HTMLElement | null): void {
         <span class="status-badge">Luonnos</span>
       </div>
 
-      <div
-        id="music-input"
-        class="rich-editor"
-        contenteditable="true"
-        role="textbox"
-        aria-label="Tahdistetut soinnut, sävelet ja laulun sanat"
-        aria-multiline="true"
-        data-placeholder="| C | Am | F | G |&#10;Laulun sanat omalle rivilleen"
-        spellcheck="true"
-      ></div>
+      <div class="editor-with-line-numbers">
+        <div id="line-number-gutter" class="line-number-gutter" aria-hidden="true"></div>
+        <div
+          id="music-input"
+          class="rich-editor"
+          contenteditable="true"
+          role="textbox"
+          aria-label="Tahdistetut soinnut, sävelet ja laulun sanat"
+          aria-multiline="true"
+          data-placeholder="| C | Am | F | G |&#10;Laulun sanat omalle rivilleen"
+          spellcheck="true"
+        ></div>
+      </div>
 
       <p class="editor-help">
         Voit käyttää editorissa esimerkiksi näppäinyhdistelmiä
@@ -136,11 +140,23 @@ export function initializeUi(root: HTMLElement | null): void {
     root.querySelector<HTMLElement>('.transpose-actions');
   const transposeButton =
     root.querySelector<HTMLButtonElement>('.transpose-actions button');
+  const musicInput = root.querySelector<HTMLElement>('#music-input');
+  const lineNumberGutter = root.querySelector<HTMLElement>('#line-number-gutter');
   const transpositionError = document.createElement('p');
   transpositionError.id = 'transposition-error';
   transpositionError.setAttribute('role', 'alert');
   transpositionError.hidden = true;
   transposeActions?.prepend(transpositionError);
+
+  musicInput?.addEventListener('scroll', () => {
+    if (lineNumberGutter !== null) lineNumberGutter.scrollTop = musicInput.scrollTop;
+  });
+  musicInput?.addEventListener('input', () => {
+    if (lineNumberGutter !== null) {
+      lineNumberGutter.textContent = renderLineNumbers(musicInput.textContent ?? '').join('\n');
+    }
+  });
+  if (lineNumberGutter !== null) lineNumberGutter.textContent = '1';
 
   if (transposeButton !== null) {
     transposeButton.disabled = false;

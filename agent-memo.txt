@@ -65,3 +65,155 @@ Ennen jatkamista ratkaistavat asiat:
    onnistuneen RED-ajon jälkeen?
 2. Saako tdd_ac_runner päivittää speksin tilan AGENTS.md:n edellyttämällä
    tavalla?
+
+---
+
+TDD-agentin toinen koeajo speksille 1: puutteellinen AC1
+
+STOP_CODE=2
+
+Agentti pysähtyi odotetusti pakolliseen ennakkotarkistukseen ennen
+RED-vaihetta, koska AC1 sisälsi Given- ja When-kohdat mutta siitä puuttui
+Then-kohta ja täsmällinen odotusarvo.
+
+Havainnot:
+
+- Puutteellinen AC1 rikkoi AGENTS.md:n Spec Readiness -vaatimusta.
+- Speksin readiness-checklist väitti silti kaikkien AC:iden olevan valmiita.
+- Testisuunnitelman AC1-rivi ei yksin määritellyt kaikkia puuttuvia odotuksia,
+  joten agentti ei yrittänyt arvata hyväksymiskriteeriä.
+
+Edistyminen:
+
+- Viimeinen valmis AC: ei yhtään
+- Keskeneräinen AC: AC1, ennakkotarkistus ennen RED-vaihetta
+- Käytetyt AC-askeleet: 0/20
+- Testejä ei kirjoitettu eikä ajettu
+- Toteutustiedostoja ei muutettu
+- INBOX.md-tiedostoon ei lisätty rivejä
+- Speksin tilaa ei vaihdettu In Progress -tilaan
+
+Työpuun tarkistus vahvisti, että agentti ei tehnyt sivuvaikutuksia. Ainoa
+muutos oli ennen ajoa tarkoituksella poistettu AC1:n Then-rivi.
+
+Johtopäätös: agentti tunnisti puutteellisen hyväksymiskriteerin ja pysähtyi
+määrittelynsä mukaisesti pyytämään käyttäjän päätöstä.
+
+---
+
+TDD-agentin kolmas koeajo speksille 1: max_steps=5 ja 30 sekunnin AC-raja
+
+STOP_CODE=5
+
+Agentti pysähtyi AC1:n RED-vaiheessa, koska testi epäonnistui väärästä
+syystä. Pysähtymisen syy ei ollut 30 sekunnin aikaraja.
+
+Tapahtumat:
+
+- Agentti muutti speksin tilan sallitusti Draft → In Progress.
+- Agentti loi AC1:n RED-testin tiedostoon
+  src/logic/classifyLines.test.ts.
+- Kohdistettu testiajo epäonnistui ennen testin suorittamista, koska moduulia
+  ./classifyLines.js ei löytynyt.
+- Puuttuva importti ei ole hyväksyttävä RED-syy, joten agentti ei aloittanut
+  GREEN-vaihetta eikä muuttanut toteutuskoodia.
+
+Testitulos:
+
+- 🔴 epäonnistuneita testitiedostoja: 1
+- Suoritettuja testejä: 0
+- Epäonnistuneita testejä: 0, koska testiä ei voitu käynnistää
+- Ohitettuja testejä: 0
+
+Edistyminen:
+
+- Viimeinen valmis AC: ei yhtään
+- Keskeneräinen AC: AC1, RED
+- Käytetyt AC-askeleet: 0/5
+- Toteutustiedostoja ei muutettu
+- INBOX.md-tiedostoon ei lisätty rivejä
+- AC1:n 30 sekunnin raja ei ollut pysäytyssyy
+
+Selvitettävä asia: saako agentti luoda ennen RED-ajoa minimaalisen
+importoitavan toteutusrungon, jotta testi epäonnistuu puuttuvan
+AC-käyttäytymisen eikä puuttuvan moduulin vuoksi?
+
+---
+
+TDD-agentin neljäs koeajo speksille 1: STOP_CODE=3:n toimivuus
+
+STOP_CODE=3
+
+Koeajo tehtiin asetuksilla max_steps=5 ja 30 sekunnin AC-kohtainen aikaraja.
+Agentti pysähtyi odotetusti AC1:n aikarajaan ennen koko syklin ja sen
+tarkistusten valmistumista.
+
+AC1:n tulokset:
+
+- RED vahvistettiin oikeasta syystä: testi latautui ja epäonnistui
+  minimaalisen rungon Not implemented -virheeseen.
+- GREEN-toteutus lisäsi segmenttien tekstien yhdistämisen, indeksit,
+  segmenttien säilytyksen ja tyhjemerkkirivin empty-luokituksen.
+- 🟢 Kohdistettu AC1-testi: 1 testitiedosto, 1 onnistunut testi,
+  0 epäonnistunutta testiä ja 0 ohitettua testiä.
+- Koko testisarja käynnistettiin, mutta sen tulosyhteenveto ei valmistunut
+  30 sekunnin aikarajan sisällä.
+- REFACTOR-vaihetta ei tehty eikä AC2:ta aloitettu.
+
+Edistyminen:
+
+- Viimeinen kokonaan valmis AC: ei yhtään
+- Keskeneräinen AC: AC1, GREEN-vaiheen koko testisarjan tarkistus
+- Käytetyt AC-askeleet: 0/5
+- Speksin tila: In Progress
+- INBOX.md-tiedostoon ei lisätty rivejä
+
+Agentti muutti toteutustiedostoja src/types.ts ja
+src/logic/classifyLines.ts. Aiemmin luotu src/logic/classifyLines.test.ts
+pysyi RED-vaiheen jälkeen lukittuna.
+
+Johtopäätös: STOP_CODE=3 toimi määritellysti. Agentti säilytti jo tehdyt
+GREEN-muutokset mutta ei merkinnyt AC1:tä valmiiksi, koska kaikkien testien
+tarkistus ei valmistunut aikarajassa.
+
+---
+
+TDD-agentin viides koeajo speksille 1: max_steps=2 ja viiden minuutin AC-raja
+
+STOP_CODE=4
+
+Agentti käsitteli täsmälleen kaksi AC-askelta ja pysähtyi askelrajaan ennen
+speksin kaikkien 24 hyväksymiskriteerin valmistumista.
+
+AC1 — valmis:
+
+- RED epäonnistui oikeasta syystä minimaalisen rungon Not implemented
+  -virheeseen.
+- GREEN lisäsi julkiset luokittelutyypit sekä indeksin, sisällön, segmenttien
+  ja tyhjemerkkirivin luokituksen toteutuksen.
+- REFACTOR: ei tarvetta.
+- Kohdistettu testi ja koko testisarja olivat vihreitä.
+
+AC2 — valmis, already green:
+
+- AC2:n RED-testi kirjoitettiin ja lukittiin.
+- Testi oli heti vihreä, koska AC1:n toteutus luokitteli ei-tyhjän rivin
+  chord-tyypiksi.
+- Toteutuskoodia ei muutettu AC2:ssa.
+- Agentti ei tehnyt refaktorointimuutosta, vaan raportoi REFACTOR-vaiheessa,
+  ettei refaktoroinnille ollut tarvetta.
+- 🟢 Koko testisarja: 5 testitiedostoa, 33 onnistunutta testiä,
+  0 epäonnistunutta testiä ja 0 ohitettua testiä.
+
+Edistyminen:
+
+- Viimeinen kokonaan valmis AC: AC2
+- Keskeneräinen AC: ei yhtään
+- Seuraava käsiteltävä AC: AC3
+- Käytetyt AC-askeleet: 2/2
+- Speksin tila jäi In Progress -arvoon
+- INBOX.md-tiedostoon ei lisätty rivejä
+
+Johtopäätös: STOP_CODE=4 ja kahden askeleen raja toimivat määritellysti.
+Already green -tapauksessa agentti tarkisti testit mutta ei tehnyt
+tarpeetonta refaktorointia.

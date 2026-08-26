@@ -369,4 +369,43 @@ describe('initializeUi', () => {
       'Käyttöliittymän juurielementtiä ei löytynyt',
     );
   });
+
+  it('AC22 liittää palstan editorin ulkopuolelle', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+
+    const editor = root.querySelector<HTMLElement>('#music-input');
+    const gutter = root.querySelector<HTMLElement>('#line-number-gutter');
+
+    expect(editor).not.toBeNull();
+    expect(gutter).not.toBeNull();
+    expect(gutter?.parentElement).toBe(editor?.parentElement);
+    expect(gutter?.hasAttribute('contenteditable')).toBe(false);
+    expect(editor?.contains(gutter ?? null)).toBe(false);
+  });
+
+  it('AC23 synkronoi pystysuuntaisen vierityksen', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const editor = root.querySelector<HTMLElement>('#music-input');
+    const gutter = root.querySelector<HTMLElement>('#line-number-gutter');
+
+    if (editor !== null) editor.scrollTop = 120;
+    editor?.dispatchEvent(new Event('scroll'));
+
+    expect(gutter?.scrollTop).toBe(120);
+  });
+
+  it('AC24 pitää numerot poissa editorin sisällöstä', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const editor = root.querySelector<HTMLElement>('#music-input');
+    const gutter = root.querySelector<HTMLElement>('#line-number-gutter');
+
+    if (editor !== null) editor.textContent = "C |G |\nonpa";
+    editor?.dispatchEvent(new Event('input'));
+
+    expect(gutter?.textContent).toBe("1\n2");
+    expect(editor?.textContent).toBe("C |G |\nonpa");
+  });
 });
