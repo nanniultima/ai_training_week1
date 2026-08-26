@@ -1,0 +1,67 @@
+TDD-agentin pysähtymisehdot
+
+Agentti pysähtyy heti tekemättä arvauksia, jos:
+
+- speksistä tai hyväksymiskriteeristä syntyy kysymys
+- speksi ja AGENTS.md ovat todellisesti tai mahdollisesti ristiriidassa (`STOP_CODE=6`)
+- speksi ja testi ovat ristiriidassa
+- nimettyä AC-testiä ei voi kirjoittaa speksin sallimaan testitiedostoon, testiä ei voi kohdistaa yhteen AC:hen tai testi epäonnistuu väärästä syystä
+- korjaus vaatisi suojatun tai speksin ulkopuolisen tiedoston muuttamista
+- nykyisen AC:n aloittamisesta on kulunut viisi minuuttia eikä AC ole valmis (`STOP_CODE=3`)
+- kaksi peräkkäistä GREEN-yritystä jää punaiseksi oikeasta syystä
+- askelraja täyttyy (`STOP_CODE=4`; oletus 20 AC-askelta)
+- ulkoinen ympäristö estää luotettavan RED- tai GREEN-tarkistuksen
+
+Pysäytyskoodit:
+
+- `STOP_CODE=0`: kaikki AC:t, nimetyt testit, koko testisarja ja lopputarkistukset ovat vihreitä ja speksin tila on `Done`
+- `STOP_CODE=2`: tarvitaan käyttäjän päätös speksistä, testistä tai tiedostorajasta
+- `STOP_CODE=3`: nykyisen AC:n viiden minuutin aikaraja täyttyi
+- `STOP_CODE=4`: askelraja täyttyi ennen kaikkien AC:iden valmistumista
+- `STOP_CODE=5`: testi, ympäristö tai kaksi punaista GREEN-yritystä estää luotettavan etenemisen
+- `STOP_CODE=6`: speksi ja soveltuva AGENTS.md ovat ristiriidassa
+
+Pysähtyessään agentti säilyttää jo vihreiksi varmennetut toteutusmuutokset ja raportoi viimeisen valmiin AC:n, keskeneräisen AC:n vaiheen, askelmäärän, toteutusmuutokset, INBOX.md-lisäykset, viimeiset testitulokset sekä täsmällisen kysymyksen tai esteen.
+
+---
+
+TDD-agentin koeajo speksille 1: input-line-classification
+
+STOP_CODE=6
+
+Agentti pysähtyi pakolliseen ennakkotarkistukseen ennen testiajoja ja
+tiedostomuutoksia.
+
+Havaitut ristiriidat:
+
+- AGENTS.md vaatii kirjoittamaan kullekin hyväksymiskriteerille epäonnistuvan
+  testin RED-vaiheessa, mutta tdd_ac_runner kieltää testitiedostojen
+  muuttamisen.
+- AGENTS.md vaatii develop-vaiheessa speksin tilan päivittämisen
+  Draft -> In Progress -> Done, mutta tdd_ac_runner kieltää speksin ja sen
+  tilan muuttamisen.
+- specs/features/input-line-classification.md nimeää AC1-AC24:n testit
+  luotaviksi tai muutettaviksi, mutta tdd_ac_runner sallii GREEN-vaiheessa
+  vain toteutuskoodin muuttamisen.
+- tdd_ac_runner edellyttää jokaiselle AC:lle valmista, olemassa olevaa
+  nimettyä testiä. src/logic/classifyLines.test.ts ja
+  src/ui/lineNumbers.test.ts puuttuvat, eikä nykyisessä src/ui/ui.test.ts:ssa
+  ole speksin uusia AC-testejä.
+
+Edistyminen:
+
+- Viimeinen valmis AC: ei yhtään
+- Keskeneräinen AC: ei aloitettu
+- Käytetyt AC-askeleet: 0/20
+- Testitulokset: testejä ei ajettu
+- Agentin muuttamat tiedostot: ei yhtään
+
+Lähtötilassa oli jo dokumenttimuutoksia ja seuraamaton .codex/-hakemisto.
+Agentti ei muuttanut niitä.
+
+Ennen jatkamista ratkaistavat asiat:
+
+1. Saako tdd_ac_runner kirjoittaa uuden testin RED-vaiheessa ja lukita sen
+   onnistuneen RED-ajon jälkeen?
+2. Saako tdd_ac_runner päivittää speksin tilan AGENTS.md:n edellyttämällä
+   tavalla?
