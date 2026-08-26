@@ -1,5 +1,7 @@
 # Feature: Transponointiasetusten valinta
 
+**Status:** Draft
+
 ## Problem Statement
 
 Transponointi tarvitsee lähtösävellajin, sävellajin laadun ja
@@ -99,9 +101,17 @@ liiketoimintalogiikassa. Ohjelmallisen syötteen toonikan pitää kuulua valitun
 laadun lähtösävellajilistaan. H:n tunnistaminen kuuluu sointujen ja sävelten
 tunnistus- ja transponointispekseihin, ei lähtösävellajin valintaan.
 
-Tarpeeton enharmoninen valinta hylätään ohjelmointivirheenä. Esimerkiksi
-C-duuri + 2 tuottaa yksiselitteisesti D-duurin, joten sille ei voi antaa
-erillistä sharp/flat-valintaa.
+Kahden vaihtoehdon tilanteessa resolverille voidaan antaa
+`targetTonicChoice?: string`, jonka pitää olla täsmälleen toinen palautetuista
+kohdetoonikoista. Kelvollinen valinta viimeistelee tuloksen `ready`-tilaan.
+Tarpeeton tai vaihtoehtoihin kuulumaton valinta hylätään. Esimerkiksi C-duuri
++ 2 tuottaa yksiselitteisesti D-duurin, joten sille ei voi antaa erillistä
+kohdetoonikan valintaa.
+
+Sekä `ready`- että `requiresEnharmonicChoice`-tulos sisältää validoidun
+`step`-arvon. Ajonaikainen mode validoidaan myös TypeScript-tyypin
+ulkopuolisilta kutsuilta: muu kuin `major` tai `minor` hylätään virheellä
+`Tuntematon sävellajin laatu: <arvo>`.
 
 Tämä ominaisuus tuottaa validoidut transponointiasetukset. Se ei vielä muuta
 sointuja, säveliä tai rikastekstiä.
@@ -156,7 +166,7 @@ sointuja, säveliä tai rikastekstiä.
 ### AC10: Duurin enharmoninen valinta vahvistaa asetukset
 **Given** näkyvissä ovat vaihtoehdot C#-duuri ja Db-duuri
 **When** käyttäjä valitsee `Db-duuri`
-**Then** kohdesävellaji on Db-duuri, tila on `ready` ja lisävalinta suljetaan
+**Then** resolverille annetaan `targetTonicChoice: "Db"`, tulos sisältää täsmälleen tilan `ready`, moden `major`, sourceTonic-arvon `C`, targetTonic-arvon `Db` ja step-arvon `1`, esikatselu on `Kohdesävellaji: Db-duuri` ja lisävalinta suljetaan
 
 ### AC11: Kaksi järkevää mollivaihtoehtoa avaa valinnan
 **Given** käyttäjä on valinnut D-mollin ja askelmäärän `1`
@@ -198,23 +208,13 @@ sointuja, säveliä tai rikastekstiä.
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
-### AC19: Puuttuva lähtösävellaji estää vahvistamisen
-**Given** käyttäjä on valinnut duurin ja askelmäärän `1`, mutta ei lähtösävellajia
-**When** käyttäjä yrittää vahvistaa asetukset
-**Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse lähtösävellaji`
-
-### AC20: Puuttuva duuri- tai mollivalinta estää vahvistamisen
-**Given** käyttäjä ei ole valinnut sävellajin laatua
-**When** käyttäjä yrittää vahvistaa asetukset
-**Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse duuri tai molli`
-
 ### AC21: Tuntematon ohjelmallinen toonika hylätään
 **Given** asetustoiminnolle annetaan J-duuri ja askelmäärä `1`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Tuntematon lähtösävellaji: J`
 
 ### AC22: Tarpeeton enharmoninen valinta hylätään
-**Given** asetustoiminnolle annetaan C-duuri, askelmäärä `2` ja enharmoninen valinta `flat`
+**Given** asetustoiminnolle annetaan C-duuri, askelmäärä `2` ja `targetTonicChoice` `Db`
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa`
 
@@ -233,23 +233,32 @@ sointuja, säveliä tai rikastekstiä.
 **When** tilanteessa (1) alkutila näytetään ja tilanteessa (2) käyttäjä joko vaihtaa laaduksi mollin tai syöttää askelkenttään arvon `-12`, `12` tai `1.5`
 **Then** alkutilassa esikatselu ja enharmoninen valinta ovat piilossa; molliin vaihdettaessa lähtötoonikan valinta tyhjenee ja molemmat kohdenäytöt piiloutuvat; virheellisellä askelarvolla molemmat kohdenäytöt piiloutuvat; musiikkisyöte ei muutu missään tilanteessa
 
+### AC26: Validoitu askel sisältyy odotustulokseen
+**Given** lähtösävellaji on C-duuri ja askelmäärä on `1`
+**When** asetukset ratkaistaan ilman `targetTonicChoice`-arvoa
+**Then** tulos sisältää täsmälleen tilan `requiresEnharmonicChoice`, moden `major`, sourceTonic-arvon `C`, step-arvon `1` ja options-arvon `["C#", "Db"]`
+
+### AC27: Vaihtoehtoihin kuulumaton kohdetoonika hylätään
+**Given** lähtösävellaji on C-duuri, askelmäärä on `1` ja `targetTonicChoice` on `F#`
+**When** asetukset yritetään ratkaista
+**Then** toiminto heittää virheen `Kohdetoonika F# ei kuulu vaihtoehtoihin C#, Db`
+
+### AC28: Virheellinen moodi hylätään ajonaikana
+**Given** ohjelmallisen syötteen mode on `dorian`, sourceTonic on `C` ja step on `1`
+**When** asetukset yritetään ratkaista
+**Then** toiminto heittää virheen `Tuntematon sävellajin laatu: dorian`
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `package.json` | Lisää `happy-dom` kehitysriippuvuudeksi käyttöliittymätestien DOM-ympäristöä varten. |
-| `package-lock.json` | Lukitse asennettu `happy-dom`-versio ja sen riippuvuudet toistettavia asennuksia varten. |
-| `src/types.ts` | Lisää sävellajin laatu-, toonika-, enharmoninen valinta-, asetussyöte- ja asetustulostyypit. |
+| `src/types.ts` | Korvaa yleinen enharmoninen valinta täsmällisellä `targetTonicChoice`-kentällä ja lisää validoitu step molempiin asetustuloksiin. |
 | `src/logic/transpositionSettings.ts` | Lisää listojen muodostus, validointi, kohdesävellajin laskenta ja vaihtoehtojen ratkaisu. |
 | `src/logic/transpositionSettings.major.fixture.ts` | Tallenna AC4:n kaikki 345 duuriyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.minor.fixture.ts` | Tallenna AC5:n kaikki 345 molliyhdistelmää eksplisiittisinä, ilman testiajon aikana muodostettavia odotuksia. |
 | `src/logic/transpositionSettings.test.ts` | Lisää liiketoimintalogiikan onnistumis-, raja- ja virhetestit. |
-| `src/ui/ui.ts` | Lisää ehdolliset laatu-, lähtösävellaji- ja enharmoniset valinnat sekä vahvistamisen käyttöliittymätoiminta. |
+| `src/ui/ui.ts` | Anna valittu kohdetoonika resolverille ja näytä vain resolverin validoima ready-tulos. |
 | `src/ui/ui.test.ts` | Testaa Happy DOM -ympäristössä valintojen näkyvyys, listojen sisältö, laadun vaihtaminen ja käyttöliittymävirheet. |
-
-Lisäksi `package.json` ja `package-lock.json` lisäävät ja lukitsevat
-`@tonaljs/note`-tuotantoriippuvuuden kromaattisen sävelkorkeuden ratkaisemista
-varten.
 
 ## Risk
 
@@ -257,8 +266,8 @@ varten.
   toonikalista voisi tarjota kaksoismerkkejä vaativia sävellajeja.
 - What could break: Enharmonisen valinnan näyttäminen jatkuvasti antaisi
   käyttäjälle mahdollisuuden tehdä ristiriitainen valinta.
-- What could break: Enterin ja Transponoi-painikkeen pitää käyttää samaa
-  validointi- ja vahvistustoimintoa, jotta tulokset eivät eroa.
+- What could break: UI voisi ohittaa resolverin enharmonisen valinnan jälkeen;
+  valittu toonika annetaan aina takaisin liiketoimintalogiikan validoitavaksi.
 - What could break: Automaattinen esikatselu voi näyttää vanhan tuloksen, jos
   jokainen laatu-, toonika- ja askelmuutos ei kulje saman päivitystoiminnon
   kautta.
@@ -281,7 +290,7 @@ varten.
 | `resolveTranspositionSettings` | AC7 molli alaspäin | A-molli, `-2` | Ratkaistaan | G-molli, `ready`, ei lisävalintaa |
 | `resolveTranspositionSettings` | AC8 nolla | Gb-duuri, `0` | Ratkaistaan | Gb-duuri, `ready`, ei lisävalintaa |
 | `resolveTranspositionSettings` | AC9 duurivaihtoehdot | C-duuri, `1` | Ratkaistaan | C#/Db-vaihtoehdot, käsittely odottaa |
-| käyttöliittymä | AC10 vaihtoehdon valinta | C#/Db näkyvissä | Valitaan Db | Db-duuri, `ready`, valinta sulkeutuu |
+| `resolveTranspositionSettings` + käyttöliittymä | AC10 vaihtoehdon valinta | C#/Db näkyvissä | Valitaan Db ja ratkaistaan uudelleen | `ready`, `major`, lähde C, kohde Db, step 1; esikatselu näkyy ja valinta sulkeutuu |
 | `resolveTranspositionSettings` | AC11 mollivaihtoehdot | D-molli, `1` | Ratkaistaan | D#/Eb-vaihtoehdot, käsittely odottaa |
 | `resolveTranspositionSettings` | AC12 käytännöllinen duuri | A-duuri, `1` | Ratkaistaan | Bb-duuri, ei A#:a eikä valintaa |
 | `resolveTranspositionSettings` | AC13 käytännöllinen molli | C-molli, `1` | Ratkaistaan | C#-molli, ei Db:tä eikä valintaa |
@@ -290,13 +299,14 @@ varten.
 | `resolveTranspositionSettings` | AC16 liian pieni | C-duuri, `-12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
 | `resolveTranspositionSettings` | AC17 liian suuri | C-duuri, `12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
 | `resolveTranspositionSettings` | AC18 desimaali | C-duuri, `1.5` | Ratkaistaan | Täsmällinen askelmäärävirhe |
-| käyttöliittymä | AC19 toonika puuttuu | Duuri ja `1`, ei toonikaa | Vahvistetaan | Virhe `Valitse lähtösävellaji` |
-| käyttöliittymä | AC20 laatu puuttuu | Ei laatua | Vahvistetaan | Virhe `Valitse duuri tai molli` |
 | `resolveTranspositionSettings` | AC21 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
 | `resolveTranspositionSettings` | AC22 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
 | käyttöliittymä | AC23 automaattinen yksiselitteinen esikatselu | C-duuri, C, `2` | Viimeinen puuttuva valinta tehdään | `Kohdesävellaji: D-duuri` näkyy ilman vahvistusta |
 | käyttöliittymä | AC24 automaattiset enharmoniset vaihtoehdot | C-duuri, C, `1` | Viimeinen puuttuva valinta tehdään | C#-/Db-vaihtoehdot näkyvät ilman vahvistusta; esikatselu piilossa |
 | käyttöliittymä | AC25 keskeneräinen tai virheellinen tila | Alkutila ilman laatua; erikseen C-duuri, C ja `2`, jolloin D-duuri näkyy | Tarkista alkutila; vaihda kelvollisesta tilasta molliin; syötä kelvollisesta tilasta erikseen `-12`, `12` ja `1.5` | Alkutilassa kohdenäytöt piilossa; molliin vaihdettaessa toonika tyhjä ja kohdenäytöt piilossa; virheellisillä askelilla kohdenäytöt piilossa; musiikkisyöte muuttumaton |
+| `resolveTranspositionSettings` | AC26 step odotustuloksessa | C-duuri, `1`, ei valintaa | Ratkaistaan | `requiresEnharmonicChoice`, step `1`, options C#/Db |
+| `resolveTranspositionSettings` | AC27 väärä kohdetoonika | C-duuri, `1`, valinta F# | Ratkaistaan | Virhe `Kohdetoonika F# ei kuulu vaihtoehtoihin C#, Db` |
+| `resolveTranspositionSettings` | AC28 virheellinen mode | Dorian, C, `1` | Ratkaistaan | Virhe `Tuntematon sävellajin laatu: dorian` |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

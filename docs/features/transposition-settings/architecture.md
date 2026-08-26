@@ -1,5 +1,7 @@
 # Arkkitehtuuri: transponointiasetusten valinta
 
+**Status:** Draft
+
 Tämä suunnitelma koskee vain speksiä
 `specs/features/transposition-settings.md`. Musiikillinen laskenta ja validointi
 pidetään puhtaana liiketoimintalogiikkana, ja käyttöliittymä muuntaa käyttäjän
@@ -9,13 +11,11 @@ tapahtumat tämän logiikan syötteiksi sekä näyttää tuloksen.
 
 | Tiedosto | Omistaa | Miksi tiedosto tarvitaan |
 |---|---|---|
-| `src/types.ts` | Sävellajin laadun, toonikan, enharmonisen valinnan, asetussyötteen ja diskriminoidun asetustuloksen tyypit. | Logiikka ja käyttöliittymä tarvitsevat yhden tiukan yhteisen rajapinnan ennen toteutusta. |
+| `src/types.ts` | Täsmällisen kohdetoonikan valinnan sekä validoidun step-arvon sisältävät asetussyöte- ja tulostyypit. | Logiikka ja käyttöliittymä tarvitsevat yhden tiukan yhteisen rajapinnan. |
 | `src/logic/transpositionSettings.ts` | Duuri- ja mollitoonikalistat, Tonal-pohjainen validointi ja chroma, kohdesävelkorkeuden laskenta sekä enharmonisten vaihtoehtojen ratkaisu. | Musiikilliset päätökset pitää voida testata ilman DOM:ia ja näkyvät nimet pitää pitää speksin hallinnassa. |
-| `src/logic/transpositionSettings.test.ts` | AC1–AC2:n listatestit, AC4–AC5:n matriisit sekä AC6–AC9, AC11–AC18 ja AC21–AC22:n logiikkatestit. | Julkisen liiketoimintalogiikan onnistumis-, matriisi-, raja- ja virhetapaukset tarvitsevat lähdekoodin viereiset Vitest-testit. |
+| `src/logic/transpositionSettings.test.ts` | Lista- ja matriisitestit sekä laskennan, täsmällisen kohdevalinnan, step-arvon, moodin ja virheiden testit. | Julkisen liiketoimintalogiikan onnistumis-, raja- ja virhetapaukset tarvitsevat Vitest-testit. |
 | `src/ui/ui.ts` | Moodin, lähtötoonikan ja askeleen muutosten yhteinen päivitys, automaattinen kohde-esikatselu, enharmonisen valinnan näyttäminen ja käyttöliittymävirheet. | DOM-tapahtumat ja käyttäjälle näkyvä tila kuuluvat käyttöliittymärajalle. |
-| `src/ui/ui.test.ts` | AC1–AC3, AC6, AC10, AC19–AC20 ja AC23–AC25 oikeilla DOM-elementeillä ja tapahtumilla. | Käyttäjän valintojen, näkyvien listojen, esikatselun ja virheiden käyttäytyminen pitää todistaa Happy DOMissa. |
-| `package.json` | `@tonaljs/note`-tuotantoriippuvuus, Happy DOMin kehitysriippuvuus sekä testi- ja lint-komennot. | Laskenta tarvitsee ylläpidetyn sävelparserin ja UI-testit DOM-ympäristön. |
-| `package-lock.json` | Tonalin, Happy DOMin ja niiden riippuvuuksien lukitut versiot. | Paikallisen ja CI-asennuksen pitää käyttää samoja kirjastoja. |
+| `src/ui/ui.test.ts` | Listojen, automaattisen esikatselun, täsmällisen kohdevalinnan ja keskeneräisten tilojen DOM-testit. | Käyttäjälle näkyvä käyttäytyminen pitää todistaa Happy DOMissa. |
 
 Uutta tuotantotiedostoa ei tarvita. Kaikki speksin vastuut kuuluvat joko
 asetusten liiketoimintalogiikkaan, yhteisiin tyyppeihin tai nykyiseen
@@ -30,6 +30,9 @@ src/ui/ui.ts -> src/logic/transpositionSettings.ts -> src/types.ts
 `transpositionSettings.ts` ei tuo mitään `src/ui/`-kansiosta. Käyttöliittymä
 antaa logiikalle raakavalinnat, ja logiikka palauttaa joko `ready`-tuloksen,
 `requiresEnharmonicChoice`-tuloksen tai täsmällisen validointivirheen.
+Käyttöliittymä ei viimeistele enharmonista valintaa itse, vaan antaa valitun
+kohdetoonikan takaisin resolverille. Molemmat onnistuneet tulosvariantit
+sisältävät validoidun step-arvon.
 
 ## Mitä ei rakenneta
 
@@ -43,4 +46,4 @@ antaa logiikalle raakavalinnat, ja logiikka palauttaa joko `ready`-tuloksen,
 | Jatkuvasti näkyvää yleistä sharp/flat-valintaa | Lisävalinta näytetään vain kahden käytännöllisen kohdenimen tapauksessa. |
 | Asetusten tallennusta | Speksi ei vaadi asetusten säilymistä sivun latausten välillä. |
 | Verkkopyyntöjä tai koko `tonal`-koontipakettia | Käytetään paikallisesti vain pienempää `@tonaljs/note`-moduulia. |
-| Tuntemattoman `getAvailableTonics`-moodin virhekäyttäytymistä | Nykyinen speksi määrittelee funktiolle vain tyypitetyt arvot `major` ja `minor`; uutta virhettä ei keksitä ilman omaa AC:tä. |
+| `Transponoi`-painikkeen puuttuvien valintojen virheitä tai Enter-vahvistusta | Varsinaisen transponoinnin käynnistys kuuluu myöhempään integraatioon. |
