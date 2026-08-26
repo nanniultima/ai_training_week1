@@ -7,7 +7,7 @@ export interface TranspositionSettingsInput {
   readonly mode: KeyMode;
   readonly sourceTonic: string;
   readonly step: number;
-  readonly enharmonicChoice?: 'sharp' | 'flat';
+  readonly targetTonicChoice?: string;
 }
 
 export type TranspositionSettingsResult =
@@ -15,14 +15,21 @@ export type TranspositionSettingsResult =
       readonly status: 'ready';
       readonly mode: KeyMode;
       readonly sourceTonic: string;
+      readonly step: TranspositionStep;
       readonly targetTonic: string;
     }
   | {
       readonly status: 'requiresEnharmonicChoice';
       readonly mode: KeyMode;
       readonly sourceTonic: string;
+      readonly step: TranspositionStep;
       readonly options: readonly string[];
     };
+
+export type ReadyTranspositionSettings = Extract<
+  TranspositionSettingsResult,
+  { readonly status: 'ready' }
+>;
 
 export type MusicInput = string;
 export type TransposedMusic = string;
@@ -68,6 +75,28 @@ export interface ClassifiedLine {
   readonly type: LineType;
   readonly content: string;
   readonly segments: readonly FormattedTextSegment[];
+}
+
+export interface SuspiciousChordWarning {
+  readonly code: 'SUSPICIOUS_CHORD';
+  readonly lineIndex: number;
+  readonly startIndex: number;
+  readonly original: string;
+  readonly output: string;
+}
+
+export interface LowercaseChordWarning {
+  readonly code: 'LOWERCASE_CHORD';
+  readonly lineIndex: number;
+  readonly startIndex: number;
+  readonly original: string;
+}
+
+export type ChordLineWarning = SuspiciousChordWarning | LowercaseChordWarning;
+
+export interface TransposedChordLine extends ClassifiedLine {
+  readonly type: 'chord';
+  readonly warnings: readonly ChordLineWarning[];
 }
 
 export interface AmbiguousNoteLineWarning {

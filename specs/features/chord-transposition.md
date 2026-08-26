@@ -1,5 +1,7 @@
 # Feature: Sointujen transponointi
 
+**Status:** Done
+
 ## Problem Statement
 
 Käyttäjän sointuriveillä voi olla tavallisia sointuja, laajennettuja
@@ -19,8 +21,9 @@ Lisätään kaksi puhdasta liiketoimintalogiikan toimintoa:
 - `transposeChordLine` jäsentää luokitellun sointurivin, transponoi sen
   soinnut ja säilyttää muun sisällön.
 
-Toiminnot käyttävät `transposition-settings`-speksin tuottamia validoituja
-asetuksia:
+Toiminnot hyväksyvät asetuksiksi vain `transposition-settings`-speksin
+`ready`-tulosvariantin. `requiresEnharmonicChoice` ei kuulu funktioiden
+TypeScript-parametrityyppiin. Ready-asetuksista käytetään:
 
 - lähtösävellajin toonika ja moodi kontekstina
 - askelmäärä `-11`–`11`
@@ -39,11 +42,11 @@ Ensimmäisessä versiossa tuetaan:
 - dominanttiseptimisointu, esimerkiksi `C7`
 - duurimaj7-sointu, esimerkiksi `Cmaj7`
 - molliseptimisointu, esimerkiksi `Cm7`
-- sus4-sointu, esimerkiksi `Csus4`
+- sus-sointu ja sus4-sointu, esimerkiksi `Csus` ja `Csus4`
 - vähennetty sointu, esimerkiksi `Cdim`
 - ylinouseva sointu, esimerkiksi `Caug`
 - add9-sointu, esimerkiksi `Cadd9`
-- edellisten bassosointumuodot, esimerkiksi `G/B` ja `Cm7/Bb`
+- edellisten bassosointumuodot, esimerkiksi `G/B`, `Cm7/Bb` ja `Dsus/A`
 
 Perus- ja bassosävel kirjoitetaan isolla kirjaimella. Mollipääte on pieni
 `m`, ja muut tuetut päätteet kirjoitetaan yllä esitetyissä muodoissa.
@@ -78,6 +81,15 @@ Kohdesävellajin kirjoitusasu määrää tuloksessa käytettävän merkkiperheen
 - alennusmerkkinen kohdesävellaji käyttää nimiä `Db`, `Eb`, `Gb`, `Ab` ja
   `Bb`
 
+Merkkiperhe määräytyy täsmälleen näin:
+
+- duurin sharp-ryhmä: `G`, `D`, `A`, `E`, `B`, `F#`, `C#`
+- duurin flat-ryhmä: `F`, `Bb`, `Eb`, `Ab`, `Db`, `Gb`, `Cb`
+- duurin neutraali ryhmä: `C`
+- mollin sharp-ryhmä: `E`, `B`, `F#`, `C#`, `G#`, `D#`, `A#`
+- mollin flat-ryhmä: `D`, `G`, `C`, `F`, `Bb`, `Eb`, `Ab`
+- mollin neutraali ryhmä: `A`
+
 C-duuri ja A-molli ovat neutraaleja, koska niiden etumerkinnässä ei ole
 ylennyksiä tai alennuksia. Niissä positiivinen askelmäärä käyttää
 ylennysmerkkejä ja negatiivinen askelmäärä alennusmerkkejä. Tämä vastaa
@@ -91,11 +103,17 @@ luokitteleman rivin. Se käsittelee soinnut tokeneina ja säilyttää muut
 välilyönnit, putket, välimerkit ja tekstin muuttumattomina. `x2`, `intro` ja
 `rit.` eivät ole sointuja eikä niitä transponoida.
 
-Sointu tunnistetaan tokenin alusta. Jos tunnistettavan perussävelen jälkeen
-on tuntematon pääte, perussävel ja mahdollinen tunnistettava bassosävel
-transponoidaan, tuntematon osa säilytetään ja palautetaan varoitus.
+Erillisinä, muuttumattomina musiikkimerkkeinä tunnistetaan `|`, `,`, `.`,
+`-`, `:`, `/`, `(` ja `)`. `/` kuuluu sointutokeniin vain, kun sitä seuraa
+kelvollinen bassosävel; muuten se on erillinen merkki tai keskeneräisen
+bassosoinnun osa AC23:n mukaisesti.
 
-Esimerkiksi `Cfoo` + 1 alennusmerkkisellä kirjoitusasulla tuottaa `Dbfoo` ja
+Sointu tunnistetaan tokenin alusta. Jos tunnistettavan perussävelen jälkeen
+on tuntematon pääte, koko token säilytetään muuttumattomana ja palautetaan
+varoitus. Näin mahdollisesti oikeaa mutta vielä tukematonta sointua ei
+transponoida osittain väärin.
+
+Esimerkiksi `Cfoo` + 1 säilyy muodossa `Cfoo` ja tuottaa
 `SUSPICIOUS_CHORD`-varoituksen. Token `Xfoo` ei sisällä tunnistettavaa
 perussäveltä, joten se säilytetään tavallisena tekstinä ilman varoitusta.
 
@@ -122,8 +140,13 @@ varoitusta.
 - tokenin nollasta alkavan aloitusindeksin rivillä
 - alkuperäisen tokenin
 
-Muotoilua, fonttikokoa ja muiden rivien kohdistusta ei käsitellä tässä
-ominaisuudessa.
+Rivitulos sisältää alkuperäisen indeksin, tyypin `chord`, transponoidun
+`content`-arvon, muotoilusegmentit ja varoitukset. Muuttumattomat merkit
+säilyttävät segmenttinsä. Korvaava perus- tai bassosävel saa korvatun sävelen
+ensimmäisen merkin `bold`, `italic` ja `fontSizePx`-arvot; muuttumaton pääte
+säilyttää alkuperäisen muotoilunsa. Segmentit saa yhdistää vain, jos niiden
+muotoiluarvot ovat täsmälleen samat. Tässä ominaisuudessa ei lisätä
+lihavointia; se kuuluu `rich-text-formatting`-ominaisuudelle.
 
 ## Acceptance Criteria
 
@@ -138,9 +161,9 @@ ominaisuudessa.
 **Then** tulos on täsmälleen `Gm`
 
 ### AC3: Tuetut sointutyypit säilyvät
-**Given** soinnut ovat `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus4`, `Cdim`, `Caug` ja `Cadd9`, askelmäärä on `2` ja kohdesävellaji on D-duuri
+**Given** soinnut ovat `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus`, `Csus4`, `Cdim`, `Caug`, `Cadd9` ja `Dsus/A`, askelmäärä on `2` ja kohdesävellaji on D-duuri
 **When** soinnut transponoidaan
-**Then** tulokset ovat tässä järjestyksessä täsmälleen `D`, `Dm`, `D7`, `Dmaj7`, `Dm7`, `Dsus4`, `Ddim`, `Daug` ja `Dadd9`
+**Then** tulokset ovat tässä järjestyksessä täsmälleen `D`, `Dm`, `D7`, `Dmaj7`, `Dm7`, `Dsus`, `Dsus4`, `Ddim`, `Daug`, `Dadd9` ja `Esus/B`
 
 ### AC4: Bassosoinnun molemmat sävelet transponoidaan
 **Given** sointu on `G/B`, askelmäärä on `1` ja kohdesävellaji on Ab-duuri
@@ -222,10 +245,10 @@ ominaisuudessa.
 **When** sointurivi transponoidaan
 **Then** tulosrivi on täsmälleen `D,  |Bm... | A-D |`
 
-### AC20: Epäilyttävän soinnun tunnistettava osa transponoidaan
+### AC20: Epäilyttävä sointu säilytetään muuttumattomana
 **Given** sointurivi-indeksi on `3`, rivi on `Cfoo |G |`, askelmäärä on `1` ja kohdesävellaji on Db-duuri
 **When** sointurivi transponoidaan
-**Then** tulosrivi on täsmälleen `Dbfoo |Ab |` ja palautetaan täsmälleen yksi varoitus `{ code: "SUSPICIOUS_CHORD", lineIndex: 3, startIndex: 0, original: "Cfoo", output: "Dbfoo" }`
+**Then** tulosrivi on täsmälleen `Cfoo |Ab |` ja palautetaan täsmälleen yksi varoitus `{ code: "SUSPICIOUS_CHORD", lineIndex: 3, startIndex: 0, original: "Cfoo", output: "Cfoo" }`
 
 ### AC21: Token ilman tunnistettavaa perussäveltä säilyy tekstinä
 **Given** sointurivi on `Xfoo |C |`, askelmäärä on `1` ja kohdesävellaji on Db-duuri
@@ -257,25 +280,56 @@ ominaisuudessa.
 **When** sointurivi transponoidaan
 **Then** tulosrivi on täsmälleen `cafe |D |` eikä `cafe`-tokenista palauteta `LOWERCASE_CHORD`- tai `SUSPICIOUS_CHORD`-varoitusta
 
+### AC27: Yksittäinen symbolifunktio hylkää tuntemattoman päätteen
+**Given** sointumerkki on `Cfoo` ja asetukset ovat validoitu C-duuri +1 → Db-duuri -ready-tulos
+**When** `transposeChordSymbol` yrittää transponoida merkin
+**Then** toiminto heittää virheen `Tuntematon sointumerkintä: Cfoo`
+
+### AC28: Rivitulos säilyttää muotoilualueet lisäämättä lihavointia
+**Given** chord-rivin indeksi on `4`, segmentit ovat `{ text: "C", bold: false, italic: true }`, `{ text: " |", bold: false, italic: false }` ja `{ text: "Am |", bold: true, italic: false, fontSizePx: 18 }`, ja asetukset ovat C-duuri +2 → D-duuri
+**When** `transposeChordLine` transponoi rivin
+**Then** tuloksen index on `4`, type on `chord`, content on `D |Bm |`, warnings on `[]` ja segmentit ovat täsmälleen `{ text: "D", bold: false, italic: true }`, `{ text: " |", bold: false, italic: false }` ja `{ text: "Bm |", bold: true, italic: false, fontSizePx: 18 }`
+
+### AC29: Tukematon oikea sointu säilyy ja varoittaa
+**Given** chord-rivin indeksi on `1`, sisältö on `C9 |G |` ja asetukset ovat C-duuri +2 → D-duuri
+**When** `transposeChordLine` transponoi rivin
+**Then** content on `C9 |A |` ja varoituksia on täsmälleen yksi `{ code: "SUSPICIOUS_CHORD", lineIndex: 1, startIndex: 0, original: "C9", output: "C9" }`
+
+### AC30: Kaikki erilliset musiikkimerkit säilyvät
+**Given** chord-rivin sisältö on `(C): C, C. C-C / C |` ja asetukset ovat C-duuri +2 → D-duuri
+**When** `transposeChordLine` transponoi rivin
+**Then** content on täsmälleen `(D): D, D. D-D / D |` eikä varoituksia palauteta
+
+### AC31: Kaikki validoidut kohdesävellajit valitsevat määrätyn merkkiperheen
+**Given** kohdesävellaji käydään läpi validoiduilla `ready`-asetuksilla ryhmissä major sharp `[G,D,A,E,B,F#,C#]`, major flat `[F,Bb,Eb,Ab,Db,Gb,Cb]`, major neutral `[C]`, minor sharp `[E,B,F#,C#,G#,D#,A#]`, minor flat `[D,G,C,F,Bb,Eb,Ab]` ja minor neutral `[A]`; jokaisen sharp- tai flat-kohteen asetuksessa `sourceTonic` on kohteen alapuolinen puolisävel ja `step` on `1`, ja neutraalit kohteet testataan lisäksi vastaavalla `step`-arvolla `-11`
+**When** sointumerkki `C` transponoidaan kullakin kyseisellä `ready`-asetuksella
+**Then** jokainen sharp-ryhmän tulos on `C#`, jokainen flat-ryhmän tulos on `Db`, major-neutral C-duurin positiivinen tulos on `C#`, major-neutral C-duurin negatiivinen tulos on `Db`, minor-neutral A-mollin positiivinen tulos on `C#` ja minor-neutral A-mollin negatiivinen tulos on `Db`
+
+### AC32: Vain valmis asetustulos hyväksytään API:ssa
+**Given** käytettävissä on `transposition-settings`-tuloksen waiting-variantti `requiresEnharmonicChoice`
+**When** waiting-tulos annetaan `transposeChordSymbol`- tai `transposeChordLine`-funktion asetussyötteeksi
+**Then** TypeScript-tyyppitesti hylkää molemmat kutsut `@ts-expect-error`-merkinnän osoittamalla tavalla ja vain `status: "ready"` -variantti on sallittu
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `package.json` | Lisää Tonal-riippuvuus, jos kirjasto hyväksytään toteutuksessa sointujen jäsentämiseen ja transponointiin. |
-| `src/types.ts` | Lisää sointutransponoinnin syöte-, tulos-, `SUSPICIOUS_CHORD`- ja `LOWERCASE_CHORD`-varoitustyypit. |
+| `src/types.ts` | Lisää ready-asetuksiin sidotut sointusyötteet, segmentit säilyttävä rivitulos sekä `SUSPICIOUS_CHORD`- ja `LOWERCASE_CHORD`-varoitustyypit. |
 | `src/logic/transposeChord.ts` | Lisää yhden sointumerkin validointi, H/B-normalisointi ja transponointi. |
 | `src/logic/transposeChord.test.ts` | Lisää yhden soinnun onnistumis-, enharmoniset ja virhetestit. |
+| `src/logic/transposeChord.types.test.ts` | Todista käännösaikaisesti, että vain `ready`-asetustulos kelpaa sointufunktioille. |
 | `src/logic/transposeChordLine.ts` | Lisää sointurivin tokenisointi, tekstin säilyttäminen ja varoitusten muodostus. |
 | `src/logic/transposeChordLine.test.ts` | Lisää kokonaisten sointurivien, modulaatioiden ja varoitusten testit. |
+| `src/logic/transpose.ts` | Poista vanha toteuttamaton `transposeMusic`-skeleton, jotta päällekkäistä API:a ei jää. |
+| `src/logic/transpose.test.ts` | Poista vain skeletonia todistava `not implemented` -testi. |
 
 ## Risk
 
-- What could break: Lyhyt tavallinen sana voi alkaa sävelkirjaimella ja
-  näyttää epäilyttävältä soinnulta. Token `Cafe` ei saa muuttua ilman
-  tarkoituksellista tokenisointisääntöä.
+- What could break: Tavallinen sana voi alkaa sävelkirjaimella ja näyttää
+  epäilyttävältä soinnulta. Token `Cafe` säilyy muuttumattomana mutta voi
+  saada `SUSPICIOUS_CHORD`-varoituksen.
 - What could break: Tuettujen sointutyyppien ulkopuolinen oikea sointu, kuten
-  `C9`, transponoidaan tunnistettavan perussävelen perusteella mutta saa
-  `SUSPICIOUS_CHORD`-varoituksen.
+  `C9`, säilytetään muuttumattomana ja saa `SUSPICIOUS_CHORD`-varoituksen.
 - What could break: C-duurin ja A-mollin kromaattisten sointujen kirjoitusasu
   ei määräydy etumerkinnästä. Ensimmäinen versio ratkaisee sen siirtosuunnan
   avulla.
@@ -284,8 +338,9 @@ ominaisuudessa.
 - What could break: Välilyöntien säilyttäminen tässä vaiheessa ei vielä
   ratkaise pidempien sointunimien kohdistusta muihin riveihin. Se kuuluu
   `alignment-preservation`-speksiin.
-- Rollback: Palauta sointujen transponointitoiminto toteuttamattomaksi ja
-  poista uudet sointu- ja rivitoiminnot sekä mahdollinen Tonal-riippuvuus.
+- Rollback: Poista uudet sointu- ja rivitoiminnot sekä niiden tyypit ja
+  palauta vanha transpose-skeleton testineen. Älä poista asetustoiminnon jo
+  käyttämää Tonal-riippuvuutta.
 
 ## Testing Strategy (MANDATORY)
 
@@ -293,7 +348,7 @@ ominaisuudessa.
 |---|---|---|---|---|
 | `transposeChordSymbol` | AC1 duuri | C, `+2`, D-duuri | Transponoidaan | `D` |
 | `transposeChordSymbol` | AC2 molli | Am, `-2`, G-molli | Transponoidaan | `Gm` |
-| `transposeChordSymbol` | AC3 tuetut tyypit | `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus4`, `Cdim`, `Caug`, `Cadd9`; `+2`; D-duuri | Transponoidaan | `D`, `Dm`, `D7`, `Dmaj7`, `Dm7`, `Dsus4`, `Ddim`, `Daug`, `Dadd9` samassa järjestyksessä |
+| `transposeChordSymbol` | AC3 tuetut tyypit | `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus`, `Csus4`, `Cdim`, `Caug`, `Cadd9`, `Dsus/A`; `+2`; D-duuri | Transponoidaan | `D`, `Dm`, `D7`, `Dmaj7`, `Dm7`, `Dsus`, `Dsus4`, `Ddim`, `Daug`, `Dadd9`, `Esus/B` samassa järjestyksessä |
 | `transposeChordSymbol` | AC4 bassosointu | G/B, `+1`, Ab-duuri | Transponoidaan | `Ab/C` |
 | `transposeChordSymbol` | AC5 alennettu basso | Cm7/Bb, `+2`, D-duuri | Transponoidaan | `Dm7/C` |
 | `transposeChordSymbol` | AC6 H-normalisointi | H7 ja G/H, `0` | Transponoidaan | B7 ja G/B |
@@ -310,13 +365,19 @@ ominaisuudessa.
 | `transposeChordLine` | AC17 koko rivi alas | `D \|Bm \|A \|D \|`, `-2` | Transponoidaan | `C \|Am \|G \|C \|` |
 | `transposeChordLine` | AC18 muu teksti | `intro C \|Am x2 \|G rit. \|`, `+2` | Transponoidaan | `intro D \|Bm x2 \|A rit. \|`, ei varoituksia |
 | `transposeChordLine` | AC19 merkit ja välit | `C,  \|Am... \| G-C \|`, `+2` | Transponoidaan | `D,  \|Bm... \| A-D \|` |
-| `transposeChordLine` | AC20 epäilyttävä pääte | Rivi 3, `Cfoo \|G \|`, `+1` | Transponoidaan | `Dbfoo \|Ab \|` ja täsmällinen varoitus |
+| `transposeChordLine` | AC20 epäilyttävä pääte | Rivi 3, `Cfoo \|G \|`, `+1` | Transponoidaan | `Cfoo \|Ab \|` ja täsmällinen varoitus |
 | `transposeChordLine` | AC21 ei perussäveltä | `Xfoo \|C \|`, `+1` | Transponoidaan | Xfoo säilyy, C→Db, ei Xfoo-varoitusta |
 | `transposeChordSymbol` | AC22 tyhjä | Tyhjä merkkijono | Transponoidaan | Virhe `Sointu ei saa olla tyhjä` |
 | `transposeChordLine` | AC23 keskeneräinen basso | `G/ \|C \|`, `+2` | Transponoidaan | `A/ \|D \|` ja täsmällinen varoitus |
 | `transposeChordLine` | AC24 väärä rivityyppi | Tyypit `note`, `text`, `empty` | Transponoidaan kukin | Jokaisesta virhe `Rivin tyypin pitää olla chord` |
 | `transposeChordLine` | AC25 pienet soinnut | Rivi 2, `c \|am \|g7 \|cm7/bb \|C \|`, `+2` | Transponoidaan | Pienet tokenit ennallaan, C→D ja neljä täsmällistä `LOWERCASE_CHORD`-varoitusta |
 | `transposeChordLine` | AC26 tavallinen sana | `cafe \|C \|`, `+2` | Transponoidaan | `cafe \|D \|`, ei cafe-varoitusta |
+| `transposeChordSymbol` | AC27 tuntematon pääte | Cfoo ja ready-asetukset | Transponoidaan | Virhe `Tuntematon sointumerkintä: Cfoo` |
+| `transposeChordLine` | AC28 muotoilusegmentit | Kolme täsmällisesti muotoiltua segmenttiä | Transponoidaan | D/Bm, segmenttien muotoilut säilyvät, ei lisättyä boldia |
+| `transposeChordLine` | AC29 tukematon C9 | Rivi 1, `C9 \|G \|`, +2 | Transponoidaan | C9 säilyy, G→A, yksi täsmällinen varoitus |
+| `transposeChordLine` | AC30 erilliset merkit | `(C): C, C. C-C / C \|` | Transponoidaan | `(D): D, D. D-D / D \|`, ei varoituksia |
+| `transposeChordSymbol` | AC31 validoitu merkkiperhematriisi | Vain transposition-settingsin validoidut `ready`-tulokset, joiden lähde on kohteen alapuolinen puolisävel ja askel `1` sekä neutraalien lisätestit askelilla `-11` | Transponoidaan | Sharp C#, flat Db, neutraali suunnan mukaan |
+| `transposeChordSymbol` + `transposeChordLine` | AC32 ready-only-tyyppisopimus | Waiting-tulos `requiresEnharmonicChoice` | TypeScript-tyyppitesti | Molemmat kutsut hylätään `@ts-expect-error`-merkinnän osoittamalla tavalla |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
