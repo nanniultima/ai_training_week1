@@ -1,5 +1,7 @@
 # Feature: Sävelten transponointi
 
+**Status:** Ready for implementation
+
 ## Problem Statement
 
 Sävelrivit kuvaavat melodiaa ilman oktaavinumeroita. Sävelkorkeuden
@@ -90,8 +92,21 @@ Kirjoitusasu noudattaa sointujen transponointispeksin sääntöä:
 ### Sävelrivin muu sisältö
 
 `transposeNoteLine` vastaanottaa vain `note`-riviksi luokitellun rivin.
-Välilyönnit ja `xN`-muotoiset toistomerkinnät säilytetään. Kohdistusvälejä tai
+Jokaisen sävelen lähtörekisteri ratkaistaan sen sävelkirjaimen sisältävän
+`FormattedTextSegment`-jakson lihavoinnista ja kursivoinnista: lihavoitu ja
+kursivoitu on rekisteri 1, lihavoitu rekisteri 2, tavallinen rekisteri 3 ja
+kursivoitu rekisteri 4. Etumerkin muotoilu ei vaikuta rekisteriin. Saman
+sävelryhmän sävelillä voi olla eri rekisterit.
+
+Välilyönnit, kahden sävelryhmän välinen tiukka ` - `-erotin ja `xN`-muotoiset
+toistomerkinnät säilytetään. Kohdistusvälejä tai
 tavutusmerkkejä ei vielä lisätä.
+
+`transposeNoteLine` palauttaa `TransposedNoteLine`-rakenteen, jossa ovat
+`index`, `type: "note"`, valmis `content` sekä järjestyksessä semanttiset osat:
+sävelryhmät, erottimet ja toistomerkinnät. Sävelryhmän jokainen sävel on
+`{ name, register }`. Tulos ei peri lähderivin `segments`-kenttää, koska
+oktaavirajan ylitys voi muuttaa muotoilua.
 
 Tuntematon token hylkää koko käsittelyn virheellä
 `Tuntematon sisältö sävelrivillä: <token>`. Osittain transponoitua riviä ei
@@ -191,22 +206,22 @@ palauteta. Muu rivityyppi hylätään virheellä
 **Then** toiminto heittää virheen täsmällisellä viestillä `Sävel B ylittää tuetun sävelalueen`
 
 ### AC19: Kokonainen sävelrivi transponoidaan ylöspäin
-**Given** rekisterin 3 sävelrivi on `c c  a a a   gB g  g  c d   c`, askelmäärä on `1` ja kohdesävellaji on Db-duuri
+**Given** note-rivin index on `2`, sen tavallisesti muotoiltujen segmenttien teksti on `c c  a a a   gB g  g  c d   c`, askelmäärä on `1` ja kohdesävellaji on Db-duuri
 **When** sävelrivi transponoidaan
-**Then** tulosteksti on `Db Db  Bb Bb Bb   AbC Ab  Ab  Db Eb   Db`, kaikki muut sävelet ovat rekisterissä `3` ja ryhmän `AbC` C on rekisterissä `4`
+**Then** tuloksen index on `2`, type on `note`, content on `Db Db  Bb Bb Bb   AbC Ab  Ab  Db Eb   Db`, semanttiset osat säilyttävät kaikki ryhmät ja erottimet järjestyksessä, kaikki muut sävelet ovat rekisterissä `3`, ryhmän `AbC` sävelet ovat `{ name: "Ab", register: 3 }` ja `{ name: "C", register: 4 }` eikä tuloksessa ole `segments`-kenttää
 
 ### AC20: Kokonainen sävelrivi transponoidaan alaspäin
-**Given** rekisterin 3 sävelrivi on `D D  B B B   A A  A  D E   D`, askelmäärä on `-2` ja kohdesävellaji on C-duuri
+**Given** note-rivin tavallisesti muotoiltujen segmenttien teksti on `D D  B B B   A A  A  D E   D`, askelmäärä on `-2` ja kohdesävellaji on C-duuri
 **When** sävelrivi transponoidaan
 **Then** tulosteksti on `C C  A A A   G G  G  C D   C` ja kaikki sävelet ovat rekisterissä `3`
 
 ### AC21: Välilyönnit ja toistomerkintä säilyvät
-**Given** rekisterin 3 sävelrivi on `c  d   e x2`, askelmäärä on `2` ja kohdesävellaji on D-duuri
+**Given** note-rivin tavallisesti muotoiltujen segmenttien teksti on `c  d   e x2`, askelmäärä on `2` ja kohdesävellaji on D-duuri
 **When** sävelrivi transponoidaan
 **Then** tulosteksti on täsmälleen `D  E   F# x2`
 
 ### AC22: Nolla askelta normalisoi kirjaimet mutta säilyttää etumerkit
-**Given** rekisterin 3 sävelrivi on `c# db h` ja askelmäärä on `0`
+**Given** note-rivin tavallisesti muotoiltujen segmenttien teksti on `c# db h` ja askelmäärä on `0`
 **When** sävelrivi transponoidaan
 **Then** tulosteksti on `C# Db B` ja kaikkien sävelten rekisteri on `3`
 
@@ -235,17 +250,55 @@ palauteta. Muu rivityyppi hylätään virheellä
 **When** sävel yritetään transponoida
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
+### AC28: Saman ryhmän sävelillä voi olla eri lähtörekisterit
+**Given** note-rivin yhteen kirjoitetussa ryhmässä `gB` kirjain `g` on tavallinen eli rekisterissä `3`, kirjain `B` on kursivoitu eli rekisterissä `4`, askelmäärä on `0`
+**When** sävelrivi transponoidaan
+**Then** content on `GB`, tuloksessa on yksi ryhmä ilman sisäistä erotinta ja sen sävelet ovat täsmälleen `{ name: "G", register: 3 }` ja `{ name: "B", register: 4 }`
+
+### AC29: Sävelkirjaimen muotoilu määrää etumerkillisen sävelen rekisterin
+**Given** note-rivin `C#`-ryhmässä kirjain `C` on tavallinen ja merkki `#` on kursivoitu, askelmäärä on `0`
+**When** sävelrivi transponoidaan
+**Then** tuloksessa on yksi sävel `{ name: "C#", register: 3 }`
+
+### AC30: Tiukka yhdysmerkki säilytetään
+**Given** note-rivin tavallisesti muotoiltu content on `G#C - abC`, askelmäärä on `0`
+**When** sävelrivi transponoidaan
+**Then** content on täsmälleen `G#C - AbC` ja semanttisten osien keskimmäinen osa on erotin `{ type: "separator", text: " - " }`
+
+### AC31: Enharmoniset lähtönimet transponoidaan
+**Given** kukin sävel `Cb`, `B#`, `Fb`, `E#`, `H#` ja `Hb` annetaan rekisterissä `3`, askelmäärä on `1` ja kohdesävellaji käyttää ylennyksiä
+**When** kukin sävel transponoidaan
+**Then** tulokset ovat järjestyksessä `{ name: "C", register: 3 }`, `{ name: "C#", register: 4 }`, `{ name: "F", register: 3 }`, `{ name: "F#", register: 3 }`, `{ name: "C#", register: 4 }` ja `{ name: "B", register: 3 }`
+
+### AC32: Tyhjä sävelryhmä hylätään
+**Given** `parseNoteGroup`-toiminnolle annetaan tyhjä merkkijono
+**When** ryhmä jäsennetään
+**Then** toiminto heittää virheen täsmällisellä viestillä `Sävelryhmä ei saa olla tyhjä`
+
+### AC33: Virheellinen sävelryhmä hylätään
+**Given** `parseNoteGroup`-toiminnolle annetaan vuorollaan `C##` ja `J`
+**When** kukin ryhmä jäsennetään
+**Then** kutsut heittävät täsmälleen virheet `Virheellinen sävelryhmä: C##` ja `Virheellinen sävelryhmä: J`
+
+### AC34: Virheellinen rekisteri hylätään
+**Given** `transposeNote`-toiminnolle annettu rekisteri on vuorollaan `0`, `5` ja `1.5`
+**When** kukin sävel yritetään transponoida
+**Then** jokainen kutsu heittää virheen täsmällisellä viestillä `Rekisterin pitää olla kokonaisluku väliltä 1–4`
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `src/types.ts` | Lisää sävelen, rekisterin, sävelryhmän sekä sävelrivin syöte- ja tulostyypit. |
+| `src/types.ts` | Lisää rekisteri-, sävel-, sävelryhmä-, semanttinen riviosa- ja `TransposedNoteLine`-tyypit ilman perittyjä lähdesegmenttejä. |
 | `src/logic/parseNoteGroup.ts` | Lisää pienen b:n, ison B:n, H:n, ylennysten ja yhteen kirjoitettujen sävelten jäsentäminen. |
 | `src/logic/parseNoteGroup.test.ts` | Lisää sävelryhmien onnistumis- ja virhetestit. |
+| `src/logic/classifyLines.ts` | Korvaa erillinen sävelryhmäregex yhteisen `parseNoteGroup`-kieliopin käytöllä säilyttäen nykyiset luokittelusäännöt. |
+| `src/logic/classifyLines.test.ts` | Aja yhteisen parserin luokittelurajojen regressiot ja täsmennä enharmonisten lähtönimien hyväksyntä. |
 | `src/logic/transposeNote.ts` | Lisää yhden sävelen validointi, H/B-normalisointi, enharmoninen transponointi ja rekisterirajojen käsittely. |
 | `src/logic/transposeNote.test.ts` | Lisää yhden sävelen onnistumis-, rekisteriraja- ja virhetestit. |
 | `src/logic/transposeNoteLine.ts` | Lisää koko rivin transponointi ja sallitun muun sisällön säilyttäminen. |
 | `src/logic/transposeNoteLine.test.ts` | Lisää kokonaisten rivien, erottimien ja virhetilanteiden testit. |
+| `src/logic/transposeNote.types.test.ts` | Varmista semanttisten tulososien tyhjentävä tyypitys ja `segments`-kentän puuttuminen. |
 
 ## Risk
 
@@ -260,6 +313,10 @@ palauteta. Muu rivityyppi hylätään virheellä
   synny.
 - What could break: Luokittelun ja transponoinnin pitää käyttää samaa
   sävelryhmäparseria, jotta ne eivät tulkitse syötettä eri tavoin.
+- What could break: Segmenttiraja voi osua sävelen etumerkin kohdalle;
+  rekisteri luetaan aina sävelkirjaimen segmentistä.
+- What could break: `Cb`, `B#`, `Fb`, `E#`, `H#` ja `Hb` voivat ylittää
+  C–B-oktaavirajan jo lähtösävelen etumerkin vuoksi.
 - Rollback: Palauta sävelten transponointitoiminnot toteuttamattomiksi ja
   poista uudet sävel-, rekisteri- ja ryhmätyypit.
 
@@ -294,6 +351,13 @@ palauteta. Muu rivityyppi hylätään virheellä
 | `transposeNoteLine` | AC25 tuntematon token | `C D hello`, tyyppi note | Transponoidaan | Virhe tokenista, ei osittaista tulosta |
 | `transposeNoteLine` | AC26 väärä rivityyppi | chord, text, empty | Transponoidaan kukin | Jokaisesta virhe `Rivin tyypin pitää olla note` |
 | `transposeNote` | AC27 askelraja | C, rekisteri 3, `12` | Transponoidaan | Virhe askelvälistä |
+| `transposeNoteLine` | `AC28 saman ryhmän eri rekisterit` | g tavallinen, B kursivoitu, `0` | Transponoidaan | Yksi `GB`-ryhmä, G/3 ja B/4 |
+| `transposeNoteLine` | `AC29 sävelkirjain määrää rekisterin` | C tavallinen, # kursivoitu, `0` | Transponoidaan | C#/3 |
+| `transposeNoteLine` | `AC30 säilyttää tiukan yhdysmerkin` | `G#C - abC`, `0` | Transponoidaan | `G#C - AbC` ja erotinosa ` - ` |
+| `transposeNote` | `AC31 transponoi enharmoniset lähtönimet` | Cb, B#, Fb, E#, H#, Hb; rekisteri 3; `+1` | Transponoidaan | C/3, C#/4, F/3, F#/3, C#/4, B/3 |
+| `parseNoteGroup` | `AC32 hylkää tyhjän ryhmän` | Tyhjä merkkijono | Jäsennetään | `Sävelryhmä ei saa olla tyhjä` |
+| `parseNoteGroup` | `AC33 hylkää virheellisen ryhmän` | C## ja J | Jäsennetään | Syötteen sisältävä täsmällinen virhe |
+| `transposeNote` | `AC34 hylkää virheellisen rekisterin` | 0, 5 ja 1.5 | Transponoidaan | Jokaisesta rekisterivälin täsmällinen virhe |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
@@ -302,4 +366,3 @@ palauteta. Muu rivityyppi hylätään virheellä
 - [x] Every AC can fail — one that cannot fail proves nothing
 - [x] Error and edge cases have ACs of their own
 - [x] Every AC appears in the testing strategy table
-
