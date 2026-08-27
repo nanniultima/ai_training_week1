@@ -1,0 +1,80 @@
+spec_writer-agentin pysäytyskooditestit
+
+STOP_CODE=3 — aikarajan ylittyminen
+- Vaihe: research
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 12
+- Tulos: agentti pysähtyi yli 30 sekunnin jälkeen.
+- Käytetyt askeleet: 3/12
+- Tiedostomuutokset: ei
+- Researchia ei hyväksytty eikä spec-vaihetta aloitettu.
+
+STOP_CODE=4 — askelrajan täyttyminen
+- Vaihe: research
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 1
+- Tulos: agentti pysähtyi yhden askeleen rajan täytyttyä ennen aikarajaa.
+- Käytetyt askeleet: 1/1
+- Tiedostomuutokset: ei
+- Researchia ei hyväksytty eikä spec-vaihetta aloitettu.
+
+STOP_CODE=6 — AGENTS.md:n ja speksin ristiriita
+- Vaihe: research
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 1
+- Tulos: agentti havaitsi ristiriidan yhdessä askeleessa alle 30 sekunnissa.
+- AGENTS.md kieltää sovellusta vastaanottamasta, jäsentämästä tai käsittelemästä HTML-syötettä.
+- Speksi 5 vaatii editorin HTML-syötteen jäsentämistä, HTML-rakenteiden käsittelyä ja turvallisen HTML-tuloksen muodostamista.
+- Käytetyt askeleet: 1/1
+- Tiedostomuutokset: ei
+- Researchia ei jatkettu tai hyväksytty eikä spec-vaihetta aloitettu.
+- Tarvittava päätös: muutetaan joko AGENTS.md:n HTML-kieltoa tai speksi 5:n HTML-pohjaista mallia.
+
+STOP_CODE=2 — researchin avoimet kysymykset
+- Vaihe: research
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 7 minuuttia
+- Askelraja: 12
+- Tulos: agentti löysi 18 avointa kysymystä, jotka vaativat käyttäjän päätökset ennen spec-vaihetta.
+- Käytetyt askeleet: 4/12
+- Kulunut aika: noin 3 minuuttia
+- Tiedostomuutokset: ei
+- Researchia ei hyväksytty eikä spec-vaihetta aloitettu.
+- Speksissä havaittiin 35 AC:tä, puuttuva Status-kenttä ja puuttuvat architecture.md-, test-plan.md- ja tasks.md-asiakirjat.
+
+STOP_CODE=6 — AGENTS.md:n ja speksin ristiriita spec-vaiheessa
+- Vaihe: spec
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 2
+- Tulos: agentti havaitsi ristiriidan noin neljässä sekunnissa.
+- AGENTS.md kielsi sovellusta vastaanottamasta, jäsentämästä tai käsittelemästä HTML-syötettä.
+- Speksi 5 sekä AC1–AC5 ja AC32–AC35 vaativat HTML-syötteen käsittelyä.
+- Käytetyt askeleet: 2/2
+- Tiedostomuutokset: ei
+- Spec-vaihetta ei jatkettu.
+
+STOP_CODE=4 — askelrajan täyttyminen spec-vaiheessa
+- Vaihe: spec
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 2
+- Tulos: agentti pysähtyi kahden askeleen rajan täytyttyä alle 30 sekunnissa.
+- Käytetyt askeleet: 2/2
+- Tiedostomuutokset: ei
+- Neljää speksi- ja suunnitelma-asiakirjaa ei kirjoitettu tai muutettu.
+- Este: speksistä puuttui Status-kenttä, hyväksytyt research-päätökset vaativat muutoksia ja kolme suunnitelma-asiakirjaa puuttuivat.
+
+STOP_CODE=3 — aikarajan ylittyminen spec-vaiheessa
+- Vaihe: spec
+- Kohde: specs/features/rich-text-formatting.md (speksi 5)
+- Aikaraja: 30 sekuntia
+- Askelraja: 12
+- Tulos: agentti pysähtyi 30 sekunnin aikarajan täytyttyä ennen hyväksyttyä lopputulosta.
+- Käytetyt askeleet: 1/12
+- Tiedostomuutokset: ei
+- Neljää vaadittua asiakirjaa ei ehditty kirjoittaa ja tarkistaa Spec Readiness -ehtoja vasten.
+- Lähtötilanteessa speksissä oli 35 AC:tä ja testausstrategia, mutta Status-kenttä ja kolme suunnitelma-asiakirjaa puuttuivat.

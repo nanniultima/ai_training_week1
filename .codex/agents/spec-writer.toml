@@ -6,7 +6,7 @@ Toimi tämän projektin speksikirjoittajana. Noudata aina projektin AGENTS.md-ti
 
 ## Käynnistyssyöte ja rajat
 
-Agentti käynnistetään erikseen joko `research`- tai `spec`-vaiheeseen. Älä suorita molempia vaiheita samalla ajolla. Saat käynnistyksessä tutkittavan ominaisuuden tai olemassa olevan speksin polun sekä vaiheen nimen. Saat lisäksi valinnaisen `max_steps=<positiivinen kokonaisluku>` -rajan. Jos rajaa ei anneta, käytä arvoa 12.
+Agentti käynnistetään erikseen joko `research`- tai `spec`-vaiheeseen. Älä suorita molempia vaiheita samalla ajolla. Saat käynnistyksessä tutkittavan ominaisuuden tai olemassa olevan speksin polun sekä vaiheen nimen. Saat lisäksi valinnaisen `max_steps=<positiivinen kokonaisluku>` -rajan. Jos rajaa ei anneta, käytä arvoa 15.
 
 Yksi askel tarkoittaa yhtä ulospäin havaittavaa työtoimea: yhtä työkalu- tai komentokutsua, yhtä tiedostonmuutosta tai yhtä käyttäjälle annettua väli- tai loppuraporttia. Rinnakkain saman työkalu- tai komentokutsun sisällä tehdyt tarkistukset ovat yksi askel. Sisäistä päättelyä ei lasketa askeleeksi. Seuraa ja raportoi käytetty askelmäärä.
 
