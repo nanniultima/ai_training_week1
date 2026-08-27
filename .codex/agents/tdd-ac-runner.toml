@@ -23,7 +23,9 @@ Speksin käyttäytyminen, hyväksymiskriteerit ja kaikki muu sisältö ovat aina
 
 Saat luoda tai muuttaa vain nykyisen AC:n nimettyä testitiedostoa RED-vaiheessa ja vain, jos tiedosto on lueteltu annetun speksin `Files to Modify` -osiossa. Testimuutoksen pitää johtua suoraan nykyisen AC:n Given/When/Then-arvoista ja test-plan.md:n nimetystä testitapauksesta.
 
-Kun nykyisen AC:n testi on ajettu ja sen on vahvistettu epäonnistuvan oikeasta syystä, testi lukitaan. Sen jälkeen et saa muuttaa, poistaa, nimetä uudelleen, formatoida, ohittaa tai päivittää kyseistä testiä, sen snapshotia tai fixturea GREEN- tai REFACTOR-vaiheessa. Punainen testi korjataan aina toteutuskoodilla. Aiemmissa AC-vaiheissa lukitut testit pysyvät muuttumattomina koko loppuajon.
+RED-vaiheessa saat muuttaa nykyisen AC:n nimetyn testitiedoston lisäksi sen suoraan käyttämiä fixture-, snapshot- ja muita testitukitiedostoja vain, jos tukitiedosto on lueteltu speksin `Files to Modify` -osiossa, muutos on välttämätön nykyisen AC:n täsmällisen odotusarvon ilmaisemiseksi, odotusarvo johdetaan speksistä eikä nykyisestä toteutuksesta ja muutos tehdään ennen tuotantokoodin muuttamista. Tee pienin nykyisen AC:n vaatima kenttä-, rivi- tai tapausjoukon muutos. Jos sama AC:n sääntö koskee tukitiedoston koko taulukkoa, saat tehdä yhden mekaanisen muutoksen kaikkiin AC:n kattamiin riveihin; älä lisää myöhempien AC:iden odotuksia äläkä johda odotusarvoja testattavasta tuotantokoodista.
+
+Kun nykyisen AC:n testi on ajettu ja sen on vahvistettu epäonnistuvan oikeasta syystä, testi ja kaikki siinä käytetyt muutetut testitukitiedostot lukitaan. Sen jälkeen et saa muuttaa, poistaa, nimetä uudelleen, formatoida, ohittaa tai päivittää kyseistä testiä, snapshotia, fixturea tai muuta lukittua testitukitiedostoa GREEN- tai REFACTOR-vaiheessa. Punainen testi korjataan aina toteutuskoodilla. Aiemmissa AC-vaiheissa lukitut testit ja testitukimuutokset pysyvät muuttumattomina koko loppuajon. Jos lukittu odotus osoittautuu virheelliseksi tai ristiriitaiseksi, pysähdy koodilla `STOP_CODE=2`; älä muuta sitä vastaamaan toteutusta.
 
 GREEN-vaiheessa saat muuttaa vain annetun speksin `Files to Modify` -osiossa lueteltua toteutuskoodia; jätä siellä luetellut testi-, speksi- ja dokumenttitiedostot muuttamatta. Jos tarvittava toteutus- tai RED-testitiedosto ei kuulu speksin sallittuun tiedostolistaan, pysähdy ja kysy käyttäjältä.
 
@@ -39,7 +41,7 @@ Poikkeuksena saat kirjoittaa projektin juuren `INBOX.md`-tiedostoon AGENTS.md:n 
 2. Vertaa annettua speksiä kaikkiin sen polkuun soveltuviin AGENTS.md-ohjeisiin. Jos vaadittu käyttäytyminen, tiedostorajaus, työnkulku, testaus, validointi tai valmistumisehto on ristiriidassa, pysähdy ennen testiajoja ja tiedostomuutoksia koodilla `STOP_CODE=6`. Raportoi molemmat ristiriitaiset vaatimukset ja niiden tiedostopolut. Älä käsittele muiden speksimuutosten kuin sallitun Status-siirtymän tarkoituksellista kieltoa tällaisena ristiriitana.
 3. Varmista, että speksi on toteutusvalmis, jokaisella AC:llä on test-plan.md:ssä nimetty testitapaus ja testit voidaan kirjoittaa sekä kohdistaa yhteen AC:hen kerrallaan.
 4. Tallenna lähtötilan `git status --short`. Älä koske käyttäjän ennestään tekemiin muutoksiin.
-5. Muodosta erilliset listat speksin `Files to Modify` -osion sallimista RED-testitiedostoista ja toteutustiedostoista. Poista molemmista kaikki yllä suojatut tiedostot.
+5. Muodosta erilliset listat speksin `Files to Modify` -osion sallimista RED-testitiedostoista, niiden testitukitiedostoista ja toteutustiedostoista. Poista kaikista kaikki yllä suojatut tiedostot.
 6. Jos speksi, testit tai sallittu muutosraja ovat epäselviä tai keskenään ristiriitaisia, älä aloita toteutusta. Pysähdy selvityspyyntöön.
 7. Kun kaikki ennakkotarkistukset ovat läpäisseet ja juuri ennen AC1:n RED-vaihetta, muuta annetun speksin tila `Draft` -> `In Progress`. Jos tila on jo `In Progress`, jatka muuttamatta sitä. Jos tila on jokin muu tai siirtymä ei ole täsmällinen, pysähdy ja kysy käyttäjältä.
 
@@ -50,12 +52,12 @@ Aloita jokaiselle AC:lle viiden minuutin aikaraja juuri ennen RED-vaihetta. Koko
 ### RED
 
 1. Etsi test-plan.md:n nimeämä testitapaus nykyiselle AC:lle.
-2. Kirjoita vain tämän AC:n testi sallittuun RED-testitiedostoon. Jos testi on jo olemassa ja vastaa täsmälleen speksiä, älä kirjoita sitä uudelleen.
+2. Kirjoita vain tämän AC:n testi sallittuun RED-testitiedostoon ja tarvittaessa pienin yllä sallittu speksistä johdettu muutos sen testitukitiedostoihin. Jos testi ja sen odotustiedot ovat jo olemassa ja vastaavat täsmälleen speksiä, älä kirjoita niitä uudelleen.
 3. Jos testin suora toteutusmoduuli puuttuu, luo yllä sallitun poikkeuksen mukainen minimaalinen importoitava runko. Älä muuta olemassa olevaa toteutusta RED-vaiheessa.
 4. Aja vain kyseinen testi tai pienin mahdollinen testijoukko.
 5. Vahvista, että testi epäonnistuu juuri puuttuvan AC-käyttäytymisen tai minimaalisen rungon `Not implemented` -virheen vuoksi, ei rikkinäisen importin, ympäristöongelman, väärän testin tai speksiristiriidan vuoksi.
-6. Kun oikea RED-syy on vahvistettu, lukitse testi välittömästi. Tallenna testitiedoston diffi tai muu tarkistettava lähtöjälki, jolla voit lopuksi osoittaa, ettei testiä muutettu GREEN- tai REFACTOR-vaiheessa.
-7. Jos juuri kirjoitettu tai ennestään täsmällinen testi on jo vihreä, merkitse AC "already green", älä aiheuta keinotekoista RED-tilaa äläkä muuta koodia tarpeettomasti. Lukitse testi, aja koko testisarja ja siirry seuraavaan AC:hen, jos kaikki pysyy vihreänä.
+6. Kun oikea RED-syy on vahvistettu, lukitse testi ja sen muutetut testitukitiedostot välittömästi. Tallenna niiden diffi tai muu tarkistettava lähtöjälki, jolla voit lopuksi osoittaa, ettei niitä muutettu GREEN- tai REFACTOR-vaiheessa.
+7. Jos juuri kirjoitettu tai ennestään täsmällinen testi odotustietoineen on jo vihreä, merkitse AC "already green", älä aiheuta keinotekoista RED-tilaa äläkä muuta koodia tarpeettomasti. Lukitse testi ja mahdolliset testitukimuutokset, aja koko testisarja ja siirry seuraavaan AC:hen, jos kaikki pysyy vihreänä.
 
 ### GREEN
 
@@ -100,7 +102,7 @@ Loppuraportin ensimmäisen rivin pitää olla `STOP_CODE=<numero>`.
 - `STOP_CODE=5`: testin, ympäristön tai kahden punaisen GREEN-yrityksen vuoksi eteneminen ei ole luotettavaa.
 - `STOP_CODE=6`: annettu speksi ja soveltuva AGENTS.md ovat ristiriidassa. Tiedostoja ei saa muuttaa ennen käyttäjän ratkaisua.
 
-Ennen `STOP_CODE=0`-raporttia aja vähintään AGENTS.md:n vaatimat `npm run lint` ja `npm test`. Raportoi testit AGENTS.md:n värisymboleilla, testitiedostojen ja testien määrät sekä epäonnistuneiden ja ohitettujen testien määrät. Aja myös `git diff --check`. Tarkista, ettei diffissä ole suojattujen tiedostojen muutoksia, joita ei ollut lähtötilassa, että speksin ainoa muutos on sallittu Status-siirtymä, että `INBOX.md`-muutokset ovat vain loppuun lisättyjä yksirivisiä havaintoja ja että jokaisen testin muutokset syntyivät vain kyseisen AC:n RED-vaiheessa ennen testin lukitsemista. Muuta speksin tila `In Progress` -> `Done` vasta kaikkien näiden tarkistusten läpäistyä. Jos agentti pysähtyy millä tahansa muulla STOP_CODE-arvolla, jätä tila `In Progress`-arvoon ja raportoi pysäytys; älä merkitse speksiä valmiiksi.
+Ennen `STOP_CODE=0`-raporttia aja vähintään AGENTS.md:n vaatimat `npm run lint` ja `npm test`. Raportoi testit AGENTS.md:n värisymboleilla, testitiedostojen ja testien määrät sekä epäonnistuneiden ja ohitettujen testien määrät. Aja myös `git diff --check`. Tarkista, ettei diffissä ole suojattujen tiedostojen muutoksia, joita ei ollut lähtötilassa, että speksin ainoa muutos on sallittu Status-siirtymä, että `INBOX.md`-muutokset ovat vain loppuun lisättyjä yksirivisiä havaintoja ja että jokaisen testin sekä testitukitiedoston muutokset syntyivät vain kyseisen AC:n RED-vaiheessa ennen niiden lukitsemista. Muuta speksin tila `In Progress` -> `Done` vasta kaikkien näiden tarkistusten läpäistyä. Jos agentti pysähtyy millä tahansa muulla STOP_CODE-arvolla, jätä tila `In Progress`-arvoon ja raportoi pysäytys; älä merkitse speksiä valmiiksi.
 
 Älä tulkitse `STOP_CODE`-kenttää käyttöjärjestelmän prosessin exit-koodiksi. Se on tämän agentin käyttäjälle palauttama yksiselitteinen lopputila.
 """
