@@ -14,8 +14,8 @@ tapahtumat tämän logiikan syötteiksi sekä näyttää tuloksen.
 | `src/types.ts` | Täsmällisen kohdetoonikan valinnan sekä validoidun step-arvon sisältävät asetussyöte- ja tulostyypit. | Logiikka ja käyttöliittymä tarvitsevat yhden tiukan yhteisen rajapinnan. |
 | `src/logic/transpositionSettings.ts` | Duuri- ja mollitoonikalistat, Tonal-pohjainen validointi ja chroma, kohdesävelkorkeuden laskenta sekä enharmonisten vaihtoehtojen ratkaisu. | Musiikilliset päätökset pitää voida testata ilman DOM:ia ja näkyvät nimet pitää pitää speksin hallinnassa. |
 | `src/logic/transpositionSettings.test.ts` | Lista- ja matriisitestit sekä laskennan, täsmällisen kohdevalinnan, step-arvon, moodin ja virheiden testit. | Julkisen liiketoimintalogiikan onnistumis-, raja- ja virhetapaukset tarvitsevat Vitest-testit. |
-| `src/ui/ui.ts` | Moodin, lähtötoonikan ja askeleen muutosten yhteinen päivitys, automaattinen kohde-esikatselu, enharmonisen valinnan näyttäminen ja käyttöliittymävirheet. | DOM-tapahtumat ja käyttäjälle näkyvä tila kuuluvat käyttöliittymärajalle. |
-| `src/ui/ui.test.ts` | Listojen, automaattisen esikatselun, täsmällisen kohdevalinnan ja keskeneräisten tilojen DOM-testit. | Käyttäjälle näkyvä käyttäytyminen pitää todistaa Happy DOMissa. |
+| `src/ui/ui.ts` | Moodin, lähtötoonikan ja askeleen muutosten yhteinen päivitys, automaattinen kohde-esikatselu, enharmonisen valinnan näyttäminen sekä `Transponoi`-painikkeen puuttuvien valintojen virheet. | DOM-tapahtumat ja käyttäjälle näkyvä tila kuuluvat käyttöliittymärajalle. |
+| `src/ui/ui.test.ts` | Listojen, automaattisen esikatselun, täsmällisen kohdevalinnan, keskeneräisten tilojen ja painikkeen validointivirheiden DOM-testit. | Käyttäjälle näkyvä käyttäytyminen pitää todistaa Happy DOMissa. |
 
 Uutta tuotantotiedostoa ei tarvita. Kaikki speksin vastuut kuuluvat joko
 asetusten liiketoimintalogiikkaan, yhteisiin tyyppeihin tai nykyiseen
@@ -46,4 +46,4 @@ sisältävät validoidun step-arvon.
 | Jatkuvasti näkyvää yleistä sharp/flat-valintaa | Lisävalinta näytetään vain kahden käytännöllisen kohdenimen tapauksessa. |
 | Asetusten tallennusta | Speksi ei vaadi asetusten säilymistä sivun latausten välillä. |
 | Verkkopyyntöjä tai koko `tonal`-koontipakettia | Käytetään paikallisesti vain pienempää `@tonaljs/note`-moduulia. |
-| `Transponoi`-painikkeen puuttuvien valintojen virheitä tai Enter-vahvistusta | Varsinaisen transponoinnin käynnistys kuuluu myöhempään integraatioon. |
+| Onnistuneen `Transponoi`-painalluksen musiikkisyötteen käsittelyä tai Enter-vahvistusta | Tämä speksi kattaa painikkeen puuttuvien valintojen virheet; onnistunut transponointi ja Enter kuuluvat myöhempään integraatioon. |

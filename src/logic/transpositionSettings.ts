@@ -83,6 +83,9 @@ export function getAvailableTonics(
 export function resolveTranspositionSettings(
   input: TranspositionSettingsInput,
 ): TranspositionSettingsResult {
+  if (input.mode !== 'major' && input.mode !== 'minor') {
+    throw new Error(`Tuntematon sävellajin laatu: ${String(input.mode)}`);
+  }
   if (
     !Number.isInteger(input.step) ||
     input.step < -11 ||
@@ -113,7 +116,7 @@ export function resolveTranspositionSettings(
   }
 
   if (
-    input.enharmonicChoice !== undefined &&
+    input.targetTonicChoice !== undefined &&
     (input.step === 0 || targetTonics.length === 1)
   ) {
     const targetTonic =
@@ -129,15 +132,34 @@ export function resolveTranspositionSettings(
       status: 'ready',
       mode: input.mode,
       sourceTonic,
+      step: input.step,
       targetTonic: sourceTonic,
     };
   }
 
   if (targetTonics.length === 2) {
+    if (
+      input.targetTonicChoice !== undefined &&
+      (targetTonics as readonly string[]).includes(input.targetTonicChoice)
+    ) {
+      return {
+        status: 'ready',
+        mode: input.mode,
+        sourceTonic,
+        step: input.step,
+        targetTonic: input.targetTonicChoice,
+      };
+    }
+    if (input.targetTonicChoice !== undefined) {
+      throw new Error(
+        `Kohdetoonika ${input.targetTonicChoice} ei kuulu vaihtoehtoihin ${targetTonics.join(', ')}`,
+      );
+    }
     return {
       status: 'requiresEnharmonicChoice',
       mode: input.mode,
       sourceTonic,
+      step: input.step,
       options: targetTonics,
     };
   }
@@ -146,6 +168,7 @@ export function resolveTranspositionSettings(
     status: 'ready',
     mode: input.mode,
     sourceTonic,
+    step: input.step,
     targetTonic: targetTonics[0],
   };
 }

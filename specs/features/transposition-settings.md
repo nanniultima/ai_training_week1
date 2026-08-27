@@ -1,6 +1,6 @@
 # Feature: Transponointiasetusten valinta
 
-**Status:** Draft
+**Status:** Done
 
 ## Problem Statement
 
@@ -36,6 +36,11 @@ käytännöllinen nimi.
 `Transponoi`-painike on varattu musiikkisyötteen varsinaiselle
 transponoinnille. Kohdesävellajin esikatselu ei vaadi painikkeen painamista
 eikä itsessään muuta musiikkisyötettä.
+
+Tämä ominaisuus validoi kuitenkin `Transponoi`-painikkeen painalluksessa
+puuttuvan lähtösävellajin ja puuttuvan duuri- tai mollivalinnan. Onnistuneen
+painalluksen varsinainen musiikkisyötteen transponointi ja Enter-vahvistus
+kuuluvat myöhempään integraatioon.
 
 ### Laskentakirjasto
 
@@ -208,6 +213,16 @@ sointuja, säveliä tai rikastekstiä.
 **When** asetukset ratkaistaan
 **Then** toiminto heittää virheen täsmällisellä viestillä `Askelmäärän pitää olla kokonaisluku väliltä -11–11`
 
+### AC19: Puuttuva lähtösävellaji estää vahvistamisen
+**Given** käyttäjä on valinnut duurin ja askelmäärän `1`, mutta ei lähtösävellajia
+**When** käyttäjä yrittää vahvistaa asetukset `Transponoi`-painikkeella
+**Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse lähtösävellaji`
+
+### AC20: Puuttuva duuri- tai mollivalinta estää vahvistamisen
+**Given** käyttäjä ei ole valinnut sävellajin laatua
+**When** käyttäjä yrittää vahvistaa asetukset `Transponoi`-painikkeella
+**Then** käsittelyä ei aloiteta ja näytetään virhe `Valitse duuri tai molli`
+
 ### AC21: Tuntematon ohjelmallinen toonika hylätään
 **Given** asetustoiminnolle annetaan J-duuri ja askelmäärä `1`
 **When** asetukset ratkaistaan
@@ -299,8 +314,10 @@ sointuja, säveliä tai rikastekstiä.
 | `resolveTranspositionSettings` | AC16 liian pieni | C-duuri, `-12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
 | `resolveTranspositionSettings` | AC17 liian suuri | C-duuri, `12` | Ratkaistaan | Täsmällinen askelmäärävirhe |
 | `resolveTranspositionSettings` | AC18 desimaali | C-duuri, `1.5` | Ratkaistaan | Täsmällinen askelmäärävirhe |
+| käyttöliittymä | AC19 toonika puuttuu | Duuri ja `1`, ei toonikaa | Painetaan `Transponoi` | Käsittely ei ala; virhe `Valitse lähtösävellaji` |
+| käyttöliittymä | AC20 laatu puuttuu | Ei laatua | Painetaan `Transponoi` | Käsittely ei ala; virhe `Valitse duuri tai molli` |
 | `resolveTranspositionSettings` | AC21 tuntematon toonika | J-duuri, `1` | Ratkaistaan | Virhe `Tuntematon lähtösävellaji: J` |
-| `resolveTranspositionSettings` | AC22 tarpeeton valinta | C-duuri, `2`, `flat` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
+| `resolveTranspositionSettings` | AC22 tarpeeton valinta | C-duuri, `2`, `targetTonicChoice: "Db"` | Ratkaistaan | Virhe tarpeettomasta valinnasta |
 | käyttöliittymä | AC23 automaattinen yksiselitteinen esikatselu | C-duuri, C, `2` | Viimeinen puuttuva valinta tehdään | `Kohdesävellaji: D-duuri` näkyy ilman vahvistusta |
 | käyttöliittymä | AC24 automaattiset enharmoniset vaihtoehdot | C-duuri, C, `1` | Viimeinen puuttuva valinta tehdään | C#-/Db-vaihtoehdot näkyvät ilman vahvistusta; esikatselu piilossa |
 | käyttöliittymä | AC25 keskeneräinen tai virheellinen tila | Alkutila ilman laatua; erikseen C-duuri, C ja `2`, jolloin D-duuri näkyy | Tarkista alkutila; vaihda kelvollisesta tilasta molliin; syötä kelvollisesta tilasta erikseen `-12`, `12` ja `1.5` | Alkutilassa kohdenäytöt piilossa; molliin vaihdettaessa toonika tyhjä ja kohdenäytöt piilossa; virheellisillä askelilla kohdenäytöt piilossa; musiikkisyöte muuttumaton |

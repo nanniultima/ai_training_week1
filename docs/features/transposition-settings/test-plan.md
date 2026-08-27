@@ -48,6 +48,8 @@ AC3 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 | [ ] | AC16 | `transpositionSettings.test.ts` — `AC16 hylkää askeleen -12` | C-duuri, `-12` | Speksin täsmällinen askelvirhe |
 | [ ] | AC17 | `transpositionSettings.test.ts` — `AC17 hylkää askeleen 12` | C-duuri, `12` | Speksin täsmällinen askelvirhe |
 | [ ] | AC18 | `transpositionSettings.test.ts` — `AC18 hylkää desimaalisen askeleen` | C-duuri, `1.5` | Speksin täsmällinen askelvirhe |
+| [x] | AC19 | `ui.test.ts` — `AC19 näyttää virheen kun lähtötoonika puuttuu` | Valitse duuri ja askel `1`, jätä toonika valitsematta, paina `Transponoi` | Käsittely ei ala; `Valitse lähtösävellaji` |
+| [x] | AC20 | `ui.test.ts` — `AC20 näyttää virheen kun laatu puuttuu` | Älä valitse duuria tai mollia, paina `Transponoi` | Käsittely ei ala; `Valitse duuri tai molli` |
 | [ ] | AC21 | `transpositionSettings.test.ts` — `AC21 hylkää J-toonikan` | J-duuri, `1` | `Tuntematon lähtösävellaji: J` |
 | [ ] | AC22 | `transpositionSettings.test.ts` — `AC22 hylkää tarpeettoman kohdetoonikan valinnan` | C-duuri, `2`, valinta `Db` | `Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa` |
 | [ ] | AC23 | `ui.test.ts` — `AC23 näyttää yksiselitteisen kohteen automaattisesti` | Valitse C-duuri, C ja `2` | `Kohdesävellaji: D-duuri` ilman Enteriä tai painiketta |
@@ -57,4 +59,4 @@ AC3 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 | [ ] | AC27 | `transpositionSettings.test.ts` — `AC27 hylkää vaihtoehtoihin kuulumattoman kohdetoonikan` | C-duuri, `1`, F# | Täsmällinen vaihtoehtovirhe |
 | [ ] | AC28 | `transpositionSettings.test.ts` — `AC28 hylkää virheellisen moodin ajonaikana` | Dorian, C, `1` | `Tuntematon sävellajin laatu: dorian` |
 
-Kaikki speksissä olevat 26 AC:tä ovat koneellisesti tarkistettavia; `[?]`-rivejä ei ole. Numerot AC19–AC20 on tarkoituksella siirretty myöhempään integraatioon.
+Kaikki speksissä olevat 28 AC:tä ovat koneellisesti tarkistettavia; `[?]`-rivejä ei ole.

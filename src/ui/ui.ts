@@ -215,10 +215,18 @@ export function initializeUi(root: HTMLElement | null): void {
       input.value = tonic;
       label.append(input, `${tonic}-${modeName}`);
       input.addEventListener('click', () => {
-        targetKeyPreview.textContent =
-          `Kohdesävellaji: ${tonic}-${modeName}`;
-        targetKeyPreview.hidden = false;
-        enharmonicChoice.hidden = true;
+        const confirmed = resolveTranspositionSettings({
+          mode: result.mode,
+          sourceTonic: result.sourceTonic,
+          step: result.step,
+          targetTonicChoice: tonic,
+        });
+        if (confirmed.status === 'ready') {
+          targetKeyPreview.textContent =
+            `Kohdesävellaji: ${confirmed.targetTonic}-${modeName}`;
+          targetKeyPreview.hidden = false;
+          enharmonicChoice.hidden = true;
+        }
       });
       return label;
     });

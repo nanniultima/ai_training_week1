@@ -25,6 +25,8 @@ red-kierroksen jälkeen.
 - [x] **AC16:** Hylkää askel `-12` speksin täsmällisellä virheviestillä.
 - [x] **AC17:** Hylkää askel `12` speksin täsmällisellä virheviestillä.
 - [x] **AC18:** Hylkää desimaalinen askel `1.5` speksin täsmällisellä virheviestillä.
+- [x] **AC19:** Estä vahvistaminen ja näytä `Valitse lähtösävellaji`, kun toonika puuttuu.
+- [x] **AC20:** Estä vahvistaminen ja näytä `Valitse duuri tai molli`, kun laatu puuttuu.
 - [x] **AC21:** Hylkää tuntematon J-toonika speksin täsmällisellä virheviestillä.
 - [ ] **AC22:** Hylkää yksiselitteiselle D-duurille annettu tarpeeton kohdetoonikan valinta.
 - [x] **AC23:** Näytä yksiselitteinen kohdesävellaji automaattisesti viimeisen valinnan valmistuttua.
@@ -39,6 +41,6 @@ red-kierroksen jälkeen.
 - [ ] `docs/features/transposition-settings/test-plan.md` sisältää nimetyn testin jokaiselle speksissä olevalle AC:lle.
 - [ ] `npm run lint` läpäisee.
 - [ ] `npm test` läpäisee eikä olemassa olevia testejä poisteta.
-- [ ] Kaikki speksissä olevat AC:t on suljettu ja niitä vastaavat testit läpäisevät; AC19–AC20 kuuluvat myöhempään integraatioon.
+- [ ] Kaikki speksissä olevat AC:t on suljettu ja niitä vastaavat testit läpäisevät.
 - [ ] Diffissä ei ole speksin ulkopuolista toteutusta.
 - [ ] Speksin tila voidaan päivittää `Done`-tilaan vasta review-workflown hyväksynnän jälkeen.

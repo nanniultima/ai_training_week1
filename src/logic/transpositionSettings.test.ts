@@ -5,9 +5,10 @@ import { MAJOR_TRANSPOSITION_MATRIX } from './transpositionSettings.major.fixtur
 import { MINOR_TRANSPOSITION_MATRIX } from './transpositionSettings.minor.fixture.js';
 
 interface ResolverInput {
-  readonly mode: 'major' | 'minor';
+  readonly mode: string;
   readonly sourceTonic: string;
   readonly step: number;
+  readonly targetTonicChoice?: string;
   readonly enharmonicChoice?: 'sharp' | 'flat';
 }
 
@@ -60,6 +61,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'ready',
       mode: 'major',
       sourceTonic: 'C',
+      step: 2,
       targetTonic: 'D',
     });
   });
@@ -70,6 +72,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'ready',
       mode: 'minor',
       sourceTonic: 'A',
+      step: -2,
       targetTonic: 'G',
     });
   });
@@ -80,6 +83,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'ready',
       mode: 'major',
       sourceTonic: 'Gb',
+      step: 0,
       targetTonic: 'Gb',
     });
   });
@@ -90,7 +94,23 @@ describe('resolveTranspositionSettings', () => {
       status: 'requiresEnharmonicChoice',
       mode: 'major',
       sourceTonic: 'C',
+      step: 1,
       options: ['C#', 'Db'],
+    });
+  });
+
+  it('AC10 validoi D-flat-duurin ja sulkee valinnan', () => {
+    expect(resolve?.({
+      mode: 'major',
+      sourceTonic: 'C',
+      step: 1,
+      targetTonicChoice: 'Db',
+    })).toEqual({
+      status: 'ready',
+      mode: 'major',
+      sourceTonic: 'C',
+      step: 1,
+      targetTonic: 'Db',
     });
   });
 
@@ -100,6 +120,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'requiresEnharmonicChoice',
       mode: 'minor',
       sourceTonic: 'D',
+      step: 1,
       options: ['D#', 'Eb'],
     });
   });
@@ -110,6 +131,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'ready',
       mode: 'major',
       sourceTonic: 'A',
+      step: 1,
       targetTonic: 'Bb',
     });
   });
@@ -120,6 +142,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'ready',
       mode: 'minor',
       sourceTonic: 'C',
+      step: 1,
       targetTonic: 'C#',
     });
   });
@@ -130,6 +153,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'requiresEnharmonicChoice',
       mode: 'major',
       sourceTonic: 'C',
+      step: 11,
       options: ['B', 'Cb'],
     });
   });
@@ -140,6 +164,7 @@ describe('resolveTranspositionSettings', () => {
       status: 'requiresEnharmonicChoice',
       mode: 'major',
       sourceTonic: 'C',
+      step: -11,
       options: ['C#', 'Db'],
     });
   });
@@ -172,15 +197,39 @@ describe('resolveTranspositionSettings', () => {
     ).toThrow('Tuntematon lähtösävellaji: J');
   });
 
-  it('AC22 hylkää tarpeettoman flat-valinnan', () => {
+  it('AC22 hylkää tarpeettoman kohdetoonikan valinnan', () => {
     expect(resolve).toBeTypeOf('function');
     expect(() =>
       resolve?.({
         mode: 'major',
         sourceTonic: 'C',
         step: 2,
-        enharmonicChoice: 'flat',
+        targetTonicChoice: 'Db',
       }),
     ).toThrow('Kohdesävellaji D-duuri ei tarvitse enharmonista valintaa');
+  });
+
+  it('AC26 palauttaa validoidun askeleen odotustuloksessa', () => {
+    expect(resolve?.({ mode: 'major', sourceTonic: 'C', step: 1 })).toEqual({
+      status: 'requiresEnharmonicChoice',
+      mode: 'major',
+      sourceTonic: 'C',
+      step: 1,
+      options: ['C#', 'Db'],
+    });
+  });
+
+  it('AC27 hylkää vaihtoehtoihin kuulumattoman kohdetoonikan', () => {
+    expect(() => resolve?.({
+      mode: 'major',
+      sourceTonic: 'C',
+      step: 1,
+      targetTonicChoice: 'F#',
+    })).toThrow('Kohdetoonika F# ei kuulu vaihtoehtoihin C#, Db');
+  });
+
+  it('AC28 hylkää virheellisen moodin ajonaikana', () => {
+    expect(() => resolve?.({ mode: 'dorian', sourceTonic: 'C', step: 1 }))
+      .toThrow('Tuntematon sävellajin laatu: dorian');
   });
 });
