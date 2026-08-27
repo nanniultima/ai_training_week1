@@ -172,4 +172,8 @@ describe("classifyLines", () => {
     const result = classifyLines([line("C |G |"), line("c\td")]);
     expect(result.lines[1]?.type).toBe("text");
   });
+
+  it("note-transposition parseriregressio hyväksyy enharmoniset lähtönimet", () => {
+    expect(classifyLines([line("Cb B# Fb E# H# Hb")]).lines[0]?.type).toBe("note");
+  });
 });

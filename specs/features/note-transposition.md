@@ -1,6 +1,6 @@
 # Feature: Sävelten transponointi
 
-**Status:** Ready for implementation
+**Status:** Done
 
 ## Problem Statement
 

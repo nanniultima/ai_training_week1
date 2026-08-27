@@ -35,6 +35,22 @@ export type MusicInput = string;
 export type TransposedMusic = string;
 export type ChordSymbol = string;
 export type NoteName = string;
+export type NoteRegister = 1 | 2 | 3 | 4;
+
+export interface TransposedNote {
+  readonly name: string;
+  readonly register: NoteRegister;
+}
+export interface TransposedNoteGroupPart { readonly type: 'noteGroup'; readonly notes: readonly TransposedNote[]; }
+export interface SeparatorPart { readonly type: 'separator'; readonly text: string; }
+export interface RepeatPart { readonly type: 'repeat'; readonly text: string; }
+export type TransposedNoteLinePart = TransposedNoteGroupPart | SeparatorPart | RepeatPart;
+export interface TransposedNoteLine {
+  readonly index: number;
+  readonly type: 'note';
+  readonly content: string;
+  readonly parts: readonly TransposedNoteLinePart[];
+}
 
 export interface TranspositionRequest {
   readonly input: MusicInput;
