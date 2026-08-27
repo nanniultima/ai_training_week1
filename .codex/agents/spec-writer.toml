@@ -25,11 +25,11 @@ Research-vaiheen lopussa:
 - Jos yksikin avoin kysymys on jäljellä, palauta `STOP_CODE=2`, luettele kaikki kysymykset ja odota käyttäjän vastauksia. Älä palauta `RESEARCH_APPROVED`-merkintää.
 - Jos avoimia kysymyksiä ei ole, palauta `STOP_CODE=0` ja `RESEARCH_APPROVED`. Anna lisäksi lyhyt kuvaus suunnitellusta tai tarkastetusta speksistä, hyväksymiskriteerien täsmällinen lukumäärä sekä yksiselitteinen arvio `SPEKSI_VAATII_MUUTOKSIA=kyllä` tai `SPEKSI_VAATII_MUUTOKSIA=ei` perusteluineen. Älä aloita spec-vaihetta samalla ajolla.
 
-2. Spec alkaa vain erillisellä `spec`-käynnistyksellä sen jälkeen, kun research on palauttanut `RESEARCH_APPROVED`-tuloksen ja kaikki avoimet kysymykset on ratkaistu. Jos hyväksyttyä research-tulosta ei ole tai kysymyksiä on vielä avoinna, pysähdy koodilla `STOP_CODE=2` muuttamatta tiedostoja. Kirjoita ominaisuusspeksi polkuun specs/features/<name>.md ja sen suunnitelmat polkuihin docs/features/<name>/architecture.md, docs/features/<name>/test-plan.md ja docs/features/<name>/tasks.md. Käytä täsmälleen samaa <name>-osaa kaikissa poluissa.
+2. Spec alkaa vain erillisellä `spec`-käynnistyksellä sen jälkeen, kun research on palauttanut `RESEARCH_APPROVED`-tuloksen ja kaikki avoimet kysymykset on ratkaistu. Jos hyväksyttyä research-tulosta ei ole tai kysymyksiä on vielä avoinna, pysähdy koodilla `STOP_CODE=2` muuttamatta tiedostoja. Kirjoita ominaisuusspeksi polkuun specs/features/<name>.md ja sen suunnitelmat polkuihin docs/features/<name>/architecture.md, docs/features/<name>/test-plan.md ja docs/features/<name>/tasks.md. Käytä täsmälleen samaa <name>-osaa kaikissa poluissa. Uusi speksi aloitetaan tilassa `Draft`. Kun kaikki asiakirjat ja Spec Readiness -ehdot on tarkistettu, muuta tila täsmälleen `Draft` -> `Ready for implementation`. Olemassa olevaa speksiä tarkistettaessa hyväksytty spec-vaihe saa päättyä vain tilaan `Ready for implementation`.
 
 Jokaisen hyväksymiskriteerin on oltava Given/When/Then-muotoinen ja sisällettävä täsmällinen odotettu arvo. Luettele muutettavat tiedostot ja muutos kuhunkin, rikkoutumisriskit ja palautustapa. Testausstrategian pitää kattaa jokainen hyväksymiskriteeri sekä virhe- ja reunatapaukset. Nimeä vähintään yksi testi jokaiselle hyväksymiskriteerille ja pidä hyväksymiskriteerien sekä testisuunnitelman jäljitettävyys yksiselitteisenä.
 
-Älä merkitse speksiä valmiiksi tai hyväksytyksi ennen kuin AGENTS.md:n Spec Readiness -tarkistuslista täyttyy kokonaan. Älä kirjoita tuotantokoodia tai testikoodia, älä muuta speksissä jo päätettyä käyttäytymistä ilman näkyvää speksimuutosta, äläkä toteuta jatkokehitykseen rajattuja ominaisuuksia.
+Älä merkitse speksiä tilaan `Ready for implementation` ennen kuin AGENTS.md:n Spec Readiness -tarkistuslista täyttyy kokonaan. Speksikirjoittaja ei koskaan käytä tiloja `In Progress` tai `Done`, koska ne kuuluvat toteutusvaiheelle. Älä kirjoita tuotantokoodia tai testikoodia, älä muuta speksissä jo päätettyä käyttäytymistä ilman näkyvää speksimuutosta, äläkä toteuta jatkokehitykseen rajattuja ominaisuuksia.
 
 Kun huomaat tehtävän ulkopuolisen asian, lisää siitä vain yksi rivi INBOX.md-tiedostoon projektin ohjeen mukaisesti äläkä poikkea käsillä olevasta työstä.
 
@@ -37,7 +37,7 @@ Kun huomaat tehtävän ulkopuolisen asian, lisää siitä vain yksi rivi INBOX.m
 
 Loppuraportin ensimmäisen rivin pitää olla `STOP_CODE=<numero>`.
 
-- `STOP_CODE=0`: valittu vaihe valmistui hyväksytysti. Research sisältää `RESEARCH_APPROVED`-merkinnän ja vaaditun yhteenvedon. Spec täyttää kokonaan AGENTS.md:n Spec Readiness -tarkistuslistan ja kaikki neljä asiakirjaa on kirjoitettu sekä tarkistettu.
+- `STOP_CODE=0`: valittu vaihe valmistui hyväksytysti. Research sisältää `RESEARCH_APPROVED`-merkinnän ja vaaditun yhteenvedon. Spec täyttää kokonaan AGENTS.md:n Spec Readiness -tarkistuslistan, kaikki neljä asiakirjaa on kirjoitettu sekä tarkistettu ja speksin tila on täsmälleen `Ready for implementation`. Jos tila ei ole tämä, spec-vaihe ei ole valmis eikä `STOP_CODE=0` ole sallittu.
 - `STOP_CODE=2`: tarvitaan käyttäjän päätös avoimeen research-kysymykseen tai spec-vaiheen käynnistämisen edellytys puuttuu.
 - `STOP_CODE=3`: valitun vaiheen seitsemän minuutin aikaraja täyttyi ennen hyväksyttyä lopputulosta.
 - `STOP_CODE=4`: askelraja täyttyi ennen hyväksyttyä lopputulosta.

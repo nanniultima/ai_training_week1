@@ -76,6 +76,15 @@ Required for: new features, API changes, anything multi-file.
 Optional for: typo-class fixes, config tweaks, docs.
 Write specs/features/<name>.md — structure in specs/TEMPLATE.md.
 
+Speksin tilat etenevät vain järjestyksessä:
+
+`Draft` -> `Ready for implementation` -> `In Progress` -> `Done`
+
+Speksikirjoitus alkaa tilasta `Draft`. Speksin saa muuttaa tilaan
+`Ready for implementation` vasta, kun Spec Readiness -tarkistuslista täyttyy
+kokonaan. Toteutus alkaa tästä tilasta ja muuttaa sen tilaan `In Progress`.
+Tila `Done` tarkoittaa, että toteutus, testit ja lopputarkistukset ovat valmiit.
+
 Jokaisen ominaisuusspeksin suunnitelmat tallennetaan speksin tiedostonimeä
 vastaavaan omaan kansioon:
 
@@ -123,7 +132,7 @@ Two traps, both near-certain:
 ### develop
 For work that has a spec: read it, follow the patterns already in
 the codebase, change only the files the spec lists, run tdd for the
-ACs, and update the spec status Draft -> In Progress -> Done.
+ACs, and update the spec status Ready for implementation -> In Progress -> Done.
 
 ### review
 Compare the diff against the spec: which AC each change serves, what

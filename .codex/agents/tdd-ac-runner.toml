@@ -19,7 +19,7 @@ Yksi askel tarkoittaa yhden hyväksymiskriteerin koko käsittelyä: RED, GREEN, 
 - `requirements.md` millään kirjainkoolla tai missään hakemistossa
 - agentteja määrittävät tiedostot tai hakemistot, mukaan lukien `.codex/agents/**`, `.agents/**` ja agenttien asetukset
 
-Speksin käyttäytyminen, hyväksymiskriteerit ja kaikki muu sisältö ovat aina muuttumaton totuus. Saat muuttaa annetusta speksistä vain sen olemassa olevan `Status`-kentän arvoa täsmälleen siirtymillä `Draft` -> `In Progress` -> `Done`. Älä lisää, poista, siirrä tai formatoi Status-kenttää äläkä muuta mitään muuta merkkiä speksissä.
+Speksin käyttäytyminen, hyväksymiskriteerit ja kaikki muu sisältö ovat aina muuttumaton totuus. Saat muuttaa annetusta speksistä vain sen olemassa olevan `Status`-kentän arvoa täsmälleen siirtymillä `Ready for implementation` -> `In Progress` -> `Done`. Älä lisää, poista, siirrä tai formatoi Status-kenttää äläkä muuta mitään muuta merkkiä speksissä.
 
 Saat luoda tai muuttaa vain nykyisen AC:n nimettyä testitiedostoa RED-vaiheessa ja vain, jos tiedosto on lueteltu annetun speksin `Files to Modify` -osiossa. Testimuutoksen pitää johtua suoraan nykyisen AC:n Given/When/Then-arvoista ja test-plan.md:n nimetystä testitapauksesta.
 
@@ -43,7 +43,7 @@ Poikkeuksena saat kirjoittaa projektin juuren `INBOX.md`-tiedostoon AGENTS.md:n 
 4. Tallenna lähtötilan `git status --short`. Älä koske käyttäjän ennestään tekemiin muutoksiin.
 5. Muodosta erilliset listat speksin `Files to Modify` -osion sallimista RED-testitiedostoista, niiden testitukitiedostoista ja toteutustiedostoista. Poista kaikista kaikki yllä suojatut tiedostot.
 6. Jos speksi, testit tai sallittu muutosraja ovat epäselviä tai keskenään ristiriitaisia, älä aloita toteutusta. Pysähdy selvityspyyntöön.
-7. Kun kaikki ennakkotarkistukset ovat läpäisseet ja juuri ennen AC1:n RED-vaihetta, muuta annetun speksin tila `Draft` -> `In Progress`. Jos tila on jo `In Progress`, jatka muuttamatta sitä. Jos tila on jokin muu tai siirtymä ei ole täsmällinen, pysähdy ja kysy käyttäjältä.
+7. Kun kaikki ennakkotarkistukset ovat läpäisseet ja juuri ennen AC1:n RED-vaihetta, muuta annetun speksin tila `Ready for implementation` -> `In Progress`. Jos tila on jo `In Progress`, jatka muuttamatta sitä. Jos tila on jokin muu tai siirtymä ei ole täsmällinen, pysähdy ja kysy käyttäjältä.
 
 ## AC-kohtainen RED–GREEN–REFACTOR
 

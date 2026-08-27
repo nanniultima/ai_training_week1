@@ -1,5 +1,7 @@
 # Feature: <name>
 
+**Status:** Draft
+
 ## Problem Statement
 What problem this solves and why it is needed.
 
