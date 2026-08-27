@@ -42,8 +42,8 @@ export interface TransposedNote {
   readonly register: NoteRegister;
 }
 export interface TransposedNoteGroupPart { readonly type: 'noteGroup'; readonly notes: readonly TransposedNote[]; }
-export interface SeparatorPart { readonly type: 'separator'; readonly text: string; }
-export interface RepeatPart { readonly type: 'repeat'; readonly text: string; }
+export interface SeparatorPart { readonly type: 'separator'; readonly text: string; readonly formatting?: readonly FormattedTextSegment[]; }
+export interface RepeatPart { readonly type: 'repeat'; readonly text: string; readonly formatting?: readonly FormattedTextSegment[]; }
 export type TransposedNoteLinePart = TransposedNoteGroupPart | SeparatorPart | RepeatPart;
 export interface TransposedNoteLine {
   readonly index: number;
@@ -81,8 +81,14 @@ export interface FormattedTextSegment {
 }
 
 export interface InputLine {
+  readonly text?: string;
   readonly segments: readonly FormattedTextSegment[];
 }
+
+export interface SourceRange { readonly start: number; readonly end: number; }
+export interface ChordResultToken { readonly type: 'chord' | 'suspiciousChord' | 'text'; readonly text: string; readonly sourceRange?: SourceRange; readonly formatting?: readonly FormattedTextSegment[]; }
+export interface FormattedTextLine { readonly type: 'text'; readonly segments: readonly FormattedTextSegment[]; }
+export interface EmptyResultLine { readonly type: 'empty'; }
 
 export type LineType = 'chord' | 'note' | 'text' | 'empty';
 
@@ -113,7 +119,10 @@ export type ChordLineWarning = SuspiciousChordWarning | LowercaseChordWarning;
 export interface TransposedChordLine extends ClassifiedLine {
   readonly type: 'chord';
   readonly warnings: readonly ChordLineWarning[];
+  readonly tokens?: readonly ChordResultToken[];
 }
+
+export type MusicResultLine = TransposedChordLine | TransposedNoteLine | FormattedTextLine | EmptyResultLine;
 
 export interface AmbiguousNoteLineWarning {
   readonly code: 'AMBIGUOUS_NOTE_LINE';

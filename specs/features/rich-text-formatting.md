@@ -1,6 +1,6 @@
 # Feature: Rikastekstin muotoilujen käsittely
 
-**Status:** Ready for implementation
+**Status:** Done
 
 ## Problem Statement
 

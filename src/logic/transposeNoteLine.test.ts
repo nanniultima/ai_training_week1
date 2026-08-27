@@ -7,6 +7,14 @@ const noteLine = (segments: readonly FormattedTextSegment[], index = 0): Classif
 const settings = (step: number, targetTonic: string, mode: 'major' | 'minor' = 'major'): ReadyTranspositionSettings => ({ status: 'ready', mode, sourceTonic: 'C', step, targetTonic });
 
 describe('transposeNoteLine', () => {
+  it('AC22 note-rivin xN säilyttää muotoilun', () => {
+    const result = transposeNoteLine(noteLine([segment('C '), segment('x2', false, true)]), settings(0, 'C'));
+    expect(result.parts[2]).toEqual({ type: 'repeat', text: 'x2', formatting: [segment('x2', false, true)] });
+  });
+  it('AC23 note-rivin erotin säilyttää muotoilun', () => {
+    const result = transposeNoteLine(noteLine([segment('C'), segment(' - ', true), segment('D')]), settings(0, 'C'));
+    expect(result.parts[1]).toEqual({ type: 'separator', text: ' - ', formatting: [segment(' - ', true)] });
+  });
   it('AC7 saman tavun ryhmä', () => {
     const result = transposeNoteLine(noteLine([segment('gB')]), settings(1, 'Ab'));
     expect(result.content).toBe('AbC');

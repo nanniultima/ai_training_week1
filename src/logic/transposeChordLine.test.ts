@@ -18,6 +18,10 @@ const chordLine = (index: number, content: string): ClassifiedLine => ({
 });
 
 describe('transposeChordLine', () => {
+  it('AC21 sointutoken säilyttää lähdevälin', () => {
+    const result = transposeChordLine(chordLine(0, 'C |'), settings('major', 'C', 1, 'Db'));
+    expect(result.tokens?.[0]).toMatchObject({ type: 'chord', text: 'Db', sourceRange: { start: 0, end: 1 } });
+  });
   it('AC16 transponoi moduloivan rivin kaikki soinnut', () => {
     const result = transposeChordLine(
       chordLine(0, 'C |E7 |Am |F#7 |B |'),
