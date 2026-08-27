@@ -1,338 +1,282 @@
 # Feature: Rikastekstin muotoilujen käsittely
 
+**Status:** Ready for implementation
+
 ## Problem Statement
 
-Syötteen lihavointi ja kursivointi eivät ole vain ulkoasua: sävelrivillä
-niiden yhdistelmä ilmaisee sävelen rekisterin. Sointurivillä tunnistetut
-soinnut ja musiikkimerkit pitää esittää aina lihavoituina. Laulun sanojen ja
-tunnistamattoman tekstin muotoilut pitää säilyttää turvallisessa
-HTML-tuloksessa.
-
-HTML:n lukeminen, sävelrekisterin päättely ja tuloksen muodostaminen pitää
-erottaa toisistaan. Muuten yleinen rikastekstin jäsentäjä joutuisi
-päättelemään virheellisesti, onko jokainen lihavoitu merkki sävel vai jotain
-muuta sisältöä.
+Editorin muotoilu ilmaisee sävelrivillä rekisterin, mutta muilla riveillä se
+on säilytettävää ulkoasua. HTML on jäsennettävä turvalliseksi tietomalliksi ja
+transponoitu tulos muodostettava takaisin HTML:ksi ilman vaarallista sisältöä.
 
 ## Proposed Change
 
-Lisätään neljä erillistä vastuuta:
+Lisätään julkiset `parseRichText`, `formattingToRegister`,
+`registerToFormatting`, `resolveBaseFontSize` ja `formatMusicResult`.
+`parseRichText` palauttaa `{ lines: InputLine[] }`; tyhjällä rivillä on
+`segments: []`. Se käyttää selaimen `template`/DOM-rajapintaa. `<div>`, `<p>`,
+`<br>` ja tekstin `\n` normalisoidaan riveiksi ilman sisäkkäisten lohkojen
+ylimääräisiä tyhjiä rivejä. Selaimen korjaama DOM hyväksytään.
 
-1. `parseRichText` lukee editorin HTML:n tekstijaksoiksi ja tunnistaa vain
-   lihavoinnin, kursivoinnin, fonttikoon ja rivinvaihdot.
-2. `formattingToRegister` muuntaa sävelrivin tekstijakson muotoilun
-   rekisteriksi 1–4.
-3. `registerToFormatting` muuntaa transponoidun sävelen rekisterin takaisin
-   lihavoinniksi ja kursivoinniksi.
-4. `formatMusicResult` muodostaa käsitellyistä riveistä turvallisen HTML:n.
+`strong`/`b` on bold ja `em`/`i` italic. Vierekkäiset täysin samanmuotoiset
+jaksot yhdistetään. Vain positiivinen inline-`font-size:Npx` luetaan;
+desimaalit sallitaan, muut yksiköt ja computed style ohitetaan.
 
-### Rikastekstin jäsentäminen
+Rekisterit ovat bold+italic=1, bold=2, tavallinen=3 ja italic=4. Saman
+sävelryhmän sävelillä voi olla eri rekisterit. Sointu ja
+`SUSPICIOUS_CHORD` lihavoidaan. Lihavoitavat erilliset musiikkimerkit ovat
+täsmälleen `| , . - : / ( )`. Tekstitokenin sisäiset muotoilujaksot säilyvät.
+`TransposedChordLine` saa lähdevälit ja muotoilujaksot; sävelrivin erottimet ja
+`xN` saavat lähdemuotoilujaksot. Speksi 6 laskee kohdistuksen ennen formatteria.
 
-`parseRichText` tuottaa tekstijaksoja, joilla on ominaisuudet `text`, `bold`,
-`italic` ja valinnainen `fontSizePx`.
-
-- `<strong>` ja `<b>` asettavat `bold: true`.
-- `<em>` ja `<i>` asettavat `italic: true`.
-- Sisäkkäisten elementtien muotoilut yhdistetään.
-- Jäsentäjä ei tuota register-arvoa eikä päättele, onko jakso sävel, sointu
-  vai tavallista tekstiä.
-
-### Muotoilun ja rekisterin vastaavuus
-
-Kun rivi on tunnistettu sävelriviksi, `formattingToRegister` käyttää tätä
-taulukkoa:
-
-| Bold | Italic | Rekisteri |
-|---|---|---:|
-| kyllä | kyllä | 1 |
-| kyllä | ei | 2 |
-| ei | ei | 3 |
-| ei | kyllä | 4 |
-
-`registerToFormatting` tekee käänteisen muunnoksen. Lopullisen sävelen
-muotoilu määräytyy transponoinnin tuottamasta rekisteristä. Saman
-sävelryhmän peräkkäisillä sävelillä voi olla eri muotoilu ilman näkyvää
-erotinta.
-
-### Sointurivin muotoilu
-
-Sointurivin tokenit saadaan `chord-transposition`-ominaisuudelta.
-
-- Tunnistettu sointu lihavoidaan kokonaan.
-- `SUSPICIOUS_CHORD`-varoituksen saanut transponoitu token lihavoidaan
-  kokonaan.
-- Tekstitokenien ulkopuoliset musiikkimerkit lihavoidaan.
-- Tekstitoken säilyttää alkuperäisen lihavoinnin ja kursivoinnin.
-
-Musiikkimerkkeihin kuuluvat esimerkiksi `|`, `,`, `.`, `-`, `:`, `/`, `(` ja
-`)`, kun ne ovat erillään tekstitokenista. `x2`, `intro` ja `rit.` ovat
-kokonaisia tekstitokeneita, joten niiden numeroa tai pistettä ei irroteta.
-
-### Muut rivit ja fonttikoko
-
-Tekstirivien sisältö, lihavointi ja kursivointi säilytetään. Tyhjä rivi
-säilytetään. Tämä ominaisuus ei muuta sanoja tai kohdistusta.
-
-Tuloksen perusfonttikooksi valitaan syötteen ensimmäisen ei-tyhjän merkin
-`fontSizePx`. Edeltäviä tyhjiä rivejä ja välilyöntejä ei käytetä valintaan.
-Kaikki tulosjaksot käyttävät yhtä peruskokoa.
-
-Jos kokoa ei saada, oletus on `12px`. Nolla, negatiivinen, `NaN` tai ääretön
-arvo hylätään virheellä `Fonttikoon pitää olla positiivinen luku`.
-
-### Turvallinen HTML
-
-Tuloksessa sallitaan vain `<div>`, `<br>`, `<strong>`, `<em>` ja `<span>`.
-Merkit `&`, `<`, `>`, `"` ja `'` HTML-enkoodataan. Linkkielementti poistetaan
-mutta sen näkyvä teksti säilytetään. Script-elementti sisältöineen poistetaan
-kokonaan. Värit, kuvat, listat, alleviivaukset, luokat,
-tapahtumankäsittelijät ja muut attribuutit poistetaan.
-
-Kohdistuksen uudelleenlaskenta ja leikepöydälle kirjoittaminen eivät kuulu
-tähän speksiin.
+Peruskoko tulee ensimmäisestä sisältömerkistä; edeltävät tyhjät rivit ja
+tyhjemerkit ohitetaan. Sen virheellinen eksplisiittinen px-arvo hylätään,
+myöhempiä kokoja ei validoida. Oletus on `12px`. Generoitu
+`style="font-size:Npx"` on ainoa sallittu attribuutti. Sallitut tagit ovat
+`div`, `br`, `strong`, `em`, `span`. Tukemattoman elementin näkyvä teksti
+säilyy; `script`, `style`, kuvat ja muu ei-tekstuaalinen sisältö poistetaan.
+Tyhjäksi katsotaan vain riveistä ja tyhjemerkeistä koostuva syöte.
 
 ## Acceptance Criteria
 
-### AC1: Strong-elementti luetaan lihavoinniksi
-**Given** syöte-HTML on `<strong>C</strong>`
-**When** `parseRichText` jäsentää syötteen
-**Then** ainoan jakson text on `C`, bold on `true`, italic on `false` eikä jaksolla ole register-arvoa
+### AC1: Lihavointi luetaan
+**Given** syöte on vuorollaan `<strong>C</strong>` ja `<b>C</b>`
+**When** `parseRichText` jäsentää sen
+**Then** ainoa segmentti on `{text:"C",bold:true,italic:false}` ilman register-arvoa
 
-### AC2: B-elementti luetaan lihavoinniksi
-**Given** syöte-HTML on `<b>C</b>`
-**When** `parseRichText` jäsentää syötteen
-**Then** ainoan jakson text on `C`, bold on `true`, italic on `false` eikä jaksolla ole register-arvoa
+### AC2: Kursivointi luetaan
+**Given** syöte on vuorollaan `<em>C</em>` ja `<i>C</i>`
+**When** syöte jäsennetään
+**Then** ainoa segmentti on `{text:"C",bold:false,italic:true}`
 
-### AC3: Em-elementti luetaan kursivoinniksi
-**Given** syöte-HTML on `<em>C</em>`
-**When** `parseRichText` jäsentää syötteen
-**Then** ainoan jakson text on `C`, bold on `false`, italic on `true` eikä jaksolla ole register-arvoa
+### AC3: Sisäkkäiset muotoilut yhdistyvät
+**Given** syöte on `<strong><em>C</em></strong>`
+**When** syöte jäsennetään
+**Then** segmentin bold ja italic ovat `true`
 
-### AC4: I-elementti luetaan kursivoinniksi
-**Given** syöte-HTML on `<i>C</i>`
-**When** `parseRichText` jäsentää syötteen
-**Then** ainoan jakson text on `C`, bold on `false`, italic on `true` eikä jaksolla ole register-arvoa
+### AC4: Rivirakenteet normalisoidaan
+**Given** syöte on `<div>A</div><p>B<br>C</p>`
+**When** syöte jäsennetään
+**Then** rivitekstit ovat täsmälleen `["A","B","C"]`
 
-### AC5: Sisäkkäinen lihavointi ja kursivointi yhdistetään
-**Given** syöte-HTML on `<strong><em>C</em></strong>`
-**When** `parseRichText` jäsentää syötteen
-**Then** ainoan jakson text on `C`, bold on `true`, italic on `true` eikä jaksolla ole register-arvoa
+### AC5: Tekstin newline muodostaa rivin
+**Given** tekstisolmu on `A\nB`
+**When** syöte jäsennetään
+**Then** rivitekstit ovat `["A","B"]`
 
-### AC6: Lihavoitu ja kursivoitu muotoilu tarkoittaa rekisteriä 1
-**Given** muotoilu on `{ bold: true, italic: true }`
-**When** `formattingToRegister` käsittelee muotoilun
-**Then** tulos on täsmälleen `1`
+### AC6: Sisäkkäinen lohko ei lisää tyhjää riviä
+**Given** syöte on `<div><p>A</p></div><div>B</div>`
+**When** syöte jäsennetään
+**Then** rivitekstit ovat `["A","B"]`
 
-### AC7: Lihavoitu muotoilu tarkoittaa rekisteriä 2
-**Given** muotoilu on `{ bold: true, italic: false }`
-**When** `formattingToRegister` käsittelee muotoilun
-**Then** tulos on täsmälleen `2`
+### AC7: Tyhjällä rivillä ei ole segmenttejä
+**Given** syöte on `<div>A</div><div><br></div><div>B</div>`
+**When** syöte jäsennetään
+**Then** keskimmäinen rivi on `{text:"",segments:[]}`
 
-### AC8: Tavallinen muotoilu tarkoittaa rekisteriä 3
-**Given** muotoilu on `{ bold: false, italic: false }`
-**When** `formattingToRegister` käsittelee muotoilun
-**Then** tulos on täsmälleen `3`
+### AC8: Samanmuotoiset jaksot yhdistetään
+**Given** syöte on `<strong>A</strong><b>B</b><em>C</em>`
+**When** syöte jäsennetään
+**Then** segmentit ovat lihavoitu `AB` ja kursivoitu `C`
 
-### AC9: Kursivoitu muotoilu tarkoittaa rekisteriä 4
-**Given** muotoilu on `{ bold: false, italic: true }`
-**When** `formattingToRegister` käsittelee muotoilun
-**Then** tulos on täsmälleen `4`
+### AC9: Inline-pikselikoko luetaan
+**Given** syöte on `<span style="font-size:18.5px">C</span>`
+**When** syöte jäsennetään
+**Then** `fontSizePx` on `18.5`
 
-### AC10: Rekisteri 1 tarkoittaa lihavoitua ja kursivoitua muotoilua
-**Given** rekisteri on `1`
-**When** `registerToFormatting` käsittelee rekisterin
-**Then** tulos on täsmälleen `{ bold: true, italic: true }`
+### AC10: Muut kokolähteet ohitetaan
+**Given** koko on inline `2em` tai vain computed `20px`
+**When** syöte jäsennetään
+**Then** segmentillä ei ole `fontSizePx`-kenttää
 
-### AC11: Rekisteri 2 tarkoittaa lihavoitua muotoilua
-**Given** rekisteri on `2`
-**When** `registerToFormatting` käsittelee rekisterin
-**Then** tulos on täsmälleen `{ bold: true, italic: false }`
+### AC11: Selaimen korjaama HTML hyväksytään
+**Given** DOM normalisoi syötteen `<strong><em>C</strong>`
+**When** syöte jäsennetään
+**Then** C:n bold ja italic ovat `true`
 
-### AC12: Rekisteri 3 tarkoittaa tavallista muotoilua
-**Given** rekisteri on `3`
-**When** `registerToFormatting` käsittelee rekisterin
-**Then** tulos on täsmälleen `{ bold: false, italic: false }`
+### AC12: Muotoilut muuttuvat rekistereiksi
+**Given** bold/italic-yhdistelmät ovat TT, TF, FF ja FT
+**When** `formattingToRegister` käsittelee ne
+**Then** tulokset ovat `[1,2,3,4]`
 
-### AC13: Rekisteri 4 tarkoittaa kursivoitua muotoilua
-**Given** rekisteri on `4`
-**When** `registerToFormatting` käsittelee rekisterin
-**Then** tulos on täsmälleen `{ bold: false, italic: true }`
+### AC13: Rekisterit muuttuvat muotoiluiksi
+**Given** rekisterit ovat `1,2,3,4`
+**When** `registerToFormatting` käsittelee ne
+**Then** bold/italic-tulokset ovat TT, TF, FF ja FT
 
-### AC14: Virheellinen rekisteri hylätään
-**Given** rekisteri on vuorollaan `0` ja `5`
-**When** `registerToFormatting` yrittää käsitellä rekisterin
-**Then** kumpikin kutsu heittää virheen `Rekisterin pitää olla kokonaisluku väliltä 1–4`
+### AC14: Virherekisteri hylätään
+**Given** arvo on `0`, `5` tai `1.5`
+**When** se muunnetaan
+**Then** virhe on `Rekisterin pitää olla kokonaisluku väliltä 1–4`
 
-### AC15: Rekisterin 1 sävel muodostetaan lihavoituna ja kursivoituna
-**Given** tulossävel on `C` ja register on `1`
-**When** sävelen HTML muodostetaan
-**Then** HTML on `<strong><em><span>C</span></em></strong>`
+### AC15: Sävelen neljä rekisteriä muotoillaan
+**Given** sävel C on rekistereissä 1–4
+**When** sisäinen segmenttiformatteri käsittelee sen
+**Then** HTML:t ovat `<strong><em><span>C</span></em></strong>`, `<strong><span>C</span></strong>`, `<span>C</span>`, `<em><span>C</span></em>`
 
-### AC16: Rekisterin 2 sävel muodostetaan lihavoituna
-**Given** tulossävel on `C` ja register on `2`
-**When** sävelen HTML muodostetaan
-**Then** HTML on `<strong><span>C</span></strong>`
+### AC16: Ryhmän rekisterit voivat erota
+**Given** ryhmä on Ab/3 ja C/4
+**When** ryhmä muotoillaan
+**Then** HTML on `<span>Ab</span><em><span>C</span></em>` ilman erotinta
 
-### AC17: Rekisterin 3 sävel muodostetaan tavallisena
-**Given** tulossävel on `C` ja register on `3`
-**When** sävelen HTML muodostetaan
-**Then** HTML on `<span>C</span>`
+### AC17: Soinnut lihavoidaan
+**Given** tokenit ovat tunnistettu `Cm7/Bb` ja epäilyttävä `Dbfoo`
+**When** ne muotoillaan
+**Then** HTML:t ovat `<strong><span>Cm7/Bb</span></strong>` ja `<strong><span>Dbfoo</span></strong>`
 
-### AC18: Rekisterin 4 sävel muodostetaan kursivoituna
-**Given** tulossävel on `C` ja register on `4`
-**When** sävelen HTML muodostetaan
-**Then** HTML on `<em><span>C</span></em>`
+### AC18: Musiikkimerkit lihavoidaan
+**Given** erilliset tokenit ovat `| , . - : / ( )`
+**When** ne muotoillaan
+**Then** jokainen on omassa `<strong><span>…</span></strong>`-rakenteessa
 
-### AC19: Sävelryhmän sävelillä voi olla eri muotoilu
-**Given** tulosryhmä sisältää rekisterin 3 sävelen `Ab` ja rekisterin 4 sävelen `C`
-**When** ryhmän HTML muodostetaan
-**Then** HTML on `<span>Ab</span><em><span>C</span></em>` eikä sävelten välissä ole välilyöntiä
+### AC19: Muu merkki jää tekstiksi
+**Given** tekstitoken on `+`
+**When** se muotoillaan
+**Then** HTML on `<span>+</span>`
 
-### AC20: Tunnistettu sointu lihavoidaan kokonaan
-**Given** sointutoken on `Cm7/Bb`
-**When** tokenin HTML muodostetaan
-**Then** HTML on `<strong><span>Cm7/Bb</span></strong>`
+### AC20: Tekstitoken säilyttää sisämuotoilut
+**Given** `rit` on italic ja sitä seuraava `.` tavallinen samassa tokenissa
+**When** token muotoillaan
+**Then** HTML on `<em><span>rit</span></em><span>.</span>`
 
-### AC21: Epäilyttävä sointutoken lihavoidaan kokonaan
-**Given** sointutoken on `Dbfoo` ja sillä on `SUSPICIOUS_CHORD`-varoitus
-**When** tokenin HTML muodostetaan
-**Then** HTML on `<strong><span>Dbfoo</span></strong>`
+### AC21: Sointutoken säilyttää lähdevälin
+**Given** C lähdevälillä `[0,1)` transponoituu Db:ksi
+**When** token muodostetaan
+**Then** lähdeväli on `[0,1)` ja HTML `<strong><span>Db</span></strong>`
 
-### AC22: Sointurivin soinnut ja erilliset musiikkimerkit lihavoidaan
-**Given** tokenit ovat sointu `C`, väli ` `, merkki `|`, väli ` `, sointu `G`, merkki `,`, väli ` `, merkki `-`, väli ` ` ja sointu `Am`
-**When** tokenien HTML muodostetaan
-**Then** HTML on `<strong><span>C</span></strong><span> </span><strong><span>|</span></strong><span> </span><strong><span>G</span></strong><strong><span>,</span></strong><span> </span><strong><span>-</span></strong><span> </span><strong><span>Am</span></strong>`
+### AC22: Note-rivin xN säilyttää muotoilun
+**Given** `x2` on italic
+**When** rivi muotoillaan
+**Then** HTML on `<em><span>x2</span></em>`
 
-### AC23: Tavallinen x2-token säilyttää muotoilunsa
-**Given** tekstitoken on `x2`, bold on `false` ja italic on `false`
-**When** tokenin HTML muodostetaan
-**Then** HTML on `<span>x2</span>`
+### AC23: Note-rivin erotin säilyttää muotoilun
+**Given** ` - ` on bold
+**When** rivi muotoillaan
+**Then** HTML on `<strong><span> - </span></strong>`
 
-### AC24: Kursivoitu rit.-token säilyttää muotoilunsa
-**Given** tekstitoken on `rit.`, bold on `false` ja italic on `true`
-**When** tokenin HTML muodostetaan
-**Then** HTML on `<em><span>rit.</span></em>` eikä piste saa erillistä lihavointia
-
-### AC25: Tekstirivin muotoilut säilyvät
-**Given** tekstirivin jaksot ovat tavallinen `onpa `, lihavoitu `ihanaa` ja kursivoitu ` laulaa`
-**When** rivin HTML muodostetaan
+### AC24: Tekstirivi säilyttää muotoilut
+**Given** jaksot ovat tavallinen `onpa `, bold `ihanaa`, italic ` laulaa`
+**When** rivi muotoillaan
 **Then** HTML on `<div><span>onpa </span><strong><span>ihanaa</span></strong><em><span> laulaa</span></em></div>`
 
-### AC26: Tyhjä rivi säilyy
-**Given** rivityyppi on `empty` ja sisältö on tyhjä
-**When** rivin HTML muodostetaan
+### AC25: Tyhjä rivi säilyy
+**Given** rivityyppi on empty
+**When** rivi muotoillaan
 **Then** HTML on `<div><br></div>`
 
-### AC27: Ensimmäisen sisältömerkin fonttikoko valitaan
-**Given** ensimmäinen rivi on tyhjä, toinen alkaa kahdella välilyönnillä ja ensimmäisen sisältömerkin fontSizePx on `18`
-**When** perusfonttikoko ratkaistaan
-**Then** tulos on `18px`
+### AC26: Ensimmäisen sisältömerkin koko valitaan
+**Given** tyhjän rivin ja kahden välilyönnin jälkeisen merkin koko on `18.5`
+**When** koko ratkaistaan
+**Then** tulos on `18.5px`
 
-### AC28: Puuttuva fonttikoko käyttää 12 pikselin oletusta
-**Given** ensimmäisellä sisältömerkillä ei ole fontSizePx-arvoa
-**When** perusfonttikoko ratkaistaan
+### AC27: Puuttuvan koon oletus on 12px
+**Given** ensimmäisellä sisältömerkillä ei ole kokoa
+**When** koko ratkaistaan
 **Then** tulos on `12px`
 
-### AC29: Kaikki tulosjaksot käyttävät samaa perusfonttikokoa
-**Given** perusfonttikoko on `18px` ja tulosjaksot ovat lihavoitu sointu `C`, rivinvaihto, tavallinen sävel `E`, rivinvaihto ja tavallinen teksti `onpa`
-**When** koko tuloksen HTML muodostetaan
-**Then** HTML on täsmälleen `<div style="font-size:18px"><div><strong><span>C</span></strong></div><div><span>E</span></div><div><span>onpa</span></div></div>`
+### AC28: Virheellinen ensimmäinen koko hylätään
+**Given** arvo on `0`, `-1`, `NaN`, `Infinity` tai `-Infinity`
+**When** koko ratkaistaan
+**Then** virhe on `Fonttikoon pitää olla positiivinen luku`
 
-### AC30: Virheellinen fonttikoko hylätään
-**Given** fontSizePx on vuorollaan `0`, `-1`, `NaN`, `Infinity` ja `-Infinity`
-**When** perusfonttikoko yritetään ratkaista
-**Then** jokainen kutsu heittää virheen `Fonttikoon pitää olla positiivinen luku`
+### AC29: Myöhempää kokoa ei validoida
+**Given** ensimmäinen koko on `18` ja myöhempi `0`
+**When** koko ratkaistaan
+**Then** tulos on `18px`
 
-### AC31: HTML-erikoismerkit enkoodataan
-**Given** tekstijakson sisältö on `A&B < C > "D" 'E'`
-**When** jakson HTML muodostetaan
-**Then** HTML-teksti on `A&amp;B &lt; C &gt; &quot;D&quot; &#39;E&#39;`
+### AC30: Koko tulos käyttää yhtä kokoa
+**Given** koko on 18px ja riveillä ovat chord C, note E ja text onpa
+**When** `formatMusicResult` muodostaa tuloksen
+**Then** HTML on `<div style="font-size:18px"><div><strong><span>C</span></strong></div><div><span>E</span></div><div><span>onpa</span></div></div>`
 
-### AC32: Script-elementti sisältöineen poistetaan
-**Given** syöte-HTML on `<script>alert(1)</script><span>C</span>`
-**When** syöte jäsennetään ja turvallinen HTML muodostetaan
-**Then** HTML on täsmälleen `<span>C</span>`
+### AC31: Erikoismerkit enkoodataan
+**Given** teksti on `A&B < C > "D" 'E'`
+**When** se muotoillaan
+**Then** teksti on `A&amp;B &lt; C &gt; &quot;D&quot; &#39;E&#39;`
 
-### AC33: Linkki poistetaan mutta linkkiteksti säilyy
-**Given** syöte-HTML on `<a href="https://example.com">C</a>`
-**When** syöte jäsennetään ja turvallinen HTML muodostetaan
-**Then** HTML on täsmälleen `<span>C</span>`
+### AC32: Script ja style poistetaan sisältöineen
+**Given** syöte on `<script>x</script><style>x</style><span>C</span>`
+**When** se jäsennetään ja muotoillaan
+**Then** HTML on `<span>C</span>`
 
-### AC34: Väri ja tapahtumankäsittelijä poistetaan
-**Given** syöte-HTML on `<span style="color:red" onclick="alert(1)">C</span>`
-**When** syöte jäsennetään ja turvallinen HTML muodostetaan
-**Then** HTML on täsmälleen `<span>C</span>`
+### AC33: Ei-tekstuaalinen sisältö poistetaan
+**Given** syöte on `<img src=x alt=C><span>D</span>`
+**When** se jäsennetään ja muotoillaan
+**Then** HTML on `<span>D</span>`
 
-### AC35: Tyhjä rikastekstisyöte hylätään
-**Given** rikastekstisyöte ei sisällä rivejä tai tekstijaksoja
-**When** `parseRichText` yrittää jäsentää syötteen
-**Then** toiminto heittää virheen `Rikastekstisyöte ei saa olla tyhjä`
+### AC34: Tukemattoman elementin teksti säilyy
+**Given** syöte on `<a href=x>C</a><u>D</u>`
+**When** se jäsennetään ja muotoillaan
+**Then** HTML on `<span>CD</span>`
+
+### AC35: Syötteen attribuutit poistetaan
+**Given** syöte on `<span class=x style="color:red" onclick=x>C</span>`
+**When** se jäsennetään ja muotoillaan
+**Then** HTML on `<span>C</span>`
+
+### AC36: Generoitu fonttikoko on ainoa attribuutti
+**Given** koko on 12px ja tuloksessa on C
+**When** tulos muotoillaan
+**Then** HTML on `<div style="font-size:12px"><div><span>C</span></div></div>` ilman muita attribuutteja
+
+### AC37: Tyhjä rikasteksti hylätään
+**Given** syöte on `""`, `<div><br></div>` tai `<div> \t</div>`
+**When** se jäsennetään
+**Then** virhe on `Rikastekstisyöte ei saa olla tyhjä`
+
+### AC38: Parseri ei luokittele sisältöä
+**Given** syöte on `<strong>C</strong>`
+**When** se jäsennetään
+**Then** tuloksessa on vain riviteksti ja segmentit, ei `type`, `register` tai tokeneita
 
 ## Files to Modify
 
 | File | Change |
 |---|---|
-| `src/types.ts` | Lisää muotoiltu tekstijakso, rekisterimuotoilu, turvallinen rivi, fonttikoko ja muotoiltu tulos -tyypit. |
-| `src/logic/parseRichText.ts` | Lisää HTML:n muuntaminen tekstijaksoiksi ja tukemattomien rakenteiden poisto. |
-| `src/logic/parseRichText.test.ts` | Lisää HTML-muotoilujen, rivien ja turvallisuuden testit. |
-| `src/logic/noteRegisterFormatting.ts` | Lisää muotoilu→rekisteri- ja rekisteri→muotoilu-muunnokset. |
-| `src/logic/noteRegisterFormatting.test.ts` | Lisää kaikki rekisteriyhdistelmät ja virheelliset rekisterit kattavat testit. |
-| `src/logic/formatMusicResult.ts` | Lisää sävelten, sointujen, tekstirivien ja tyhjien rivien turvallisen HTML:n muodostus. |
-| `src/logic/formatMusicResult.test.ts` | Lisää HTML:n, fonttikoon, enkoodauksen ja puhdistuksen testit. |
+| `src/types.ts` | Parseri-, formatteri- ja lähdemuotoilua kantavat chord/note-tyypit. |
+| `src/logic/parseRichText.ts` | DOM-jäsennys ja normalisointi. |
+| `src/logic/parseRichText.test.ts` | AC1–AC11, AC32–AC35, AC37–AC38. |
+| `src/logic/noteRegisterFormatting.ts` | Rekisterimuunnokset. |
+| `src/logic/noteRegisterFormatting.test.ts` | AC12–AC14. |
+| `src/logic/formatMusicResult.ts` | Fonttikoko, turvallinen tulos ja sisäiset formatterit. |
+| `src/logic/formatMusicResult.test.ts` | AC15–AC36. |
+| `src/logic/transposeChordLine.ts` | Lähdevälit ja tokenien muotoilujaksot. |
+| `src/logic/transposeChordLine.test.ts` | Chord-lähdekohdistuksen regressiot. |
+| `src/logic/transposeNoteLine.ts` | Erotinten ja xN-osien muotoilujaksot. |
+| `src/logic/transposeNoteLine.test.ts` | Note-osien muotoiluregressiot. |
 
 ## Risk
 
-- What could break: Selaimet voivat tuottaa `contenteditable`-editorista
-  erilaisia mutta visuaalisesti vastaavia HTML-rakenteita.
-- What could break: Sävelryhmän sisällä rekisteri voi vaihtua ilman
-  välilyöntiä. Muotoilujaksot eivät saa lisätä näkyviä erottimia.
-- What could break: Piste voi olla osa `rit.`-tekstitokenia tai erillinen
-  musiikkimerkki. Tokenisoinnin tulos ratkaisee muotoilun.
-- What could break: Puutteellinen HTML-puhdistus voisi sallia skriptin tai
-  tapahtumankäsittelijän suorittamisen.
-- What could break: Yksi perusfonttikoko poistaa tarkoitukselliset
-  kokovaihtelut. Tämä on ensimmäisen version tietoinen rajaus.
-- Rollback: Palauta käyttöliittymä käyttämään pelkkää tekstisisältöä ja
-  poista rikastekstin jäsentämis-, rekisteri- ja muodostustoiminnot.
+- What could break: DOM-normalisointi, lähde- ja tulostokenien eri pituudet,
+  ryhmän sisäinen rekisterinvaihto, puhdistuksen aukot ja nykyiset
+  chord/note-tulosmallien kuluttajat.
+- Rollback: palauta lueteltujen yhteisten tyyppi- ja transponointimoduulien
+  muutokset ja poista kolme uutta rikastekstimoduulia testeineen.
 
 ## Testing Strategy (MANDATORY)
 
+Jokaiselle AC1–AC38 kirjoitetaan samanniminen Vitest-testi `ACN <kuvaus>`.
+AC1–AC11, AC32–AC35 ja AC37–AC38 ovat `parseRichText.test.ts`:ssä;
+AC12–AC14 `noteRegisterFormatting.test.ts`:ssä; AC15–AC36
+`formatMusicResult.test.ts`:ssä. AC21:n malliregressio on lisäksi
+`transposeChordLine.test.ts`:ssä ja AC22–AC23:n regressiot
+`transposeNoteLine.test.ts`:ssä. Given/When/Then ja täsmällinen odote ovat
+kunkin yllä olevan AC:n mukaiset. Virheet kattavat tyhjän syötteen,
+virherekisterin ja fonttikoon; reunat kattavat DOM-rivit, sisäkkäisyyden,
+desimaalikoon, turvallisuuden ja eri rekisterit samassa ryhmässä.
+
 | Function | Case | Given | When | Then |
 |---|---|---|---|---|
-| `parseRichText` | AC1 strong | `<strong>C</strong>` | Jäsennetään | `{ text: "C", bold: true, italic: false }`, ei register-arvoa |
-| `parseRichText` | AC2 b | `<b>C</b>` | Jäsennetään | `{ text: "C", bold: true, italic: false }`, ei register-arvoa |
-| `parseRichText` | AC3 em | `<em>C</em>` | Jäsennetään | `{ text: "C", bold: false, italic: true }`, ei register-arvoa |
-| `parseRichText` | AC4 i | `<i>C</i>` | Jäsennetään | `{ text: "C", bold: false, italic: true }`, ei register-arvoa |
-| `parseRichText` | AC5 sisäkkäiset | `<strong><em>C</em></strong>` | Jäsennetään | `{ text: "C", bold: true, italic: true }`, ei register-arvoa |
-| `formattingToRegister` | AC6 bold+italic | true, true | Muunnetaan | `1` |
-| `formattingToRegister` | AC7 bold | true, false | Muunnetaan | `2` |
-| `formattingToRegister` | AC8 tavallinen | false, false | Muunnetaan | `3` |
-| `formattingToRegister` | AC9 italic | false, true | Muunnetaan | `4` |
-| `registerToFormatting` | AC10 rekisteri 1 | `1` | Muunnetaan | `{ bold: true, italic: true }` |
-| `registerToFormatting` | AC11 rekisteri 2 | `2` | Muunnetaan | `{ bold: true, italic: false }` |
-| `registerToFormatting` | AC12 rekisteri 3 | `3` | Muunnetaan | `{ bold: false, italic: false }` |
-| `registerToFormatting` | AC13 rekisteri 4 | `4` | Muunnetaan | `{ bold: false, italic: true }` |
-| `registerToFormatting` | AC14 virhe | `0`, `5` | Muunnetaan | Kummastakin `Rekisterin pitää olla kokonaisluku väliltä 1–4` |
-| `formatNote` | AC15 rekisteri 1 | C, 1 | Muodostetaan | `<strong><em><span>C</span></em></strong>` |
-| `formatNote` | AC16 rekisteri 2 | C, 2 | Muodostetaan | `<strong><span>C</span></strong>` |
-| `formatNote` | AC17 rekisteri 3 | C, 3 | Muodostetaan | `<span>C</span>` |
-| `formatNote` | AC18 rekisteri 4 | C, 4 | Muodostetaan | `<em><span>C</span></em>` |
-| `formatNoteGroup` | AC19 eri rekisterit | Ab/3 ja C/4 | Muodostetaan | `<span>Ab</span><em><span>C</span></em>` |
-| `formatChordToken` | AC20 sointu | Cm7/Bb | Muodostetaan | `<strong><span>Cm7/Bb</span></strong>` |
-| `formatChordToken` | AC21 epäilyttävä | Dbfoo + varoitus | Muodostetaan | `<strong><span>Dbfoo</span></strong>` |
-| `formatChordLine` | AC22 koko rivi | C, välit, `|`, G, `,`, `-`, Am | Muodostetaan | `<strong><span>C</span></strong><span> </span><strong><span>|</span></strong><span> </span><strong><span>G</span></strong><strong><span>,</span></strong><span> </span><strong><span>-</span></strong><span> </span><strong><span>Am</span></strong>` |
-| `formatTextToken` | AC23 x2 | x2, false, false | Muodostetaan | `<span>x2</span>` |
-| `formatTextToken` | AC24 rit. | rit., false, true | Muodostetaan | `<em><span>rit.</span></em>` |
-| `formatLine` | AC25 tekstirivi | onpa / ihanaa / laulaa määritellyin muotoiluin | Muodostetaan | `<div><span>onpa </span><strong><span>ihanaa</span></strong><em><span> laulaa</span></em></div>` |
-| `formatLine` | AC26 tyhjä | Empty-rivi | Muodostetaan | `<div><br></div>` |
-| `resolveBaseFontSize` | AC27 ensimmäinen merkki | Tyhjä rivi, välit, 18px | Ratkaistaan | `18px` |
-| `resolveBaseFontSize` | AC28 oletus | Ei kokoa | Ratkaistaan | `12px` |
-| `formatMusicResult` | AC29 yksi koko | 18px; sointu C, sävel E ja teksti onpa omilla riveillään | Muodostetaan | `<div style="font-size:18px"><div><strong><span>C</span></strong></div><div><span>E</span></div><div><span>onpa</span></div></div>` |
-| `resolveBaseFontSize` | AC30 virhe | 0, -1, NaN, ±Infinity | Ratkaistaan | Jokaisesta `Fonttikoon pitää olla positiivinen luku` |
-| `escapeHtml` | AC31 erikoismerkit | `A&B < C > "D" 'E'` | Enkoodataan | `A&amp;B &lt; C &gt; &quot;D&quot; &#39;E&#39;` |
-| `parseRichText` + `formatMusicResult` | AC32 script | `<script>alert(1)</script><span>C</span>` | Käsitellään | `<span>C</span>` |
-| `parseRichText` + `formatMusicResult` | AC33 linkki | `<a href="https://example.com">C</a>` | Käsitellään | `<span>C</span>` |
-| `parseRichText` + `formatMusicResult` | AC34 attribuutit | `<span style="color:red" onclick="alert(1)">C</span>` | Käsitellään | `<span>C</span>` |
-| `parseRichText` | AC35 tyhjä | Ei rivejä tai jaksoja | Jäsennetään | `Rikastekstisyöte ei saa olla tyhjä` |
+| `parseRichText` | AC1–AC3 muotoilut | AC:n HTML | Jäsennetään | AC:n täsmäsegmentti |
+| `parseRichText` | AC4–AC8 rivit ja yhdistys | AC:n DOM | Jäsennetään | AC:n täsmärivit ja segmentit |
+| `parseRichText` | AC9–AC11 fontti ja DOM | AC:n tyylit/HTML | Jäsennetään | AC:n täsmäarvot |
+| rekisterimuunnokset | AC12–AC14 | AC:n yhdistelmät/arvot | Muunnetaan | AC:n tulos tai täsmävirhe |
+| `formatMusicResult` | AC15–AC20 | AC:n semanttiset osat | Muotoillaan | AC:n täsmä-HTML |
+| transponointimallit + formatteri | AC21–AC23 | AC:n lähdemuotoilu | Kohdistetaan ja muotoillaan | AC:n lähdeväli ja täsmä-HTML |
+| `formatMusicResult` | AC24–AC25 | text/empty-rivi | Muotoillaan | AC:n täsmä-HTML |
+| `resolveBaseFontSize` | AC26–AC29 | AC:n fonttikoot | Ratkaistaan | AC:n koko tai täsmävirhe |
+| `formatMusicResult` | AC30–AC31 | rivit/erikoismerkit | Muotoillaan | AC:n täsmä-HTML |
+| parseri + formatteri | AC32–AC36 | AC:n HTML | Käsitellään | AC:n puhdas täsmä-HTML |
+| `parseRichText` | AC37–AC38 | tyhjä tai strong C | Jäsennetään | Täsmävirhe tai rajattu malli |
 
 ## Spec Readiness checklist (run before calling the spec done)
 
