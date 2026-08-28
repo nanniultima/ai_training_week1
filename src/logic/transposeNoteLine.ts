@@ -55,7 +55,12 @@ export function transposeNoteLine(line: ClassifiedLine, settings: ReadyTransposi
       notes.push(transposeNote(name, registerAt(line, position + local), settings));
       local += name.length;
     }
-    parts.push({ type: 'noteGroup', notes });
+    const group = { type: 'noteGroup' as const, notes };
+    Object.defineProperties(group, {
+      sourceText: { value: token, enumerable: false },
+      sourceRange: { value: { start: [...line.content.slice(0, position)].length, end: [...line.content.slice(0, position + token.length)].length }, enumerable: false },
+    });
+    parts.push(group);
     position += token.length;
   }
   const content = parts.map((part) => part.type === 'noteGroup' ? part.notes.map(({ name }) => name).join('') : part.text).join('');

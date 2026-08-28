@@ -7,6 +7,10 @@ const noteLine = (segments: readonly FormattedTextSegment[], index = 0): Classif
 const settings = (step: number, targetTonic: string, mode: 'major' | 'minor' = 'major'): ReadyTranspositionSettings => ({ status: 'ready', mode, sourceTonic: 'C', step, targetTonic });
 
 describe('transposeNoteLine', () => {
+  it('AC35: tuottaa noteGroupin Unicode-koodipistealueen', () => {
+    const result = transposeNoteLine(noteLine([segment('G#C D')]), settings(0, 'C'));
+    expect(result.parts[0]).toMatchObject({ type: 'noteGroup', sourceRange: { start: 0, end: 3 } });
+  });
   it('AC22 note-rivin xN säilyttää muotoilun', () => {
     const result = transposeNoteLine(noteLine([segment('C '), segment('x2', false, true)]), settings(0, 'C'));
     expect(result.parts[2]).toEqual({ type: 'repeat', text: 'x2', formatting: [segment('x2', false, true)] });

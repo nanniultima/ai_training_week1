@@ -41,7 +41,7 @@ export interface TransposedNote {
   readonly name: string;
   readonly register: NoteRegister;
 }
-export interface TransposedNoteGroupPart { readonly type: 'noteGroup'; readonly notes: readonly TransposedNote[]; }
+export interface TransposedNoteGroupPart { readonly type: 'noteGroup'; readonly notes: readonly TransposedNote[]; readonly sourceText?: string; readonly sourceRange?: SourceRange; readonly alignedRange?: AlignedRange | undefined; }
 export interface SeparatorPart { readonly type: 'separator'; readonly text: string; readonly formatting?: readonly FormattedTextSegment[]; }
 export interface RepeatPart { readonly type: 'repeat'; readonly text: string; readonly formatting?: readonly FormattedTextSegment[]; }
 export type TransposedNoteLinePart = TransposedNoteGroupPart | SeparatorPart | RepeatPart;
@@ -86,9 +86,10 @@ export interface InputLine {
 }
 
 export interface SourceRange { readonly start: number; readonly end: number; }
-export interface ChordResultToken { readonly type: 'chord' | 'suspiciousChord' | 'text'; readonly text: string; readonly sourceRange?: SourceRange; readonly formatting?: readonly FormattedTextSegment[]; }
-export interface FormattedTextLine { readonly type: 'text'; readonly segments: readonly FormattedTextSegment[]; }
-export interface EmptyResultLine { readonly type: 'empty'; }
+export interface AlignedRange { readonly start: number; readonly end: number; }
+export interface ChordResultToken { readonly type: 'chord' | 'suspiciousChord' | 'text' | 'pipe'; readonly text: string; readonly sourceRange?: SourceRange; readonly alignedRange?: AlignedRange | undefined; readonly formatting?: readonly FormattedTextSegment[]; }
+export interface FormattedTextLine { readonly index?: number; readonly type: 'text'; readonly content?: string; readonly segments: readonly FormattedTextSegment[]; }
+export interface EmptyResultLine { readonly index?: number; readonly type: 'empty'; readonly content?: ''; }
 
 export type LineType = 'chord' | 'note' | 'text' | 'empty';
 
@@ -119,10 +120,18 @@ export type ChordLineWarning = SuspiciousChordWarning | LowercaseChordWarning;
 export interface TransposedChordLine extends ClassifiedLine {
   readonly type: 'chord';
   readonly warnings: readonly ChordLineWarning[];
-  readonly tokens?: readonly ChordResultToken[];
+  readonly tokens?: readonly ChordResultToken[] | undefined;
 }
 
 export type MusicResultLine = TransposedChordLine | TransposedNoteLine | FormattedTextLine | EmptyResultLine;
+
+export interface AlignedLineGroup {
+  readonly chord?: TransposedChordLine | undefined;
+  readonly note?: TransposedNoteLine | undefined;
+  readonly text?: FormattedTextLine | undefined;
+}
+export type AlignedResultItem = AlignedLineGroup | FormattedTextLine | EmptyResultLine;
+export type AlignedMusicResultLine = MusicResultLine;
 
 export interface AmbiguousNoteLineWarning {
   readonly code: 'AMBIGUOUS_NOTE_LINE';

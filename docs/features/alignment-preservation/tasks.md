@@ -1,15 +1,31 @@
 # Tasks: alignment-preservation
 
-1. Mark the spec `In Progress`; add code-point range and aligned-line types.
-2. AC45: update chord/pipe token production and type tests by TDD.
-3. AC46: update note-group source metadata and type tests by TDD.
-4. AC47–AC48: update text/empty identity and lock the public API.
-5. AC22–AC24 and AC30–AC39: implement row matching, validation and grouping in
-   AC order.
-6. AC1–AC21 and AC40–AC44: implement anchors, columns and rewriting in AC
-   order, including error and Unicode cases.
-7. Adapt `formatMusicResult` only for the updated aligned semantic model.
-8. Run lint, all tests and diff checks; review every change against its AC.
-9. Mark the spec `Done` only after all 48 ACs and final checks pass.
+1. Aloita tilasta `Ready for implementation`, muuta `In Progress` ja jatka
+   TDD:tä uudesta AC23:sta; AC1–AC22 ovat valmiit.
+2. AC1 ja AC24–AC27: ryhmittely, suorat text/empty-identiteetit, alkuperäinen
+   järjestys ja whitespace-empty-normalisointi ilman ankkurilaskentaa.
+3. AC2–AC10: kokonaiset +1/+2-esimerkit, lähdeankkurit, kohdistetut
+   `alignedRange`-alueet, `collectAlignmentAnchors(group,"aligned")`-kutsulla
+   johdetut tulosyksiköt ja lähdesarakkeisiin perustuva tekstijako.
+4. AC11–AC20: välit, viivat, lyhyet rivit, lyheneminen ja törmäykset.
+5. AC21–AC23: segmenttimuotoilut ja xN; jatko alkaa AC23:n RED-vaiheesta.
+6. AC28–AC34 ja AC36: yhden musiikkirivin sekä text-only/empty-only-syötteet;
+   validoinnit järjestyksessä sarkain → chord/note-tulosvastaavuus →
+   chord/note-lähdealueet → ryhmittely/kohdistus.
+7. AC35: chord-, suspiciousChord-, pipe- ja noteGroup-tokenien Unicode-
+   lähdealueet sekä johdettu `|Chord`-alue.
+8. AC37: neljän funktion API, `collectAlignmentAnchors`-funktion valinnainen
+   `"source"|"aligned"`-koordinaatti, `AlignedMusicResultLine[]` ja
+   formatteriyhteensopivuus.
+9. AC38–AC42: saman tahdin eri soinnut, `|Chord`, `|suspiciousChord`, paljas
+   sointu, itsenäinen pipe ja `||G` lähde- ja tulosalueineen.
+10. AC43: todista lähdealueiden immutabiliteetti, kaikkien näkyvien
+   ankkuritokenien `alignedRange`-kentän pakollisuus, johdettujen yksiköiden
+   erillisyys tokenialueista ja aligned-tilan täsmällinen puuttuvan alueen virhe.
+11. Korvaa vanhat testit vain uuden vastaavan AC:n RED-vaiheessa; korvaa vanhat
+   AC47/AC48-tyyppiplaceholderit uuden AC37:n RED-vaiheessa ja säilytä koodi
+   vain uuden testin todistamana.
+12. Aja lint, kaikki testit ja diff-tarkistus; tee AC-kohtainen review.
+13. Muuta `In Progress → Done` vasta 43/43 AC:n ja lopputarkistusten jälkeen.
 
-Do not change UI, create HTML in alignment logic, or implement feature 7.
+Älä muuta UI:ta, tuota HTML:ää kohdistuslogiikassa tai toteuta speksiä 7.

@@ -18,6 +18,11 @@ const chordLine = (index: number, content: string): ClassifiedLine => ({
 });
 
 describe('transposeChordLine', () => {
+  it('AC35: tuottaa chordien Unicode-koodipistealueet', () => {
+    const result = transposeChordLine(chordLine(0, '😀C |G |'), settings('major', 'C', 0, 'C'));
+    expect(result.tokens?.find((token) => token.type === 'chord' && token.text === 'C')?.sourceRange).toEqual({ start: 1, end: 2 });
+    expect(result.tokens?.filter((token) => token.type === 'pipe').map((token) => token.sourceRange)).toEqual([{ start: 3, end: 4 }, { start: 6, end: 7 }]);
+  });
   it('AC21 sointutoken säilyttää lähdevälin', () => {
     const result = transposeChordLine(chordLine(0, 'C |'), settings('major', 'C', 1, 'Db'));
     expect(result.tokens?.[0]).toMatchObject({ type: 'chord', text: 'Db', sourceRange: { start: 0, end: 1 } });

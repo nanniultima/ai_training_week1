@@ -18,6 +18,8 @@ function formattingForRange(line: ClassifiedLine, start: number, end: number) {
   return result;
 }
 
+const codePointColumn = (text: string, utf16Index: number): number => [...text.slice(0, utf16Index)].length;
+
 export function transposeChordLine(
   _line: ClassifiedLine,
   _settings: ReadyTranspositionSettings,
@@ -71,16 +73,30 @@ export function transposeChordLine(
     warnings,
   };
   let tokenOffset = 0;
-  const tokens = _line.content.split(/([|\s,.\-:()]+)/).filter(Boolean).map((original) => {
+  const rawTokens = _line.content.split(/([|]|[\s,.\-:()]+)/).filter(Boolean).map((original) => {
     const start = tokenOffset;
     tokenOffset += original.length;
-    const sourceRange = { start, end: tokenOffset };
+    const sourceRange = { start: codePointColumn(_line.content, start), end: codePointColumn(_line.content, tokenOffset) };
     const formatting = formattingForRange(_line, start, tokenOffset);
     if (/^[A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?$/.test(original)) {
       return { type: 'chord' as const, text: transposeChordSymbol(original, _settings), sourceRange, formatting };
     }
     const suspicious = warnings.some((warning) => warning.code === 'SUSPICIOUS_CHORD' && warning.startIndex === start);
-    return { type: suspicious ? 'suspiciousChord' as const : 'text' as const, text: original, sourceRange, formatting };
+    const type = original === '|' ? 'pipe' as const : suspicious ? 'suspiciousChord' as const : 'text' as const;
+    return { type, text: original, sourceRange, formatting };
+  });
+  const chordSuffix = /^(.+?)([A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?)$/;
+  const tokens = rawTokens.flatMap((token) => {
+    if (token.type !== 'text') return [token];
+    const match = chordSuffix.exec(token.text);
+    if (!match || !token.sourceRange) return [token];
+    const prefix = match[1]!;
+    const chord = match[2]!;
+    const chordStart = token.sourceRange.start + [...prefix].length;
+    return [
+      { ...token, text: prefix, sourceRange: { start: token.sourceRange.start, end: chordStart } },
+      { type: 'chord' as const, text: transposeChordSymbol(chord, _settings), sourceRange: { start: chordStart, end: token.sourceRange.end }, formatting: token.formatting },
+    ];
   });
   Object.defineProperty(result, 'tokens', { value: tokens, enumerable: false });
   return result;
