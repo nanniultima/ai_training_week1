@@ -85,6 +85,16 @@ Speksikirjoitus alkaa tilasta `Draft`. Speksin saa muuttaa tilaan
 kokonaan. Toteutus alkaa tästä tilasta ja muuttaa sen tilaan `In Progress`.
 Tila `Done` tarkoittaa, että toteutus, testit ja lopputarkistukset ovat valmiit.
 
+Poikkeuksena speksin saa palauttaa tilasta `In Progress` tilaan `Draft` vain,
+kun TDD on pysäytetty speksissä havaitun virheen tai olennaisen puutteen vuoksi
+ja käyttäjä antaa paluusiirtymään erillisen luvan. Tällöin toteutusta ei jatketa
+ennen uutta research- ja spec-vaihetta sekä tilaa `Ready for implementation`.
+
+Speksin saa palauttaa tilasta `Ready for implementation` tilaan `Draft`, kun
+käyttäjä pyytää käyttäytymisen olennaista täsmennystä ennen toteutuksen
+käynnistämistä. Myös tällöin uusi research- ja spec-vaihe vaaditaan ennen
+seuraavaa `Ready for implementation` -tilaa.
+
 Jokaisen ominaisuusspeksin suunnitelmat tallennetaan speksin tiedostonimeä
 vastaavaan omaan kansioon:
 
