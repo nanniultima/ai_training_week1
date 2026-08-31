@@ -1,0 +1,51 @@
+# Tuloksen näyttäminen ja kopiointi — arkkitehtuuri
+
+## Tavoite ja rajaus
+
+Speksi 7 liittää valmiit vaiheet 1–6 yhdeksi UI:sta kutsuttavaksi putkeksi.
+Uudet vastuut ovat orkestrointi, esitysmalli, Clipboard-adapteri ja tulos-UI.
+Vaiheiden 1–6 julkisia rajapintoja ei muuteta eikä tiedostolatausta lisätä.
+
+## Tietovirta
+
+`music-input.innerHTML`
+→ `parseRichText`
+→ `resolveBaseFontSize`
+→ `classifyLines`
+→ `transposeChordLine` / `transposeNoteLine`
+→ `groupAlignedLines`
+→ `alignLineGroup` ryhmille, text/empty identiteettinä
+→ indeksijärjestetty `AlignedMusicResultLine[]`
+→ `createResultPresentation`
+→ `formatMusicResult` + plain text + varoitustekstit
+→ vain luku -tuloskenttä / Clipboard-adapteri.
+
+## Rajapinnat
+
+- `createTranspositionResult(inputHtml: string, settings: ReadyTranspositionSettings): TranspositionPresentation` kokoaa putken. Toteutus saa olla synkroninen.
+- `createResultPresentation(lines: readonly AlignedMusicResultLine[], fontSizePx: number, warnings: readonly ProcessingWarning[]): TranspositionPresentation` validoi ei-tyhjän rivistön.
+- `copyResultToClipboard(presentation: TranspositionPresentation, adapter: ClipboardWriteAdapter): Promise<void>` normalisoi kaikki tukija kirjoitusvirheet viestiksi `Tuloksen kopiointi epäonnistui`.
+- `TranspositionPresentation` sisältää vain `html`, `plainText`, `warnings`.
+
+UI ratkaisee asetukset ennen putkea. `requiresEnharmonicChoice` ei ole valmis asetus. UI omistaa näkyvät tilat, mutta ei musiikkilogiikkaa. Uuden yrityksen alussa kopiointitila tyhjennetään; käsittelyvirhe poistaa vanhan tuloksen atomisesti; kopiointivirhe ei muuta esitystä.
+
+## Turvallisuus ja saavutettavuus
+
+Vain `parseRichText` jäsentää käyttäjän HTML:n. Tulos syntyy vain
+`formatMusicResult`-funktiosta, jonka HTML kääritään vakioon ulkokuoreen.
+Varoitus- tai virhetekstiä ei yhdistetä HTML:ään. Tulos on nimetty,
+`aria-readonly`-merkitty textbox. Kopiointitila käyttää onnistumisessa
+`role=status` ja virheessä `role=alert`.
+
+## Responsiivisuus
+
+Työtilan CSS-grid on yli 40rem leveydessä
+`repeat(2,minmax(0,1fr))` ja enintään 40rem leveydessä `minmax(0,1fr)`.
+Piilotettu tulos ei varaa käyttäjälle näkyvää kenttää. Tulos käyttää monospace-
+fonttia ja `white-space: pre-wrap` -asetusta myös selaimessa.
+
+## Rollback
+
+Poista uudet kolme moduulia, niiden testit ja uudet tyypit sekä palauta
+`ui.ts`, `ui.test.ts` ja `style.css`. Vaiheiden 1–6 API:t jäävät ennalleen.
+

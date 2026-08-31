@@ -143,3 +143,15 @@ export interface ClassificationResult {
   readonly lines: readonly ClassifiedLine[];
   readonly warnings: readonly AmbiguousNoteLineWarning[];
 }
+
+export type ProcessingWarning = AmbiguousNoteLineWarning | ChordLineWarning;
+
+export interface TranspositionPresentation {
+  readonly html: string;
+  readonly plainText: string;
+  readonly warnings: readonly string[];
+}
+
+export interface ClipboardWriteAdapter {
+  readonly write: (items: readonly ClipboardItem[]) => Promise<void>;
+}

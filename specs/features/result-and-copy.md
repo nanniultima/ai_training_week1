@@ -1,296 +1,135 @@
 # Feature: Tuloksen näyttäminen ja kopiointi
 
+**Status:** Done
+
 ## Problem Statement
-
-Transponointi ei auta käyttäjää, ellei kohdistettua ja muotoiltua tulosta voi
-tarkistaa sekä siirtää esimerkiksi Google Docsiin. Pelkkä tavallinen teksti
-menettäisi lihavoinnin, kursivoinnin ja fonttikoon. Pelkkä HTML puolestaan ei
-toimi kaikissa kohdeohjelmissa.
-
-Tuloksen välilyönnit ovat musiikillisesti merkityksellisiä, joten sekä
-näytön että kopioitavan HTML:n pitää käyttää tasalevyistä fonttia ja säilyttää
-tyhjemerkit. Kopioinnin onnistumisesta tai epäonnistumisesta pitää antaa
-yksiselitteinen palaute.
+Vaiheiden 1–6 logiikka ei vielä muodosta käyttöliittymästä käynnistettävää kokonaisuutta. Käyttäjän pitää nähdä kohdistettu rikastekstitulos vain luku -kentässä ja kopioida se sekä HTML:nä että tavallisena tekstinä.
 
 ## Proposed Change
+Lisätään `createTranspositionResult(inputHtml, settings)`, missä settings on `ReadyTranspositionSettings`. Se suorittaa järjestyksessä `parseRichText`, `resolveBaseFontSize`, `classifyLines`, chord/note-transponoinnin, `groupAlignedLines`, jokaisen ryhmän `alignLineGroup`-käsittelyn ja `createResultPresentation`-kutsun. Text/empty-alkiot säilyvät ja ryhmät litistetään indeksijärjestykseen `AlignedMusicResultLine[]`:ksi. Luokittelu- ja sointuvaroitukset yhdistetään.
 
-Lisätään kolme vastuuta:
+`createResultPresentation(lines, fontSizePx, warnings)` kutsuu `formatMusicResult`-funktiota ja palauttaa `{ html, plainText, warnings }`. HTML:n ulkokuori on `<div style="font-family:monospace;white-space:pre-wrap">…</div>`. Plain text käyttää rivien content-arvoja ja LF:ää ilman loppurivinvaihtoa. Varoitukset järjestetään `lineIndex`, sitten `startIndex` (puuttuva `0`), tasatilanteessa vakaasti. Indeksit näytetään yhdestä alkavina; varoituksia ei kopioida.
 
-1. `createResultPresentation` muodostaa kohdistetusta ja muotoillusta
-   tuloksesta näytettävän HTML:n, tavallisen tekstin ja varoitustekstit.
-2. `copyResultToClipboard` kirjoittaa samalla käyttäjän toiminnolla
-   leikepöydälle MIME-muodot `text/html` ja `text/plain`.
-3. Käyttöliittymä näyttää tulosalueen, varoitukset, kopiointipainikkeen ja
-   kopioinnin tilaviestin.
+`copyResultToClipboard(presentation, adapter)` käyttää adapterin `write(items)`-metodia. Tuotantoadapteri tekee yhden `navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob(...), "text/plain": new Blob(...) })])` -kutsun. MIME-tyypit vastaavat avaimia. `write`- tai `ClipboardItem`-tuen puuttuessa tai rejectissä toiminto epäonnistuu; `writeText`-fallbackia ei käytetä.
 
-Tämä speksi ei lisää tiedostolatausta. Käyttäjä kopioi tuloksen
-leikepöydälle ja liittää sen haluamaansa ohjelmaan.
-
-### Tulosmalli
-
-`createResultPresentation` vastaanottaa:
-
-- `rich-text-formatting`-speksin turvallisen tulos-HTML:n
-- samojen tulosrivien tekstisisällöt järjestyksessä
-- tuloksen fonttikoon
-- käsittelyssä syntyneet rakenteiset varoitukset
-
-Se palauttaa täsmälleen nämä tiedot:
-
-- `html`: selaimessa näytettävä ja `text/html`-muodossa kopioitava HTML
-- `plainText`: `text/plain`-muodossa kopioitava teksti
-- `warnings`: käyttäjälle näytettävät varoitustekstit
-
-HTML kääritään elementtiin
-`<div style="font-family:monospace;white-space:pre-wrap">…</div>`.
-Sisällä säilytetään `formatMusicResult`-toiminnon tuottama turvallinen HTML
-muuttamattomana. Näin sen `font-size`, `<strong>`, `<em>`, `<span>`, `<div>`
-ja `<br>` säilyvät.
-
-Tavallinen teksti muodostetaan tulosrivien näkyvästä tekstistä. Rivit
-yhdistetään LF-rivinvaihdolla `\n`. Tyhjä rivi tuottaa kahden ympäröivän
-rivin väliin kaksi `\n`-merkkiä. Tekstin loppuun ei lisätä rivinvaihtoa.
-HTML-tageja, varoituksia tai tilaviestejä ei lisätä tavalliseen tekstiin.
-
-### Tulosalue
-
-Ennen ensimmäistä onnistunutta käsittelyä tulosalue on piilotettu ja
-kopiointipainike on poistettu käytöstä. Onnistunut käsittely:
-
-- näyttää otsikon `Transponoitu tulos`
-- näyttää HTML-tuloksen vain luku -muodossa
-- näyttää mahdolliset varoitukset tuloksen ulkopuolella
-- ottaa käyttöön painikkeen `Kopioi tulos`
-
-Uusi onnistunut käsittely korvaa aiemman tuloksen ja varoitukset. Uuden
-käsittelyn validointi- tai käsittelyvirhe tyhjentää aiemman tuloksen,
-piilottaa tulosalueen ja poistaa kopiointipainikkeen käytöstä, jotta vanhaa
-tulosta ei erehdytä pitämään uuden syötteen tuloksena.
-
-Askelmäärä `0` näyttää tuloksen normaalisti, koska muotoilu- ja
-kohdistuskäsittelyt tehdään silloinkin.
-
-### Varoitusten esitys
-
-Varoitukset näytetään syöterivien järjestyksessä. Nollasta alkava sisäinen
-rivi- ja merkkisijainti näytetään käyttäjälle yhdestä alkavana.
-
-- `SUSPICIOUS_CHORD` näytetään muodossa
-  `Rivi {lineIndex + 1}, kohta {startIndex + 1}: epäilyttävä sointu
-  "{original}" muutettiin muotoon "{output}".`
-- `LOWERCASE_CHORD` näytetään muodossa
-  `Rivi {lineIndex + 1}, kohta {startIndex + 1}: mahdollinen sointu
-  "{original}" alkaa pienellä kirjaimella eikä sitä muutettu.`
-- `AMBIGUOUS_NOTE_LINE` näytetään muodossa
-  `Rivi {lineIndex + 1}: rivi tulkittiin tekstiksi: "{content}".`
-
-Varoitukset eivät estä tuloksen näyttämistä tai kopiointia eivätkä ne kuulu
-leikepöydän HTML- tai tekstisisältöön.
-
-### Leikepöydälle kopiointi
-
-`copyResultToClipboard` käyttää rajapintaa, jolle annetaan yhdellä
-kirjoituskerralla sekä `text/html` että `text/plain`. Tuotantototeutus käyttää
-selaimen Clipboard API:a; testeissä rajapinta korvataan muistissa toimivalla
-testiversiolla.
-
-Kopiointi käynnistyy vain käyttäjän painalluksesta. Onnistumisen jälkeen
-näytetään tilaviestinä `Tulos kopioitu`. Jos leikepöytärajapintaa ei ole tai
-kirjoitus hylätään, näytetään `Tuloksen kopiointi epäonnistui` eikä
-onnistumisviestiä näytetä. Epäonnistuminen ei poista näkyvää tulosta.
+UI lukee `music-input.innerHTML`:n. Tulos on `contenteditable="false"`, `role="textbox"`, `aria-readonly="true"`, nimeltään `Transponoitu tulos`. Se sisältää varoitukset, kopiointipainikkeen ja live-tilan, ei rivinumeroita tai latausta. Yli 40rem näkymässä kentät ovat rinnakkain, enintään 40rem allekkain. Ennen tulosta alue on piilossa ja painike disabled. Uusi yritys tyhjentää kopiointitilan; onnistuminen korvaa tuloksen; käsittelyvirhe tyhjentää ja piilottaa tuloksen sekä näyttää poikkeusviestin. Kopiointivirhe säilyttää tuloksen. `Luonnos` ja `Toiminto tulossa` poistetaan.
 
 ## Acceptance Criteria
 
-### AC1: Tulosalue on aluksi piilotettu
-**Given** sovellus on avattu eikä transponointia ole tehty
-**When** käyttöliittymä alustetaan
-**Then** `transposition-result`-elementin `hidden`-arvo on `true` ja `copy-result`-painikkeen `disabled`-arvo on `true`
+### AC1: Koko putki transponoi yhdistelmäsyötteen
+**Given** C-duuri +2 ja HTML-rivit `C |G |`, `C C`, `onpa` **When** `createTranspositionResult` suoritetaan **Then** rivisisällöt ovat `D |A |`, `D D`, `onpa` tässä järjestyksessä.
+### AC2: Orkestrointi lukee rikastekstin
+**Given** `<div><strong>C |G |</strong></div>` ja C-duuri +2 **When** tulos luodaan **Then** plainText on `D |A |` ja HTML sisältää `<strong><span>D</span></strong>`.
+### AC3: Fonttikoko ratkaistaan syötteestä
+**Given** ensimmäisen sisältömerkin inline-koko `18px` **When** tulos luodaan **Then** HTML sisältää täsmälleen yhden `style="font-size:18px"`.
+### AC4: Vain musiikkirivit transponoidaan
+**Given** tyypit `[chord,note,text,empty]` **When** putki suoritetaan **Then** musiikkitulostyypit ovat `[chord,note]` ja text/empty-sisällöt säilyvät täsmälleen.
+### AC5: Ryhmät litistetään indeksijärjestykseen
+**Given** chord-rivi `C |`, note-rivi `C`, text-rivi `laula` ja empty-rivi tässä järjestyksessä **When** rivit kohdistetaan ja ryhmät litistetään **Then** `plainText`-tuloksen rivit ovat täsmälleen `C |\nC\nlaula\n` samassa alkuperäisessä järjestyksessä.
+### AC6: Itsenäiset rivit säilyvät
+**Given** C-duuri 0 ja rivit `C |`, `Kertosäe`, empty sekä `G |` tässä järjestyksessä **When** putki suoritetaan **Then** `plainText` on täsmälleen `C |\nKertosäe\n\nG |`.
+### AC7: Varoitukset yhdistetään
+**Given** yksi `AMBIGUOUS_NOTE_LINE` ja yksi `SUSPICIOUS_CHORD` **When** putki suoritetaan **Then** esityksessä on täsmälleen kaksi vastaavaa varoitusta.
+### AC8: Nolla askelta suorittaa putken
+**Given** C-duuri 0 ja `C |G |` **When** tulos luodaan **Then** plainText on `C |G |` ja HTML ei ole tyhjä.
+### AC9: Parserivirhe välitetään
+**Given** tyhjä inputHtml **When** tulos luodaan **Then** virhe on `Rikastekstisyöte ei saa olla tyhjä`.
+### AC10: Musiikkirivin puute välitetään
+**Given** vain `Kertosäe` **When** tulos luodaan **Then** virhe on `Syötteestä ei löytynyt sointu- tai sävelrivejä`.
 
-### AC2: Onnistunut käsittely näyttää tuloksen
-**Given** esitys sisältää HTML:n `<div style="font-family:monospace;white-space:pre-wrap"><div style="font-size:12px"><div><strong><span>C</span></strong></div><div><span>onpa</span></div></div></div>`
-**When** käyttöliittymä näyttää onnistuneen tuloksen
-**Then** tulosalueen `hidden`-arvo on `false`, otsikko on `Transponoitu tulos`, tuloselementin HTML on täsmälleen annettu HTML ja kopiointipainikkeen `disabled`-arvo on `false`
+### AC11: HTML saa ulkokuoren
+**Given** formatteri palauttaa `<div style="font-size:12px"><div><span>C</span></div></div>` **When** esitys luodaan **Then** HTML on `<div style="font-family:monospace;white-space:pre-wrap"><div style="font-size:12px"><div><span>C</span></div></div></div>`.
+### AC12: Plain text käyttää LF:ää
+**Given** `C |G |`, `onpa ihanaa` **When** esitys luodaan **Then** plainText on `C |G |\nonpa ihanaa`.
+### AC13: Tyhjä rivi säilyy
+**Given** `C |G |`, `""`, `Am |F |` **When** esitys luodaan **Then** plainText on `C |G |\n\nAm |F |`.
+### AC14: Loppurivinvaihtoa ei lisätä
+**Given** ainoa rivi `C |G |` **When** esitys luodaan **Then** plainText on `C |G |`, pituus `6`, viimeinen merkki `|`.
+### AC15: Muotoilut säilyvät
+**Given** lihavoitu C ja kursivoitu E **When** esitys luodaan **Then** HTML sisältää `<strong><span>C</span></strong><em><span>E</span></em>`.
+### AC16: 18px säilyy
+**Given** fontSizePx `18` **When** esitys luodaan **Then** HTML:ssa on yksi `font-size:18px` eikä `font-size:12px`.
+### AC17: 12px säilyy
+**Given** fontSizePx `12` **When** esitys luodaan **Then** HTML:ssa on täsmälleen yksi `font-size:12px`.
+### AC18: Tekstirivi kuuluu molempiin muotoihin
+**Given** `Kertosäe`, `C |G |`, `onpa` **When** esitys luodaan **Then** plainText on `Kertosäe\nC |G |\nonpa` ja `<span>Kertosäe</span>` esiintyy kerran.
+### AC19: Epäilyttävä sointu tekstinnetään
+**Given** SUSPICIOUS_CHORD rivillä 3 kohdassa 0, `Cfoo`→`Dbfoo` **When** esitys luodaan **Then** ainoa varoitus on `Rivi 4, kohta 1: epäilyttävä sointu "Cfoo" muutettiin muotoon "Dbfoo".`
+### AC20: Pieni sointu tekstinnetään
+**Given** LOWERCASE_CHORD rivillä 2 kohdassa 3, `am` **When** esitys luodaan **Then** ainoa varoitus on `Rivi 3, kohta 4: mahdollinen sointu "am" alkaa pienellä kirjaimella eikä sitä muutettu.`
+### AC21: Epäselvä sävelrivi tekstinnetään
+**Given** AMBIGUOUS_NOTE_LINE rivillä 1 sisällöllä `C D lauletaan hiljaa` **When** esitys luodaan **Then** ainoa varoitus on `Rivi 2: rivi tulkittiin tekstiksi: "C D lauletaan hiljaa".`
+### AC22: Varoitukset järjestetään
+**Given** sijainnit `(3,0)`, `(1,puuttuu)`, `(3,4)` **When** esitys luodaan **Then** alkujen järjestys on `Rivi 2:`, `Rivi 4, kohta 1:`, `Rivi 4, kohta 5:`.
+### AC23: Tasatila on vakaa
+**Given** kaksi varoitusta samassa `(2,3)`-sijainnissa järjestyksessä A,B **When** esitys luodaan **Then** järjestys on A,B.
+### AC24: Varoituksia ei kopioida
+**Given** plainText `Dbfoo |Ab |` ja varoitus **When** esitys luodaan **Then** HTML tai plainText ei sisällä `epäilyttävä sointu`.
+### AC25: Tyhjä tulos hylätään
+**Given** lines `[]` **When** esitys luodaan **Then** virhe on `Näytettävä tulos ei saa olla tyhjä`.
 
-### AC3: Esityksen HTML saa tasalevyisen ulkokuoren
-**Given** turvallinen tulos-HTML on `<div style="font-size:12px"><div><strong><span>C</span></strong></div></div>`
-**When** tulosesitys muodostetaan
-**Then** esityksen HTML on täsmälleen `<div style="font-family:monospace;white-space:pre-wrap"><div style="font-size:12px"><div><strong><span>C</span></strong></div></div></div>`
+### AC26: MIME-muodot kirjoitetaan kerran
+**Given** HTML `<div><strong>C</strong></div>` ja plainText `C` **When** kopioidaan **Then** write kutsutaan kerran yhdellä itemillä, jonka text/html-Blob sisältää HTML:n ja text/plain-Blob `C`:n.
+### AC27: Blobien tyypit ovat täsmälliset
+**Given** AC26 **When** ClipboardItem luodaan **Then** Blob-tyypit ovat `text/html` ja `text/plain`.
+### AC28: Write-tuen puute hylätään
+**Given** clipboard.write puuttuu **When** kopioidaan **Then** virhe on `Tuloksen kopiointi epäonnistui` eikä writeTextiä kutsuta.
+### AC29: ClipboardItemin puute hylätään
+**Given** ClipboardItem puuttuu **When** kopioidaan **Then** sama virhe eikä writeä kutsuta.
+### AC30: Reject muunnetaan
+**Given** write hylkää `NotAllowedError` **When** kopioidaan **Then** virhe on `Tuloksen kopiointi epäonnistui`.
 
-### AC4: Tavallisen tekstin rivinvaihdot muodostetaan LF-merkeillä
-**Given** tulosrivien tekstit ovat järjestyksessä `C |G |` ja `onpa ihanaa`
-**When** tulosesitys muodostetaan
-**Then** `plainText` on täsmälleen `C |G |\nonpa ihanaa`
-
-### AC5: Tyhjä rivi säilyy tavallisessa tekstissä
-**Given** tulosrivien tekstit ovat järjestyksessä `C |G |`, tyhjä merkkijono ja `Am |F |`
-**When** tulosesitys muodostetaan
-**Then** `plainText` on täsmälleen `C |G |\n\nAm |F |`
-
-### AC6: Tavallisen tekstin loppuun ei lisätä rivinvaihtoa
-**Given** ainoa tulosrivi on `C |G |`
-**When** tulosesitys muodostetaan
-**Then** `plainText` on täsmälleen `C |G |`, sen pituus on `6` ja viimeinen merkki on `|`
-
-### AC7: Lihavointi ja kursivointi säilyvät esityksen HTML:ssä
-**Given** turvallinen tulos-HTML on `<div style="font-size:12px"><div><strong><span>C</span></strong><em><span>E</span></em></div></div>`
-**When** tulosesitys muodostetaan
-**Then** esityksen HTML on täsmälleen `<div style="font-family:monospace;white-space:pre-wrap"><div style="font-size:12px"><div><strong><span>C</span></strong><em><span>E</span></em></div></div></div>`
-
-### AC8: Syötteestä saatu fonttikoko säilyy
-**Given** turvallisen tuloksen ulomman sisältöelementin fonttikoko on `18px`
-**When** tulosesitys muodostetaan
-**Then** esityksen HTML sisältää täsmälleen yhden merkkijonon `style="font-size:18px"` eikä sisällä merkkijonoa `font-size:12px`
-
-### AC9: Oletusfonttikoko säilyy
-**Given** turvallisen tuloksen ulomman sisältöelementin fonttikoko on `12px`
-**When** tulosesitys muodostetaan
-**Then** esityksen HTML sisältää täsmälleen yhden merkkijonon `style="font-size:12px"`
-
-### AC10: Itsenäinen tekstirivi näkyy tuloksessa
-**Given** tulosrivien tekstit ovat `Kertosäe`, `C |G |` ja `onpa` ja turvallisessa HTML:ssä jokainen on omassa div-elementissään
-**When** tulosesitys muodostetaan
-**Then** `plainText` on täsmälleen `Kertosäe\nC |G |\nonpa` ja HTML:ssä merkkijono `<span>Kertosäe</span>` esiintyy täsmälleen kerran
-
-### AC11: Epäilyttävä sointu näytetään täsmällisenä varoituksena
-**Given** varoitus on `{ code: "SUSPICIOUS_CHORD", lineIndex: 3, startIndex: 0, original: "Cfoo", output: "Dbfoo" }`
-**When** tulosesitys muodostetaan
-**Then** ainoa varoitusteksti on `Rivi 4, kohta 1: epäilyttävä sointu "Cfoo" muutettiin muotoon "Dbfoo".`
-
-### AC12: Epäselvä sävelrivi näytetään täsmällisenä varoituksena
-**Given** varoitus on `{ code: "AMBIGUOUS_NOTE_LINE", lineIndex: 1, content: "C D lauletaan hiljaa" }`
-**When** tulosesitys muodostetaan
-**Then** ainoa varoitusteksti on `Rivi 2: rivi tulkittiin tekstiksi: "C D lauletaan hiljaa".`
-
-### AC13: Varoitukset säilyvät rivijärjestyksessä
-**Given** varoitukset ovat `SUSPICIOUS_CHORD` rivillä `3` ja `AMBIGUOUS_NOTE_LINE` rivillä `1` tässä syötejärjestyksestä poikkeavassa järjestyksessä
-**When** tulosesitys muodostetaan
-**Then** varoitustekstejä on `2`, ensimmäinen alkaa `Rivi 2:` ja toinen alkaa `Rivi 4, kohta 1:`
-
-### AC14: Varoituksia ei lisätä kopioitavaan sisältöön
-**Given** tulosteksti on `Dbfoo |Ab |` ja tuloksella on yksi `SUSPICIOUS_CHORD`-varoitus
-**When** tulosesitys muodostetaan
-**Then** `plainText` on täsmälleen `Dbfoo |Ab |` eikä esityksen HTML tai plainText sisällä merkkijonoa `epäilyttävä sointu`
-
-### AC15: Kopiointi kirjoittaa molemmat MIME-muodot
-**Given** esityksen HTML on `<div><strong>C</strong></div>` ja plainText on `C`
-**When** käyttäjä painaa `Kopioi tulos`
-**Then** leikepöydälle tehdään täsmälleen yksi kirjoitus, jossa avaimen `text/html` arvo on `<div><strong>C</strong></div>` ja avaimen `text/plain` arvo on `C`
-
-### AC16: Onnistunut kopiointi näyttää onnistumisviestin
-**Given** leikepöydälle kirjoittaminen valmistuu onnistuneesti
-**When** käyttäjä painaa `Kopioi tulos`
-**Then** status-elementin tekstisisältö on täsmälleen `Tulos kopioitu` ja sen `role` on `status`
-
-### AC17: Hylätty leikepöytäkirjoitus näyttää virheen
-**Given** leikepöydälle kirjoittaminen hylätään virheellä
-**When** käyttäjä painaa `Kopioi tulos`
-**Then** status-elementin tekstisisältö on täsmälleen `Tuloksen kopiointi epäonnistui`, sen `role` on `alert` eikä käyttöliittymä sisällä tekstiä `Tulos kopioitu`
-
-### AC18: Puuttuva leikepöytärajapinta näyttää virheen
-**Given** selaimessa ei ole käytettävissä Clipboard API:a
-**When** käyttäjä painaa `Kopioi tulos`
-**Then** status-elementin tekstisisältö on täsmälleen `Tuloksen kopiointi epäonnistui`, sen `role` on `alert` eikä leikepöytäkirjoitusta yritetä
-
-### AC19: Kopiointivirhe ei poista tulosta
-**Given** näkyvän tuloksen plainText on `C |G |` ja leikepöytäkirjoitus epäonnistuu
-**When** käyttäjä painaa `Kopioi tulos`
-**Then** tulosalueen `hidden`-arvo on `false`, näkyvä plainText on edelleen `C |G |` ja kopiointipainikkeen `disabled`-arvo on `false`
-
-### AC20: Tyhjä tulos hylätään
-**Given** turvallinen HTML on tyhjä merkkijono ja tulosrivejä ei ole
-**When** tulosesitys yritetään muodostaa
-**Then** toiminto heittää virheen `Näytettävä tulos ei saa olla tyhjä`
-
-### AC21: Uusi tulos korvaa aiemman tuloksen
-**Given** näkyvän tuloksen plainText on `C |G |` ja uusi onnistunut tulos on `D |A |`
-**When** uusi tulos näytetään
-**Then** näkyvä plainText on täsmälleen `D |A |`, HTML ei sisällä merkkijonoa `C |G |` ja aiemmat varoitukset on korvattu uuden tuloksen varoituksilla
-
-### AC22: Käsittelyvirhe poistaa vanhan tuloksen käytöstä
-**Given** tulosalueella näkyy tulos `C |G |`
-**When** seuraava käsittely päättyy virheeseen `Valitse lähtösävellaji`
-**Then** tulosalueen `hidden`-arvo on `true`, kopiointipainikkeen `disabled`-arvo on `true` ja virhealueen tekstisisältö on `Valitse lähtösävellaji`
-
-### AC23: Nolla askelta tuottaa näkyvän ja kopioitavan tuloksen
-**Given** askelmäärä on `0` ja käsitellyn tuloksen plainText on `C |G |`
-**When** käsittely valmistuu onnistuneesti
-**Then** tulosalueen `hidden`-arvo on `false`, näkyvä plainText on `C |G |` ja kopiointipainikkeen `disabled`-arvo on `false`
-
-### AC24: Tiedostolatausta ei tarjota ensimmäisessä versiossa
-**Given** onnistunut tulos on näkyvissä
-**When** tulosalue muodostetaan
-**Then** alueella on täsmälleen yksi tulostoimintopainike tekstillä `Kopioi tulos` eikä alueella ole `download`-attribuutilla varustettua elementtiä
-
-### AC25: Pienellä kirjoitettu sointu näytetään täsmällisenä varoituksena
-**Given** varoitus on `{ code: "LOWERCASE_CHORD", lineIndex: 2, startIndex: 3, original: "am" }`
-**When** tulosesitys muodostetaan
-**Then** ainoa varoitusteksti on `Rivi 3, kohta 4: mahdollinen sointu "am" alkaa pienellä kirjaimella eikä sitä muutettu.`
+### AC31: Tulos on aluksi piilossa
+**Given** sovellus alustetaan **When** tulosta ei ole **Then** transposition-result.hidden on true, copy-result.disabled true ja tulos-HTML tyhjä.
+### AC32: Tuloskenttä on vain luku
+**Given** onnistunut tulos **When** se näytetään **Then** contenteditable on `false`, role `textbox`, aria-readonly `true`, aria-label `Transponoitu tulos`.
+### AC33: Leveä näkymä on rinnakkainen
+**Given** viewport `41rem` **When** renderöidään **Then** grid-template-columns on `repeat(2,minmax(0,1fr))`.
+### AC34: Mobiili on allekkainen
+**Given** viewport `40rem` **When** renderöidään **Then** grid-template-columns on `minmax(0,1fr)`.
+### AC35: Onnistuminen näyttää tuloksen
+**Given** C-duuri +2 ja `C |G |` **When** painetaan Transponoi **Then** tulos näkyy arvolla `D |A |` ja copy-result.disabled on false.
+### AC36: Uusi korvaa vanhan
+**Given** vanha `C |G |`, uusi `D |A |` **When** uusi näytetään **Then** näkyy vain `D |A |` ja vain uudet varoitukset.
+### AC37: Käsittelyvirhe tyhjentää tuloksen
+**Given** vanha tulos ja virhe `Valitse lähtösävellaji` **When** virhe käsitellään **Then** tulos piilotetaan ja tyhjennetään, varoitukset ja kopiointitila tyhjennetään, painike disabled ja alert täsmää virheeseen.
+### AC38: Enharmoninen valinta estää ajon
+**Given** C-duuri +1 ilman C#/Db-valintaa **When** painetaan Transponoi **Then** putkea ei kutsuta ja alert on `Valitse kohdesävellajin kirjoitusasu`.
+### AC39: Kopiointionnistuminen näyttää tilan
+**Given** tulos ja onnistuva write **When** painetaan Kopioi tulos **Then** teksti on `Tulos kopioitu`, role `status`.
+### AC40: Kopiointivirhe säilyttää tuloksen
+**Given** `C |G |` ja epäonnistuva write **When** kopioidaan **Then** tulos säilyy, painike on käytössä, teksti `Tuloksen kopiointi epäonnistui`, role `alert`.
+### AC41: Uusi yritys tyhjentää kopiointitilan
+**Given** tila `Tulos kopioitu` **When** Transponoi painetaan uudelleen **Then** tila on tyhjä ennen ajon valmistumista.
+### AC42: Latausta tai rivinumeroita ei tarjota
+**Given** tulos näkyy **When** alue tarkistetaan **Then** siinä on yksi painike `Kopioi tulos`, ei download-attribuuttia eikä rivinumeropalstaa.
+### AC43: Keskeneräisyystekstit poistetaan
+**Given** sovellus alustetaan **When** UI-teksti luetaan **Then** se ei sisällä `Luonnos` tai `Toiminto tulossa`.
 
 ## Files to Modify
-
 | File | Change |
 |---|---|
-| `src/types.ts` | Lisää tulosesityksen, leikepöytäsisällön ja käyttöliittymän tulostilan tyypit. |
-| `src/logic/createResultPresentation.ts` | Lisää HTML-kuori, plainText-muodostus ja varoitusten järjestäminen sekä tekstittäminen. |
-| `src/logic/createResultPresentation.test.ts` | Lisää HTML:n, rivinvaihtojen, fonttikoon, varoitusten ja tyhjän tuloksen testit. |
-| `src/ui/copyResultToClipboard.ts` | Lisää kahden MIME-muodon leikepöytäkirjoitus rajapinnan kautta. |
-| `src/ui/copyResultToClipboard.test.ts` | Lisää onnistuneen, hylätyn ja puuttuvan leikepöytärajapinnan testit. |
-| `src/ui/ui.ts` | Lisää tulosalue, varoituslista, kopiointipainike, tilaviestit ja tulostilan päivitys. |
-| `src/ui/ui.test.ts` | Lisää tuloksen näyttämisen, korvaamisen, piilottamisen, nolla-askeleen ja saavutettavuustilojen testit. |
-| `style.css` | Lisää tulosalueen, varoitusten ja tilaviestien tyylit sekä tasalevyinen pre-wrap-esitys. |
+| `src/types.ts` | Esitys-, varoitus-, Clipboard-adapteri- ja tulostilatyypit. |
+| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset; AC1–AC10. |
+| `src/logic/createResultPresentation.ts`, `.test.ts` | HTML/plainText/varoitukset; AC11–AC25. |
+| `src/ui/copyResultToClipboard.ts`, `.test.ts` | ClipboardItem/Blob ja virheet; AC26–AC30. |
+| `src/ui/ui.ts`, `.test.ts` | InnerHTML, tulos- ja kopiointitilat; AC31–AC32, AC35–AC43. |
+| `style.css` | Responsiivinen grid; AC33–AC34. |
 
 ## Risk
-
-- What could break: Clipboard API vaatii selaimelta suojatun ympäristön ja
-  käyttäjän käynnistämän toiminnon. Puuttuva oikeus käsitellään näkyvänä
-  kopiointivirheenä.
-- What could break: Kohdeohjelma voi jättää `text/html`-muodon huomioimatta
-  ja käyttää `text/plain`-muotoa. Tällöin sisältö ja rivit säilyvät mutta
-  lihavointi ja kursivointi eivät.
-- What could break: Kohdeohjelma voi korvata kopioidun tasalevyisen fontin,
-  jolloin välilyönteihin perustuva kohdistus voi näyttää erilaiselta.
-- What could break: Varoitusten lisääminen kopioitavaan DOM-solmuun voisi
-  vahingossa kopioida ne musiikkitekstin mukana. Leikepöytäsisältö tuotetaan
-  tulosmallista, ei koko tulosalueen `textContent`-arvosta.
-- What could break: Vanhan tuloksen jättäminen näkyviin uuden käsittelyvirheen
-  jälkeen voisi johtaa väärän version kopioimiseen.
-- Rollback: Piilota tulos- ja kopiointialue ja jätä käsitelty tulos vain
-  sovelluksen sisäiseen malliin.
+- Putken järjestys voi rikkoa rekisterit/kohdistuksen; integraatiotesti lukitsee järjestyksen.
+- innerHTML on ulkoinen syöte; vain parseRichText jäsentää ja formatMusicResult tuottaa turvallisen HTML:n.
+- Clipboard API voi puuttua tai evätä oikeuden; virhe näytetään.
+- Vanha tulos voisi johtaa väärään kopioon; käsittelyvirhe tyhjentää sen atomisesti.
+- Kohdeohjelma voi suosia plain textiä tai vaihtaa fontin.
+- Rollback: poista uudet moduulit ja palauta ui.ts/style.css; vaiheiden 1–6 API:t säilyvät.
 
 ## Testing Strategy (MANDATORY)
+Täsmällinen 43/43-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC41–AC43. Aja `npm run lint`, `npm test`, `git diff --check`.
 
-| Function | Case | Given | When | Then |
-|---|---|---|---|---|
-| käyttöliittymä | AC1 alkutila | Ei käsittelyä | Alustetaan | Tulos hidden, kopiointi disabled |
-| käyttöliittymä | AC2 tulos näkyviin | Täsmällinen 12px HTML | Näytetään | Alue näkyy, otsikko ja HTML täsmäävät, painike käytössä |
-| `createResultPresentation` | AC3 HTML-kuori | Turvallinen C-rivin HTML | Muodostetaan | Täsmällinen monospace/pre-wrap-kuori ja sisäinen HTML |
-| `createResultPresentation` | AC4 rivinvaihto | `C \|G \|`, `onpa ihanaa` | Muodostetaan | `C \|G \|\nonpa ihanaa` |
-| `createResultPresentation` | AC5 tyhjä rivi | C-rivi, tyhjä, Am-rivi | Muodostetaan | `C \|G \|\n\nAm \|F \|` |
-| `createResultPresentation` | AC6 ei loppurivinvaihtoa | Yksi `C \|G \|` | Muodostetaan | Pituus 6, viimeinen `\|` |
-| `createResultPresentation` | AC7 muotoilut | Strong C ja em E | Muodostetaan | Täsmällinen strong/em HTML kuoressa |
-| `createResultPresentation` | AC8 18px | Fonttikoko 18px | Muodostetaan | Yksi `font-size:18px`, ei 12px |
-| `createResultPresentation` | AC9 12px | Fonttikoko 12px | Muodostetaan | Yksi `font-size:12px` |
-| `createResultPresentation` | AC10 itsenäinen teksti | Kertosäe, C-rivi, onpa | Muodostetaan | `Kertosäe\nC \|G \|\nonpa`; Kertosäe kerran HTML:ssä |
-| `createResultPresentation` | AC11 sointuvaroitus | SUSPICIOUS_CHORD rivillä 3, kohdassa 0 | Muodostetaan | Täsmällinen käyttäjävaroitus riville 4, kohtaan 1 |
-| `createResultPresentation` | AC12 rivivaroitus | AMBIGUOUS_NOTE_LINE rivillä 1 | Muodostetaan | Täsmällinen käyttäjävaroitus riville 2 |
-| `createResultPresentation` | AC13 varoitusjärjestys | Varoitukset riveillä 3 ja 1 | Muodostetaan | Kaksi varoitusta järjestyksessä rivi 2, rivi 4 |
-| `createResultPresentation` | AC14 varoituksia ei kopioida | Dbfoo-rivi ja varoitus | Muodostetaan | PlainText `Dbfoo \|Ab \|`; ei varoitustekstiä HTML:ssä tai tekstissä |
-| `copyResultToClipboard` | AC15 MIME-muodot | HTML C ja plain C | Kopioidaan | Yksi kirjoitus täsmällisillä text/html- ja text/plain-arvoilla |
-| käyttöliittymä | AC16 kopiointi onnistuu | Kirjoitus ratkaistaan | Painetaan | `Tulos kopioitu`, role status |
-| käyttöliittymä | AC17 kirjoitus hylätään | Kirjoitus reject | Painetaan | `Tuloksen kopiointi epäonnistui`, role alert, ei onnistumisviestiä |
-| käyttöliittymä | AC18 API puuttuu | Ei Clipboard API:a | Painetaan | Sama virhe, ei kirjoitusyritystä |
-| käyttöliittymä | AC19 tulos säilyy virheessä | Näkyvä C-rivi, kirjoitus epäonnistuu | Painetaan | Alue näkyy, C-rivi säilyy, painike käytössä |
-| `createResultPresentation` | AC20 tyhjä tulos | Tyhjä HTML ja ei rivejä | Muodostetaan | Virhe `Näytettävä tulos ei saa olla tyhjä` |
-| käyttöliittymä | AC21 tulos korvataan | Vanha C-rivi, uusi D-rivi | Näytetään uusi | Vain D-rivi ja uudet varoitukset |
-| käyttöliittymä | AC22 käsittelyvirhe | Vanha C-rivi, uusi valintavirhe | Näytetään virhe | Tulos hidden, kopiointi disabled, täsmällinen virheteksti |
-| käyttöliittymä | AC23 nolla askelta | 0 ja käsitelty C-rivi | Valmistuu | Tulos näkyy ja kopiointi käytössä |
-| käyttöliittymä | AC24 ei latausta | Onnistunut tulos | Muodostetaan | Yksi `Kopioi tulos` -painike, ei download-elementtiä |
-| `createResultPresentation` | AC25 pieni sointu | LOWERCASE_CHORD rivillä 2, kohdassa 3, token am | Muodostetaan | `Rivi 3, kohta 4: mahdollinen sointu "am" alkaa pienellä kirjaimella eikä sitä muutettu.` |
-
-## Spec Readiness checklist (run before calling the spec done)
-
-- [x] Every AC has a precise expected value — no "works correctly"
-- [x] Another person could write a test from each AC without asking
-- [x] Every AC can fail — one that cannot fail proves nothing
-- [x] Error and edge cases have ACs of their own
-- [x] Every AC appears in the testing strategy table
+## Spec Readiness checklist
+- [x] Every AC is Given/When/Then with a precise expected value
+- [x] Files to modify are listed with what changes in each
+- [x] Risk and rollback are documented
+- [x] Testing covers every AC plus error and edge cases
+- [x] Every AC has at least one named test case (43/43)

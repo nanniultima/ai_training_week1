@@ -1,10 +1,170 @@
 // @vitest-environment happy-dom
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+// @ts-expect-error Test-only Node builtin is intentionally outside browser tsconfig types.
+import { readFileSync } from 'node:fs';
 
 import { initializeUi } from './ui.js';
+const styles = readFileSync('style.css', 'utf8');
 
 describe('initializeUi', () => {
+  it('AC31: alustaa piilotetun tyhjän tuloksen', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const area = root.querySelector<HTMLElement>('#transposition-result');
+    const copy = root.querySelector<HTMLButtonElement>('#copy-result');
+    const output = root.querySelector<HTMLElement>('#music-result');
+    expect(area?.hidden).toBe(true);
+    expect(copy?.disabled).toBe(true);
+    expect(output?.innerHTML).toBe('');
+  });
+  it('AC32: luo vain luku -rikastekstikentän', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const output = root.querySelector<HTMLElement>('#music-result');
+    expect(output?.getAttribute('contenteditable')).toBe('false');
+    expect(output?.getAttribute('role')).toBe('textbox');
+    expect(output?.getAttribute('aria-readonly')).toBe('true');
+    expect(output?.getAttribute('aria-label')).toBe('Transponoitu tulos');
+  });
+  it('AC33: määrittää yli 40rem rinnakkaisen gridin', () => {
+    expect(styles).toMatch(/\.editor-result-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
+  });
+  it('AC34: määrittää 40rem mobiiligridin', () => {
+    expect(styles).toMatch(/@media \(max-width: 40rem\)[\s\S]*?\.editor-result-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  });
+  it('AC35: näyttää onnistuneen tuloksen', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const step = root.querySelector<HTMLInputElement>('#transpose-step');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (step) step.value = '2';
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(root.querySelector<HTMLElement>('#transposition-result')?.hidden).toBe(false);
+    expect(root.querySelector<HTMLElement>('#music-result')?.textContent).toBe('D |A |');
+    expect(root.querySelector<HTMLButtonElement>('#copy-result')?.disabled).toBe(false);
+  });
+  it('AC36: korvaa vanhan tuloksen ja varoitukset', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const output = root.querySelector<HTMLElement>('#music-result');
+    const warnings = root.querySelector<HTMLElement>('#result-warnings');
+    if (output) output.textContent = 'C |G |';
+    if (warnings) warnings.textContent = 'vanha varoitus';
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const step = root.querySelector<HTMLInputElement>('#transpose-step');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (step) step.value = '2';
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(output?.textContent).toBe('D |A |');
+    expect(output?.textContent).not.toContain('C |G |');
+    expect(warnings?.textContent).not.toContain('vanha varoitus');
+  });
+  it('AC37: tyhjentää vanhan tuloksen käsittelyvirheessä', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const area = root.querySelector<HTMLElement>('#transposition-result');
+    const output = root.querySelector<HTMLElement>('#music-result');
+    const warnings = root.querySelector<HTMLElement>('#result-warnings');
+    const copy = root.querySelector<HTMLButtonElement>('#copy-result');
+    const status = root.querySelector<HTMLElement>('#copy-status');
+    if (area) area.hidden = false;
+    if (output) output.textContent = 'vanha';
+    if (warnings) warnings.textContent = 'varoitus';
+    if (copy) copy.disabled = false;
+    if (status) status.textContent = 'Tulos kopioitu';
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(area?.hidden).toBe(true);
+    expect(output?.innerHTML).toBe('');
+    expect(warnings?.textContent).toBe('');
+    expect(status?.textContent).toBe('');
+    expect(copy?.disabled).toBe(true);
+    expect(root.querySelector<HTMLElement>('#transposition-error')?.textContent).toBe('Valitse lähtösävellaji');
+  });
+  it('AC38: estää ajon avoimessa enharmonisessa valinnassa', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const step = root.querySelector<HTMLInputElement>('#transpose-step');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (step) step.value = '1';
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(root.querySelector<HTMLElement>('#transposition-error')?.textContent).toBe(
+      'Valitse kohdesävellajin kirjoitusasu',
+    );
+    expect(root.querySelector<HTMLElement>('#transposition-result')?.hidden).toBe(true);
+  });
+  it('AC39: näyttää kopioinnin onnistumistilan', async () => {
+    vi.stubGlobal('ClipboardItem', class { constructor(_data: Record<string, Blob>) {} });
+    const write = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { write }, configurable: true });
+    const root = document.createElement('div');
+    initializeUi(root);
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    root.querySelector<HTMLButtonElement>('#copy-result')?.click();
+    await Promise.resolve();
+    const status = root.querySelector<HTMLElement>('#copy-status');
+    expect(status?.textContent).toBe('Tulos kopioitu');
+    expect(status?.getAttribute('role')).toBe('status');
+  });
+  it('AC40: säilyttää tuloksen kopiointivirheessä', async () => {
+    vi.stubGlobal('ClipboardItem', class { constructor(_data: Record<string, Blob>) {} });
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { write: vi.fn().mockRejectedValue(new Error('denied')) }, configurable: true,
+    });
+    const root = document.createElement('div');
+    initializeUi(root);
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    root.querySelector<HTMLButtonElement>('#copy-result')?.click();
+    await vi.waitFor(() => expect(root.querySelector<HTMLElement>('#copy-status')?.textContent).toBe('Tuloksen kopiointi epäonnistui'));
+    expect(root.querySelector<HTMLElement>('#music-result')?.textContent).toBe('C |G |');
+    expect(root.querySelector<HTMLButtonElement>('#copy-result')?.disabled).toBe(false);
+    expect(root.querySelector<HTMLElement>('#copy-status')?.getAttribute('role')).toBe('alert');
+  });
+  it('AC41: tyhjentää kopiointitilan uudessa yrityksessä', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const status = root.querySelector<HTMLElement>('#copy-status');
+    if (status) status.textContent = 'Tulos kopioitu';
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(status?.textContent).toBe('');
+  });
+  it('AC42: tarjoaa vain kopioinnin ilman latausta tai palstaa', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const area = root.querySelector<HTMLElement>('#transposition-result');
+    expect(area?.querySelectorAll('button')).toHaveLength(1);
+    expect(area?.querySelector('button')?.textContent).toBe('Kopioi tulos');
+    expect(area?.querySelector('[download]')).toBeNull();
+    expect(area?.querySelector('.line-number-gutter')).toBeNull();
+  });
+  it('AC43: poistaa keskeneräisyystekstit', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    expect(root.textContent).not.toContain('Luonnos');
+    expect(root.textContent).not.toContain('Toiminto tulossa');
+  });
   it('luo muotoiluja tukevan editorin', () => {
     const root = { innerHTML: '' } as unknown as HTMLElement;
 

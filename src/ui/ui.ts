@@ -3,7 +3,10 @@ import {
   resolveTranspositionSettings,
 } from '../logic/transpositionSettings.js';
 import type { KeyMode } from '../types.js';
+import type { TranspositionPresentation } from '../types.js';
+import { createTranspositionResult } from '../logic/createTranspositionResult.js';
 import { renderLineNumbers } from './lineNumbers.js';
+import { copyResultToClipboard } from './copyResultToClipboard.js';
 
 function getModeName(mode: KeyMode): 'duuri' | 'molli' {
   return mode === 'major' ? 'duuri' : 'molli';
@@ -31,9 +34,10 @@ export function initializeUi(root: HTMLElement | null): void {
           <h2 id="music-editor-title">Musiikki ja sanat</h2>
           <p>Merkitse musiikkirivien tahdit putkimerkillä |.</p>
         </div>
-        <span class="status-badge">Luonnos</span>
       </div>
 
+      <div class="editor-result-grid">
+      <div class="input-editor-pane">
       <div class="editor-with-line-numbers">
         <div id="line-number-gutter" class="line-number-gutter" aria-hidden="true"></div>
         <div
@@ -52,6 +56,23 @@ export function initializeUi(root: HTMLElement | null): void {
         Voit käyttää editorissa esimerkiksi näppäinyhdistelmiä
         <kbd>Ctrl</kbd> + <kbd>B</kbd> ja <kbd>Ctrl</kbd> + <kbd>I</kbd>.
       </p>
+      </div>
+
+      <section id="transposition-result" hidden>
+        <h2>Transponoitu tulos</h2>
+        <div
+          id="music-result"
+          class="rich-editor result-editor"
+          contenteditable="false"
+          role="textbox"
+          aria-readonly="true"
+          aria-label="Transponoitu tulos"
+        ></div>
+        <div id="result-warnings"></div>
+        <button id="copy-result" type="button" disabled>Kopioi tulos</button>
+        <p id="copy-status" aria-live="polite"></p>
+      </section>
+      </div>
 
       <section class="transposition-panel" aria-labelledby="transposition-title">
         <div class="panel-heading">
@@ -59,7 +80,6 @@ export function initializeUi(root: HTMLElement | null): void {
             <p class="step-label">Transponoinnin asetukset</p>
             <h3 id="transposition-title">Valitse lähtösävellaji</h3>
           </div>
-          <p class="coming-soon">Toiminto tulossa</p>
         </div>
 
         <div class="setting-grid">
@@ -141,6 +161,12 @@ export function initializeUi(root: HTMLElement | null): void {
   const transposeButton =
     root.querySelector<HTMLButtonElement>('.transpose-actions button');
   const musicInput = root.querySelector<HTMLElement>('#music-input');
+  const resultArea = root.querySelector<HTMLElement>('#transposition-result');
+  const musicResult = root.querySelector<HTMLElement>('#music-result');
+  const resultWarnings = root.querySelector<HTMLElement>('#result-warnings');
+  const copyButton = root.querySelector<HTMLButtonElement>('#copy-result');
+  const copyStatus = root.querySelector<HTMLElement>('#copy-status');
+  let currentPresentation: TranspositionPresentation | undefined;
   const lineNumberGutter = root.querySelector<HTMLElement>('#line-number-gutter');
   const transpositionError = document.createElement('p');
   transpositionError.id = 'transposition-error';
@@ -161,6 +187,18 @@ export function initializeUi(root: HTMLElement | null): void {
   if (transposeButton !== null) {
     transposeButton.disabled = false;
   }
+
+  const clearResult = (): void => {
+    currentPresentation = undefined;
+    if (resultArea) resultArea.hidden = true;
+    if (musicResult) musicResult.innerHTML = '';
+    if (resultWarnings) resultWarnings.replaceChildren();
+    if (copyButton) copyButton.disabled = true;
+    if (copyStatus) {
+      copyStatus.textContent = '';
+      copyStatus.removeAttribute('role');
+    }
+  };
 
   const updateTargetKeyPreview = (): void => {
     if (
@@ -265,20 +303,71 @@ export function initializeUi(root: HTMLElement | null): void {
 
     transpositionError.hidden = true;
     transpositionError.textContent = '';
+    if (copyStatus) copyStatus.textContent = '';
 
     const mode = root.querySelector<HTMLInputElement>(
       'input[name=key-mode]:checked',
     )?.value;
 
     if (mode !== 'major' && mode !== 'minor') {
+      clearResult();
       transpositionError.textContent = 'Valitse duuri tai molli';
       transpositionError.hidden = false;
       return;
     }
 
     if (sourceKey.value === '') {
+      clearResult();
       transpositionError.textContent = 'Valitse lähtösävellaji';
       transpositionError.hidden = false;
+      return;
+    }
+
+    const step = Number(stepInput?.value);
+    const settings = resolveTranspositionSettings({
+      mode,
+      sourceTonic: sourceKey.value,
+      step,
+    });
+    if (settings.status !== 'ready') {
+      clearResult();
+      transpositionError.textContent = 'Valitse kohdesävellajin kirjoitusasu';
+      transpositionError.hidden = false;
+      return;
+    }
+    try {
+      const presentation: TranspositionPresentation = createTranspositionResult(
+        musicInput?.innerHTML ?? '',
+        settings,
+      );
+      currentPresentation = presentation;
+      if (musicResult) musicResult.innerHTML = presentation.html;
+      if (resultWarnings) resultWarnings.replaceChildren(...presentation.warnings.map((warning) => {
+        const item = document.createElement('p');
+        item.textContent = warning;
+        return item;
+      }));
+      if (resultArea) resultArea.hidden = false;
+      if (copyButton) copyButton.disabled = false;
+      if (copyStatus) copyStatus.textContent = '';
+    } catch (error) {
+      clearResult();
+      transpositionError.textContent = error instanceof Error ? error.message : String(error);
+      transpositionError.hidden = false;
+    }
+  });
+
+  copyButton?.addEventListener('click', async () => {
+    if (!currentPresentation || !copyStatus) return;
+    copyStatus.textContent = 'Tulos kopioitu';
+    copyStatus.setAttribute('role', 'status');
+    try {
+      await copyResultToClipboard(currentPresentation, {
+        write: (items) => navigator.clipboard.write([...items]),
+      });
+    } catch {
+      copyStatus.textContent = 'Tuloksen kopiointi epäonnistui';
+      copyStatus.setAttribute('role', 'alert');
     }
   });
 }
