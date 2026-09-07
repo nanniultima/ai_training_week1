@@ -172,13 +172,18 @@ Editorin ulkopuolinen, ei-muokattava rivinumeropalsta numeroi vain LF-rivinvaihd
 **When** editorin syötesisältö luetaan
 **Then** sisältö on täsmälleen `C |G |\nonpa`
 
+### AC25: Useat kohdistusvälit sallitaan sävelrivillä
+**Given** ainoan rivin sisältö on `c c  a a a   gB g  g  c d   c`
+**When** `classifyLines` luokittelee rivin
+**Then** rivin tyyppi on `note`, sisältö säilyy täsmälleen ja `warnings` on `[]`
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `src/types.ts` | Lisää luokittelun julkiset tyypit. |
 | `src/logic/classifyLines.ts` | Lisää luokittelu, kielioppi, varoitus ja validointi. |
-| `src/logic/classifyLines.test.ts` | Lisää AC1–AC18:n testit. |
+| `src/logic/classifyLines.test.ts` | Lisää AC1–AC18:n ja AC25:n testit. |
 | `src/ui/lineNumbers.ts` | Lisää LF-numerointi ja indeksimuunnos. |
 | `src/ui/lineNumbers.test.ts` | Lisää AC19–AC21:n testit. |
 | `src/ui/ui.ts` | Liitä palsta ja synkronoi vieritys. |
@@ -221,6 +226,7 @@ Editorin ulkopuolinen, ei-muokattava rivinumeropalsta numeroi vain LF-rivinvaihd
 | `initializeUi` | `AC22 liittää palstan editorin ulkopuolelle` | DOM | Haetaan | Sisar, ei muokattava |
 | `initializeUi` | `AC23 synkronoi pystysuuntaisen vierityksen` | scrollTop 120 | Scroll | 120 |
 | `initializeUi` | `AC24 pitää numerot poissa editorin sisällöstä` | Kaksi riviä | Luetaan | Alkuperäinen sisältö |
+| `classifyLines` | `AC25 hyväksyy useat kohdistusvälit sävelrivillä` | `c c  a a a   gB g  g  c d   c` | Luokitellaan | Note, sisältö ennallaan, [] |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

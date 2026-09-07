@@ -8,14 +8,15 @@ jälkeen `Done`.
 2. AC1–AC10: lisää `createTranspositionResult` ja sen testit; kokoa putki ja litistys muuttamatta vaiheiden 1–6 API:a.
 3. AC11–AC25: lisää `createResultPresentation` ja sen testit; pidä HTML, plain text ja varoitukset erillään.
 4. AC26–AC30: lisää `copyResultToClipboard`, tuotantoadapteri ja testiadapterit; tee yksi kaksimuotoinen write.
-5. AC31–AC32 ja AC35–AC43: päivitä UI sekä UI-testit; lue innerHTML ja käsittele tulos-, virhe- ja kopiointitilat.
-6. AC33–AC34: lisää `style.css`:ään täsmälliset breakpoint- ja grid-säännöt sekä tuloksen monospace/pre-wrap-ulkoasu.
-7. Refaktoroi vain vihreänä; pidä liiketoimintalogiikka UI:n ulkopuolella.
-8. Aja `npm run lint`, `npm test`, `git diff --check`; tee spec-diff-review ja merkitse `Done` vain verdictillä `APPROVED`.
+5. AC31–AC33 ja AC35–AC44: päivitä UI sekä UI-testit; lisää Syöte/Tulos-valitsin, välitä valittu enharmoninen kirjoitusasu ja käsittele näkymä-, tulos-, virhe- sekä asynkroniset kopiointitilat.
+6. AC34: muuta `style.css` käyttämään yhtä täysleveää paneelisaraketta ja säilytä sivun 80rem enimmäisleveys sekä tuloksen monospace/pre-wrap-ulkoasu.
+7. AC45: lisää koko putken regressiotesti editorin sitoville kohdistusvälilyönneille.
+8. Refaktoroi vain vihreänä; pidä liiketoimintalogiikka UI:n ulkopuolella.
+9. Aja `npm run lint`, `npm test`, `git diff --check`; tee spec-diff-review ja merkitse `Done` vain verdictillä `APPROVED`.
 
 ## Valmistumisehdot
 
-- AC1–AC43 ovat vihreitä ja jäljitettävyys on 43/43.
+- AC1–AC45 ovat vihreitä ja jäljitettävyys on 45/45.
 - Jokaisella julkisella funktiolla on onnistuva testi ja epäonnistuvalla API:lla virhetesti.
 - Tulos ei sisällä käyttäjän vaarallista HTML:ää eikä varoituksia.
 - Kopiointi kirjoittaa molemmat MIME-muodot yhdellä kutsulla.

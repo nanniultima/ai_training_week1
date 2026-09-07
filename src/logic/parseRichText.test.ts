@@ -22,4 +22,5 @@ describe('parseRichText', () => {
   it('AC35 Syötteen attribuutit poistetaan', () => expect(parseRichText('<span class=x style="color:red" onclick=x>C</span>').lines[0]?.segments).toEqual([{ text: 'C', bold: false, italic: false }]));
   it.each(['', '<div><br></div>', '<div> \t</div>'])('AC37 Tyhjä rikasteksti hylätään', (html) => expect(() => parseRichText(html)).toThrow('Rikastekstisyöte ei saa olla tyhjä'));
   it('AC38 Parseri ei luokittele sisältöä', () => { const line = parseRichText('<strong>C</strong>').lines[0]; expect(line).toEqual({ segments: [{ text: 'C', bold: true, italic: false }] }); expect(line).not.toHaveProperty('type'); });
+  it('AC39 normalisoi editorin sitovat välilyönnit', () => expect(parseRichText('<div>c&nbsp;c&nbsp;&nbsp;g</div>').lines[0]?.segments).toEqual([{ text: 'c c  g', bold: false, italic: false }]));
 });

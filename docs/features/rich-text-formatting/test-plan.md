@@ -14,7 +14,7 @@ ja TDD etenee AC1–AC38 järjestyksessä RED–GREEN–REFACTOR.
 | AC15–AC20, AC24–AC31, AC36 | vastaava `ACN <otsikko>` | `formatMusicResult.test.ts` |
 | AC21 | `AC21 sointutoken säilyttää lähdevälin` | `transposeChordLine.test.ts`, `formatMusicResult.test.ts` |
 | AC22–AC23 | vastaavat nimetyt AC-testit | `transposeNoteLine.test.ts`, `formatMusicResult.test.ts` |
-| AC32–AC35, AC37–AC38 | vastaava `ACN <otsikko>` | `parseRichText.test.ts`, tarvittaessa formatterin integraatio |
+| AC32–AC35, AC37–AC39 | vastaava `ACN <otsikko>` | `parseRichText.test.ts`, tarvittaessa formatterin integraatio |
 
 Virhetestit kattavat rekisterin, fonttikoon ja tyhjän syötteen. Reunatestit
 kattavat rivit, sisäkkäisen DOM:n, desimaalipikselit, tokenien pituusmuutoksen,

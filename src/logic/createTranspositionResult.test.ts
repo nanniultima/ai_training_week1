@@ -104,4 +104,11 @@ describe('createTranspositionResult', () => {
       createTranspositionResult('<div>Kertosäe</div>', cMajorUnchanged),
     ).toThrow('Syötteestä ei löytynyt sointu- tai sävelrivejä');
   });
+
+  it('AC45: transponoi editorin sitovilla kohdistusväleillä kirjoitetun sävelrivin', () => {
+    expect(createTranspositionResult(
+      '<div>c&nbsp;c&nbsp;&nbsp;g</div>',
+      cMajorUpTwo,
+    ).plainText).toBe('D D  A');
+  });
 });

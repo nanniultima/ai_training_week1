@@ -39,22 +39,24 @@ GREEN-vaiheen jälkeen.
 | AC28 | `AC28: hylkää puuttuvan clipboard.write-tuen` | `copyResultToClipboard.test.ts` |
 | AC29 | `AC29: hylkää puuttuvan ClipboardItem-tuen` | `copyResultToClipboard.test.ts` |
 | AC30 | `AC30: normalisoi write-rejectin` | `copyResultToClipboard.test.ts` |
-| AC31 | `AC31: alustaa piilotetun tyhjän tuloksen` | `ui.test.ts` |
+| AC31 | `AC31: alustaa aktiivisen syötenäkymän ja käytöstä poistetun tulosvalinnan` | `ui.test.ts` |
 | AC32 | `AC32: luo vain luku -rikastekstikentän` | `ui.test.ts` |
-| AC33 | `AC33: määrittää yli 40rem rinnakkaisen gridin` | `ui.test.ts` |
-| AC34 | `AC34: määrittää 40rem mobiiligridin` | `ui.test.ts` |
-| AC35 | `AC35: näyttää onnistuneen tuloksen` | `ui.test.ts` |
+| AC33 | `AC33: vaihtaa syöte- ja tulospaneelin välillä` | `ui.test.ts` |
+| AC34 | `AC34: käyttää yhtä täysleveää paneelisaraketta ja 80rem sivua` | `ui.test.ts` |
+| AC35 | `AC35: vaihtaa onnistumisessa automaattisesti tulosnäkymään` | `ui.test.ts` |
 | AC36 | `AC36: korvaa vanhan tuloksen ja varoitukset` | `ui.test.ts` |
-| AC37 | `AC37: tyhjentää vanhan tuloksen käsittelyvirheessä` | `ui.test.ts` |
+| AC37 | `AC37: tyhjentää tuloksen ja palauttaa syötenäkymän käsittelyvirheessä` | `ui.test.ts` |
 | AC38 | `AC38: estää ajon avoimessa enharmonisessa valinnassa` | `ui.test.ts` |
-| AC39 | `AC39: näyttää kopioinnin onnistumistilan` | `ui.test.ts` |
+| AC39 | `AC39: näyttää onnistumistilan vasta write-promisen ratkettua` | `ui.test.ts` |
 | AC40 | `AC40: säilyttää tuloksen kopiointivirheessä` | `ui.test.ts` |
 | AC41 | `AC41: tyhjentää kopiointitilan uudessa yrityksessä` | `ui.test.ts` |
 | AC42 | `AC42: tarjoaa vain kopioinnin ilman latausta tai palstaa` | `ui.test.ts` |
 | AC43 | `AC43: poistaa keskeneräisyystekstit` | `ui.test.ts` |
+| AC44 | `AC44: välittää valitun enharmonisen kirjoitusasun transponointiin` | `ui.test.ts` |
+| AC45 | `AC45: transponoi editorin sitovilla kohdistusväleillä kirjoitetun sävelrivin` | `createTranspositionResult.test.ts` |
 
 ## Kattavuus
 
-Jäljitettävyys 43/43. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38,
+Jäljitettävyys 45/45. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38,
 AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34,
-AC41–AC43. Lopputarkistus: `npm run lint`, `npm test`, `git diff --check`.
+AC39, AC41–AC45. Lopputarkistus: `npm run lint`, `npm test`, `git diff --check`.

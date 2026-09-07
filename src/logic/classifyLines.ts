@@ -9,7 +9,7 @@ function isNoteGroup(token: string): boolean {
 
 function isNoteLine(content: string): boolean {
   if (content === 'cafe') return false;
-  const tokens = content.split(' ');
+  const tokens = content.split(/ +/);
   return tokens.some(isNoteGroup)
     && tokens.every((token, index) => {
       if (isNoteGroup(token) || REPEAT.test(token)) return true;
@@ -43,7 +43,7 @@ export function classifyLines(lines: readonly InputLine[]): ClassificationResult
   return {
     lines: classifiedLines,
     warnings: classifiedLines.flatMap((line) => {
-      const tokens = line.content.split(' ');
+      const tokens = line.content.split(/ +/);
       const hasNote = tokens.some(isNoteGroup);
       const hasOther = tokens.some((token) => !isNoteGroup(token));
       return line.type === 'text' && hasNote && hasOther

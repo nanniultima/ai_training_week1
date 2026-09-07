@@ -36,8 +36,13 @@ export function initializeUi(root: HTMLElement | null): void {
         </div>
       </div>
 
+      <div class="view-switcher" aria-label="Valitse näytettävä näkymä">
+        <button id="show-input" type="button" aria-pressed="true">Syöte</button>
+        <button id="show-result" type="button" aria-pressed="false" disabled>Tulos</button>
+      </div>
+
       <div class="editor-result-grid">
-      <div class="input-editor-pane">
+      <div id="input-editor-pane" class="input-editor-pane">
       <div class="editor-with-line-numbers">
         <div id="line-number-gutter" class="line-number-gutter" aria-hidden="true"></div>
         <div
@@ -161,7 +166,10 @@ export function initializeUi(root: HTMLElement | null): void {
   const transposeButton =
     root.querySelector<HTMLButtonElement>('.transpose-actions button');
   const musicInput = root.querySelector<HTMLElement>('#music-input');
+  const inputPane = root.querySelector<HTMLElement>('#input-editor-pane');
   const resultArea = root.querySelector<HTMLElement>('#transposition-result');
+  const inputViewButton = root.querySelector<HTMLButtonElement>('#show-input');
+  const resultViewButton = root.querySelector<HTMLButtonElement>('#show-result');
   const musicResult = root.querySelector<HTMLElement>('#music-result');
   const resultWarnings = root.querySelector<HTMLElement>('#result-warnings');
   const copyButton = root.querySelector<HTMLButtonElement>('#copy-result');
@@ -188,9 +196,21 @@ export function initializeUi(root: HTMLElement | null): void {
     transposeButton.disabled = false;
   }
 
+  const showView = (view: 'input' | 'result'): void => {
+    const showInput = view === 'input';
+    if (inputPane) inputPane.hidden = !showInput;
+    if (resultArea) resultArea.hidden = showInput;
+    inputViewButton?.setAttribute('aria-pressed', String(showInput));
+    resultViewButton?.setAttribute('aria-pressed', String(!showInput));
+  };
+
+  inputViewButton?.addEventListener('click', () => showView('input'));
+  resultViewButton?.addEventListener('click', () => showView('result'));
+
   const clearResult = (): void => {
     currentPresentation = undefined;
-    if (resultArea) resultArea.hidden = true;
+    showView('input');
+    if (resultViewButton) resultViewButton.disabled = true;
     if (musicResult) musicResult.innerHTML = '';
     if (resultWarnings) resultWarnings.replaceChildren();
     if (copyButton) copyButton.disabled = true;
@@ -324,10 +344,14 @@ export function initializeUi(root: HTMLElement | null): void {
     }
 
     const step = Number(stepInput?.value);
+    const targetTonicChoice = root.querySelector<HTMLInputElement>(
+      'input[name=enharmonic-choice]:checked',
+    )?.value;
     const settings = resolveTranspositionSettings({
       mode,
       sourceTonic: sourceKey.value,
       step,
+      ...(targetTonicChoice === undefined ? {} : { targetTonicChoice }),
     });
     if (settings.status !== 'ready') {
       clearResult();
@@ -347,7 +371,8 @@ export function initializeUi(root: HTMLElement | null): void {
         item.textContent = warning;
         return item;
       }));
-      if (resultArea) resultArea.hidden = false;
+      if (resultViewButton) resultViewButton.disabled = false;
+      showView('result');
       if (copyButton) copyButton.disabled = false;
       if (copyStatus) copyStatus.textContent = '';
     } catch (error) {
@@ -359,12 +384,14 @@ export function initializeUi(root: HTMLElement | null): void {
 
   copyButton?.addEventListener('click', async () => {
     if (!currentPresentation || !copyStatus) return;
-    copyStatus.textContent = 'Tulos kopioitu';
-    copyStatus.setAttribute('role', 'status');
+    copyStatus.textContent = '';
+    copyStatus.removeAttribute('role');
     try {
       await copyResultToClipboard(currentPresentation, {
         write: (items) => navigator.clipboard.write([...items]),
       });
+      copyStatus.textContent = 'Tulos kopioitu';
+      copyStatus.setAttribute('role', 'status');
     } catch {
       copyStatus.textContent = 'Tuloksen kopiointi epäonnistui';
       copyStatus.setAttribute('role', 'alert');

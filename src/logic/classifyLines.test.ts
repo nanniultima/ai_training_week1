@@ -176,4 +176,13 @@ describe("classifyLines", () => {
   it("note-transposition parseriregressio hyväksyy enharmoniset lähtönimet", () => {
     expect(classifyLines([line("Cb B# Fb E# H# Hb")]).lines[0]?.type).toBe("note");
   });
+
+  it("AC25 hyväksyy useat kohdistusvälit sävelrivillä", () => {
+    const content = "c c  a a a   gB g  g  c d   c";
+    const result = classifyLines([line(content)]);
+
+    expect(result.lines[0]?.type).toBe("note");
+    expect(result.lines[0]?.content).toBe(content);
+    expect(result.warnings).toEqual([]);
+  });
 });

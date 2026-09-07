@@ -228,13 +228,18 @@ Tyhjäksi katsotaan vain riveistä ja tyhjemerkeistä koostuva syöte.
 **When** se jäsennetään
 **Then** tuloksessa on vain riviteksti ja segmentit, ei `type`, `register` tai tokeneita
 
+### AC39: Editorin sitovat välilyönnit normalisoidaan
+**Given** HTML on `<div>c&nbsp;c&nbsp;&nbsp;g</div>`
+**When** `parseRichText` jäsentää sen
+**Then** ainoan rivin ainoan segmentin teksti on täsmälleen `c c  g`, jossa kaikki välit ovat ASCII-välilyöntejä
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `src/types.ts` | Parseri-, formatteri- ja lähdemuotoilua kantavat chord/note-tyypit. |
 | `src/logic/parseRichText.ts` | DOM-jäsennys ja normalisointi. |
-| `src/logic/parseRichText.test.ts` | AC1–AC11, AC32–AC35, AC37–AC38. |
+| `src/logic/parseRichText.test.ts` | AC1–AC11, AC32–AC35, AC37–AC39. |
 | `src/logic/noteRegisterFormatting.ts` | Rekisterimuunnokset. |
 | `src/logic/noteRegisterFormatting.test.ts` | AC12–AC14. |
 | `src/logic/formatMusicResult.ts` | Fonttikoko, turvallinen tulos ja sisäiset formatterit. |
@@ -254,8 +259,8 @@ Tyhjäksi katsotaan vain riveistä ja tyhjemerkeistä koostuva syöte.
 
 ## Testing Strategy (MANDATORY)
 
-Jokaiselle AC1–AC38 kirjoitetaan samanniminen Vitest-testi `ACN <kuvaus>`.
-AC1–AC11, AC32–AC35 ja AC37–AC38 ovat `parseRichText.test.ts`:ssä;
+Jokaiselle AC1–AC39 kirjoitetaan samanniminen Vitest-testi `ACN <kuvaus>`.
+AC1–AC11, AC32–AC35 ja AC37–AC39 ovat `parseRichText.test.ts`:ssä;
 AC12–AC14 `noteRegisterFormatting.test.ts`:ssä; AC15–AC36
 `formatMusicResult.test.ts`:ssä. AC21:n malliregressio on lisäksi
 `transposeChordLine.test.ts`:ssä ja AC22–AC23:n regressiot
@@ -277,6 +282,7 @@ desimaalikoon, turvallisuuden ja eri rekisterit samassa ryhmässä.
 | `formatMusicResult` | AC30–AC31 | rivit/erikoismerkit | Muotoillaan | AC:n täsmä-HTML |
 | parseri + formatteri | AC32–AC36 | AC:n HTML | Käsitellään | AC:n puhdas täsmä-HTML |
 | `parseRichText` | AC37–AC38 | tyhjä tai strong C | Jäsennetään | Täsmävirhe tai rajattu malli |
+| `parseRichText` | AC39 sitovat välilyönnit | `c&nbsp;c&nbsp;&nbsp;g` | Jäsennetään | `c c  g` ASCII-väleillä |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

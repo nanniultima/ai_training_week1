@@ -8,13 +8,20 @@ import { initializeUi } from './ui.js';
 const styles = readFileSync('style.css', 'utf8');
 
 describe('initializeUi', () => {
-  it('AC31: alustaa piilotetun tyhjän tuloksen', () => {
+  it('AC31: alustaa aktiivisen syötenäkymän ja käytöstä poistetun tulosvalinnan', () => {
     const root = document.createElement('div');
     initializeUi(root);
+    const inputPane = root.querySelector<HTMLElement>('#input-editor-pane');
     const area = root.querySelector<HTMLElement>('#transposition-result');
+    const inputView = root.querySelector<HTMLButtonElement>('#show-input');
+    const resultView = root.querySelector<HTMLButtonElement>('#show-result');
     const copy = root.querySelector<HTMLButtonElement>('#copy-result');
     const output = root.querySelector<HTMLElement>('#music-result');
+    expect(inputPane?.hidden).toBe(false);
     expect(area?.hidden).toBe(true);
+    expect(inputView?.getAttribute('aria-pressed')).toBe('true');
+    expect(resultView?.getAttribute('aria-pressed')).toBe('false');
+    expect(resultView?.disabled).toBe(true);
     expect(copy?.disabled).toBe(true);
     expect(output?.innerHTML).toBe('');
   });
@@ -27,13 +34,31 @@ describe('initializeUi', () => {
     expect(output?.getAttribute('aria-readonly')).toBe('true');
     expect(output?.getAttribute('aria-label')).toBe('Transponoitu tulos');
   });
-  it('AC33: määrittää yli 40rem rinnakkaisen gridin', () => {
-    expect(styles).toMatch(/\.editor-result-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
+  it('AC33: vaihtaa syöte- ja tulospaneelin välillä', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const inputPane = root.querySelector<HTMLElement>('#input-editor-pane');
+    const resultPane = root.querySelector<HTMLElement>('#transposition-result');
+    const inputView = root.querySelector<HTMLButtonElement>('#show-input');
+    const resultView = root.querySelector<HTMLButtonElement>('#show-result');
+    resultView?.removeAttribute('disabled');
+    resultView?.click();
+    expect(inputPane?.hidden).toBe(true);
+    expect(resultPane?.hidden).toBe(false);
+    expect(inputView?.getAttribute('aria-pressed')).toBe('false');
+    expect(resultView?.getAttribute('aria-pressed')).toBe('true');
+    inputView?.click();
+    expect(inputPane?.hidden).toBe(false);
+    expect(resultPane?.hidden).toBe(true);
+    expect(inputView?.getAttribute('aria-pressed')).toBe('true');
+    expect(resultView?.getAttribute('aria-pressed')).toBe('false');
   });
-  it('AC34: määrittää 40rem mobiiligridin', () => {
-    expect(styles).toMatch(/@media \(max-width: 40rem\)[\s\S]*?\.editor-result-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  it('AC34: käyttää yhtä täysleveää paneelisaraketta ja 80rem sivua', () => {
+    expect(styles).toMatch(/main\s*\{[^}]*width:\s*min\(80rem,\s*calc\(100% - 2rem\)\)/s);
+    expect(styles).toMatch(/\.editor-result-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
+    expect(styles).not.toMatch(/grid-template-columns:\s*repeat\(2/);
   });
-  it('AC35: näyttää onnistuneen tuloksen', () => {
+  it('AC35: vaihtaa onnistumisessa automaattisesti tulosnäkymään', () => {
     const root = document.createElement('div');
     initializeUi(root);
     root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
@@ -44,8 +69,11 @@ describe('initializeUi', () => {
     if (step) step.value = '2';
     if (input) input.innerHTML = '<div>C |G |</div>';
     root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(root.querySelector<HTMLElement>('#input-editor-pane')?.hidden).toBe(true);
     expect(root.querySelector<HTMLElement>('#transposition-result')?.hidden).toBe(false);
     expect(root.querySelector<HTMLElement>('#music-result')?.textContent).toBe('D |A |');
+    expect(root.querySelector<HTMLButtonElement>('#show-result')?.disabled).toBe(false);
+    expect(root.querySelector<HTMLButtonElement>('#show-result')?.getAttribute('aria-pressed')).toBe('true');
     expect(root.querySelector<HTMLButtonElement>('#copy-result')?.disabled).toBe(false);
   });
   it('AC36: korvaa vanhan tuloksen ja varoitukset', () => {
@@ -67,7 +95,7 @@ describe('initializeUi', () => {
     expect(output?.textContent).not.toContain('C |G |');
     expect(warnings?.textContent).not.toContain('vanha varoitus');
   });
-  it('AC37: tyhjentää vanhan tuloksen käsittelyvirheessä', () => {
+  it('AC37: tyhjentää tuloksen ja palauttaa syötenäkymän käsittelyvirheessä', () => {
     const root = document.createElement('div');
     initializeUi(root);
     const area = root.querySelector<HTMLElement>('#transposition-result');
@@ -75,6 +103,8 @@ describe('initializeUi', () => {
     const warnings = root.querySelector<HTMLElement>('#result-warnings');
     const copy = root.querySelector<HTMLButtonElement>('#copy-result');
     const status = root.querySelector<HTMLElement>('#copy-status');
+    const inputPane = root.querySelector<HTMLElement>('#input-editor-pane');
+    const resultView = root.querySelector<HTMLButtonElement>('#show-result');
     if (area) area.hidden = false;
     if (output) output.textContent = 'vanha';
     if (warnings) warnings.textContent = 'varoitus';
@@ -83,10 +113,12 @@ describe('initializeUi', () => {
     root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
     root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
     expect(area?.hidden).toBe(true);
+    expect(inputPane?.hidden).toBe(false);
     expect(output?.innerHTML).toBe('');
     expect(warnings?.textContent).toBe('');
     expect(status?.textContent).toBe('');
     expect(copy?.disabled).toBe(true);
+    expect(resultView?.disabled).toBe(true);
     expect(root.querySelector<HTMLElement>('#transposition-error')?.textContent).toBe('Valitse lähtösävellaji');
   });
   it('AC38: estää ajon avoimessa enharmonisessa valinnassa', () => {
@@ -105,9 +137,12 @@ describe('initializeUi', () => {
     );
     expect(root.querySelector<HTMLElement>('#transposition-result')?.hidden).toBe(true);
   });
-  it('AC39: näyttää kopioinnin onnistumistilan', async () => {
+  it('AC39: näyttää onnistumistilan vasta write-promisen ratkettua', async () => {
     vi.stubGlobal('ClipboardItem', class { constructor(_data: Record<string, Blob>) {} });
-    const write = vi.fn().mockResolvedValue(undefined);
+    let resolveWrite: (() => void) | undefined;
+    const write = vi.fn(() => new Promise<void>((resolve) => {
+      resolveWrite = resolve;
+    }));
     Object.defineProperty(navigator, 'clipboard', { value: { write }, configurable: true });
     const root = document.createElement('div');
     initializeUi(root);
@@ -120,6 +155,10 @@ describe('initializeUi', () => {
     root.querySelector<HTMLButtonElement>('#copy-result')?.click();
     await Promise.resolve();
     const status = root.querySelector<HTMLElement>('#copy-status');
+    expect(status?.textContent).toBe('');
+    expect(status?.hasAttribute('role')).toBe(false);
+    resolveWrite?.();
+    await vi.waitFor(() => expect(status?.textContent).toBe('Tulos kopioitu'));
     expect(status?.textContent).toBe('Tulos kopioitu');
     expect(status?.getAttribute('role')).toBe('status');
   });
@@ -164,6 +203,25 @@ describe('initializeUi', () => {
     initializeUi(root);
     expect(root.textContent).not.toContain('Luonnos');
     expect(root.textContent).not.toContain('Toiminto tulossa');
+  });
+  it('AC44: välittää valitun enharmonisen kirjoitusasun transponointiin', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')?.click();
+    const source = root.querySelector<HTMLSelectElement>('#source-key');
+    const step = root.querySelector<HTMLInputElement>('#transpose-step');
+    const input = root.querySelector<HTMLElement>('#music-input');
+    if (source) source.value = 'C';
+    if (step) {
+      step.value = '1';
+      step.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (input) input.innerHTML = '<div>C |G |</div>';
+    root.querySelector<HTMLInputElement>('input[name=enharmonic-choice][value=Db]')?.click();
+    root.querySelector<HTMLButtonElement>('.transpose-actions button')?.click();
+    expect(root.querySelector<HTMLElement>('#transposition-error')?.hidden).toBe(true);
+    expect(root.querySelector<HTMLElement>('#music-result')?.textContent).toBe('Db |Ab |');
+    expect(root.querySelector<HTMLElement>('#transposition-result')?.hidden).toBe(false);
   });
   it('luo muotoiluja tukevan editorin', () => {
     const root = { innerHTML: '' } as unknown as HTMLElement;

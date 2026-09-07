@@ -6,7 +6,7 @@ export function parseRichText(_html: string): { readonly lines: readonly InputLi
   const lines: { segments: { text: string; bold: boolean; italic: boolean; fontSizePx?: number }[] }[] = [{ segments: [] }];
   type Style = { bold: boolean; italic: boolean; fontSizePx?: number };
   const append = (text: string, style: Style): void => {
-    const pieces = text.split('\n');
+    const pieces = text.replace(/\u00a0/g, ' ').split('\n');
     pieces.forEach((piece, index) => {
       if (index > 0) lines.push({ segments: [] });
       if (!piece) return;

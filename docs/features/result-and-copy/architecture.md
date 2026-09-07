@@ -27,25 +27,25 @@ Vaiheiden 1–6 julkisia rajapintoja ei muuteta eikä tiedostolatausta lisätä.
 - `copyResultToClipboard(presentation: TranspositionPresentation, adapter: ClipboardWriteAdapter): Promise<void>` normalisoi kaikki tukija kirjoitusvirheet viestiksi `Tuloksen kopiointi epäonnistui`.
 - `TranspositionPresentation` sisältää vain `html`, `plainText`, `warnings`.
 
-UI ratkaisee asetukset ennen putkea. `requiresEnharmonicChoice` ei ole valmis asetus. UI omistaa näkyvät tilat, mutta ei musiikkilogiikkaa. Uuden yrityksen alussa kopiointitila tyhjennetään; käsittelyvirhe poistaa vanhan tuloksen atomisesti; kopiointivirhe ei muuta esitystä.
+UI ratkaisee asetukset ennen putkea. `requiresEnharmonicChoice` ei ole valmis asetus. Valittu `input[name=enharmonic-choice]:checked` välitetään `targetTonicChoice`-arvona varsinaisen Transponoi-käsittelijän asetuskutsuun. UI omistaa näkyvät tilat, mutta ei musiikkilogiikkaa. Syöte- ja tulospaneeleista vain aktiivinen näytetään. Aluksi syöte on aktiivinen ja tulosvalinta pois käytöstä; onnistunut ajo aktivoi tuloksen ja vaihtaa siihen. Uuden yrityksen alussa kopiointitila tyhjennetään; käsittelyvirhe poistaa vanhan tuloksen atomisesti, poistaa tulosvalinnan käytöstä ja palauttaa syötepaneelin; kopiointivirhe ei muuta esitystä. Kopioinnin `role=status` ja `Tulos kopioitu` asetetaan vasta `copyResultToClipboard`-promisen onnistuneen ratkeamisen jälkeen.
 
 ## Turvallisuus ja saavutettavuus
 
 Vain `parseRichText` jäsentää käyttäjän HTML:n. Tulos syntyy vain
 `formatMusicResult`-funktiosta, jonka HTML kääritään vakioon ulkokuoreen.
-Varoitus- tai virhetekstiä ei yhdistetä HTML:ään. Tulos on nimetty,
-`aria-readonly`-merkitty textbox. Kopiointitila käyttää onnistumisessa
+Varoitus- tai virhetekstiä ei yhdistetä HTML:ään. Näkymänvalitsimet ovat
+nimettyjä painikkeita, joiden aktiivisuus välitetään `aria-pressed`-attribuutilla.
+Tulos on nimetty, `aria-readonly`-merkitty textbox. Kopiointitila käyttää onnistumisessa
 `role=status` ja virheessä `role=alert`.
 
 ## Responsiivisuus
 
-Työtilan CSS-grid on yli 40rem leveydessä
-`repeat(2,minmax(0,1fr))` ja enintään 40rem leveydessä `minmax(0,1fr)`.
-Piilotettu tulos ei varaa käyttäjälle näkyvää kenttää. Tulos käyttää monospace-
+Työtilan CSS-grid käyttää kaikilla leveyksillä yhtä `minmax(0,1fr)`-saraketta,
+jotta aktiivinen paneeli saa koko käytettävissä olevan leveyden. Sivun enimmäisleveys
+on `80rem`. Piilotettu paneeli ei varaa käyttäjälle näkyvää tilaa. Tulos käyttää monospace-
 fonttia ja `white-space: pre-wrap` -asetusta myös selaimessa.
 
 ## Rollback
 
 Poista uudet kolme moduulia, niiden testit ja uudet tyypit sekä palauta
 `ui.ts`, `ui.test.ts` ja `style.css`. Vaiheiden 1–6 API:t jäävät ennalleen.
-

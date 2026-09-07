@@ -19,3 +19,5 @@ jälkeen pysähdy.
 ## Sallitut toteutustiedostot
 
 Vain speksin Files to Modify -taulukon yksitoista tiedostoa.
+
+- AC39: normalisoi editorin sitovat välilyönnit ASCII-välilyönneiksi.

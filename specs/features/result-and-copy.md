@@ -12,7 +12,7 @@ Lisätään `createTranspositionResult(inputHtml, settings)`, missä settings on
 
 `copyResultToClipboard(presentation, adapter)` käyttää adapterin `write(items)`-metodia. Tuotantoadapteri tekee yhden `navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob(...), "text/plain": new Blob(...) })])` -kutsun. MIME-tyypit vastaavat avaimia. `write`- tai `ClipboardItem`-tuen puuttuessa tai rejectissä toiminto epäonnistuu; `writeText`-fallbackia ei käytetä.
 
-UI lukee `music-input.innerHTML`:n. Tulos on `contenteditable="false"`, `role="textbox"`, `aria-readonly="true"`, nimeltään `Transponoitu tulos`. Se sisältää varoitukset, kopiointipainikkeen ja live-tilan, ei rivinumeroita tai latausta. Yli 40rem näkymässä kentät ovat rinnakkain, enintään 40rem allekkain. Ennen tulosta alue on piilossa ja painike disabled. Uusi yritys tyhjentää kopiointitilan; onnistuminen korvaa tuloksen; käsittelyvirhe tyhjentää ja piilottaa tuloksen sekä näyttää poikkeusviestin. Kopiointivirhe säilyttää tuloksen. `Luonnos` ja `Toiminto tulossa` poistetaan.
+UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöte`- ja `Tulos`-painikkeilla, joista vain aktiivisen näkymän sisältö näytetään koko käytettävissä olevalla leveydellä. Aluksi syöte on aktiivinen ja tulospainike pois käytöstä. Onnistunut transponointi ottaa tulospainikkeen käyttöön ja vaihtaa automaattisesti tulosnäkymään; käyttäjä voi sen jälkeen vaihtaa vapaasti näkymien välillä. Enharmonisen kirjoitusasun radiovalinta välitetään `targetTonicChoice`-arvona asetusten ratkaisuun myös varsinaisessa Transponoi-käsittelijässä. Tulos on `contenteditable="false"`, `role="textbox"`, `aria-readonly="true"`, nimeltään `Transponoitu tulos`. Se sisältää varoitukset, kopiointipainikkeen ja live-tilan, ei rivinumeroita tai latausta. Uusi yritys tyhjentää kopiointitilan; onnistuminen korvaa tuloksen; käsittelyvirhe tyhjentää tuloksen, poistaa tulosvalinnan käytöstä, palauttaa syötenäkymän ja näyttää poikkeusviestin. Kopioinnin onnistumistila näytetään vasta Clipboard-kirjoituksen ratkettua onnistuneesti; odotuksen aikana vanhaa onnistumisviestiä ei näytetä. Kopiointivirhe säilyttää tuloksen. `Luonnos` ja `Toiminto tulossa` poistetaan.
 
 ## Acceptance Criteria
 
@@ -79,24 +79,24 @@ UI lukee `music-input.innerHTML`:n. Tulos on `contenteditable="false"`, `role="t
 ### AC30: Reject muunnetaan
 **Given** write hylkää `NotAllowedError` **When** kopioidaan **Then** virhe on `Tuloksen kopiointi epäonnistui`.
 
-### AC31: Tulos on aluksi piilossa
-**Given** sovellus alustetaan **When** tulosta ei ole **Then** transposition-result.hidden on true, copy-result.disabled true ja tulos-HTML tyhjä.
+### AC31: Syötenäkymä on aluksi aktiivinen
+**Given** sovellus alustetaan ilman tulosta **When** näkymä esitetään **Then** syötepaneeli ei ole piilossa, tulospaneeli on piilossa, `Syöte`-painikkeen `aria-pressed` on `true`, `Tulos`-painikkeen `aria-pressed` on `false`, tulospainike ja copy-result ovat pois käytöstä ja tulos-HTML on tyhjä.
 ### AC32: Tuloskenttä on vain luku
 **Given** onnistunut tulos **When** se näytetään **Then** contenteditable on `false`, role `textbox`, aria-readonly `true`, aria-label `Transponoitu tulos`.
-### AC33: Leveä näkymä on rinnakkainen
-**Given** viewport `41rem` **When** renderöidään **Then** grid-template-columns on `repeat(2,minmax(0,1fr))`.
-### AC34: Mobiili on allekkainen
-**Given** viewport `40rem` **When** renderöidään **Then** grid-template-columns on `minmax(0,1fr)`.
-### AC35: Onnistuminen näyttää tuloksen
-**Given** C-duuri +2 ja `C |G |` **When** painetaan Transponoi **Then** tulos näkyy arvolla `D |A |` ja copy-result.disabled on false.
+### AC33: Näkymävalitsin näyttää vain valitun paneelin
+**Given** valmis tulos ja aktiivinen tulosnäkymä **When** käyttäjä painaa `Syöte` **Then** syötepaneeli ei ole piilossa, tulospaneeli on piilossa ja painikkeiden `aria-pressed`-arvot ovat `true` ja `false`; **When** käyttäjä painaa `Tulos` **Then** näkyvyydet ja arvot vaihtuvat päinvastaisiksi.
+### AC34: Aktiivinen paneeli käyttää koko leveyden
+**Given** syöte- tai tulosnäkymä on aktiivinen **When** työtila renderöidään **Then** `.editor-result-grid` käyttää yhtä saraketta `minmax(0,1fr)` ilman kahden sarakkeen breakpointia ja sivun enimmäisleveys on `80rem`.
+### AC35: Onnistuminen vaihtaa tulosnäkymään
+**Given** C-duuri +2, `C |G |` ja aktiivinen syötenäkymä **When** painetaan Transponoi **Then** tulos näkyy arvolla `D |A |`, syötepaneeli on piilossa, tulospaneeli näkyy, `Tulos` on aktiivinen ja käytössä sekä copy-result.disabled on false.
 ### AC36: Uusi korvaa vanhan
 **Given** vanha `C |G |`, uusi `D |A |` **When** uusi näytetään **Then** näkyy vain `D |A |` ja vain uudet varoitukset.
-### AC37: Käsittelyvirhe tyhjentää tuloksen
-**Given** vanha tulos ja virhe `Valitse lähtösävellaji` **When** virhe käsitellään **Then** tulos piilotetaan ja tyhjennetään, varoitukset ja kopiointitila tyhjennetään, painike disabled ja alert täsmää virheeseen.
+### AC37: Käsittelyvirhe palauttaa syötenäkymän
+**Given** vanha aktiivinen tulos ja virhe `Valitse lähtösävellaji` **When** virhe käsitellään **Then** tulos piilotetaan ja tyhjennetään, syötepaneeli näytetään, varoitukset ja kopiointitila tyhjennetään, tulos- ja kopiointipainikkeet ovat pois käytöstä ja alert täsmää virheeseen.
 ### AC38: Enharmoninen valinta estää ajon
 **Given** C-duuri +1 ilman C#/Db-valintaa **When** painetaan Transponoi **Then** putkea ei kutsuta ja alert on `Valitse kohdesävellajin kirjoitusasu`.
 ### AC39: Kopiointionnistuminen näyttää tilan
-**Given** tulos ja onnistuva write **When** painetaan Kopioi tulos **Then** teksti on `Tulos kopioitu`, role `status`.
+**Given** tulos ja odottava write-promise **When** painetaan Kopioi tulos **Then** kopiointitila on tyhjä ennen promisen ratkeamista; **When** write ratkeaa onnistuneesti **Then** teksti on `Tulos kopioitu` ja role `status`.
 ### AC40: Kopiointivirhe säilyttää tuloksen
 **Given** `C |G |` ja epäonnistuva write **When** kopioidaan **Then** tulos säilyy, painike on käytössä, teksti `Tuloksen kopiointi epäonnistui`, role `alert`.
 ### AC41: Uusi yritys tyhjentää kopiointitilan
@@ -105,31 +105,37 @@ UI lukee `music-input.innerHTML`:n. Tulos on `contenteditable="false"`, `role="t
 **Given** tulos näkyy **When** alue tarkistetaan **Then** siinä on yksi painike `Kopioi tulos`, ei download-attribuuttia eikä rivinumeropalstaa.
 ### AC43: Keskeneräisyystekstit poistetaan
 **Given** sovellus alustetaan **When** UI-teksti luetaan **Then** se ei sisällä `Luonnos` tai `Toiminto tulossa`.
+### AC44: Valittu enharmoninen kirjoitusasu käytetään
+**Given** C-duuri +1, syöte `C |G |` ja käyttäjän valitsema `Db` **When** painetaan Transponoi **Then** asetusten ratkaisu saa `targetTonicChoice: "Db"`, virhettä ei näytetä ja tulosnäkymässä plain text on `Db |Ab |`.
+### AC45: Editorin kohdistusvälit säilyvät säveltransponoinnissa
+**Given** C-duuri +2 ja HTML-syöte `<div>c&nbsp;c&nbsp;&nbsp;g</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `D D  A`.
 
 ## Files to Modify
 | File | Change |
 |---|---|
 | `src/types.ts` | Esitys-, varoitus-, Clipboard-adapteri- ja tulostilatyypit. |
-| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset; AC1–AC10. |
+| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset ja editorivälien integraatio; AC1–AC10, AC45. |
 | `src/logic/createResultPresentation.ts`, `.test.ts` | HTML/plainText/varoitukset; AC11–AC25. |
 | `src/ui/copyResultToClipboard.ts`, `.test.ts` | ClipboardItem/Blob ja virheet; AC26–AC30. |
-| `src/ui/ui.ts`, `.test.ts` | InnerHTML, tulos- ja kopiointitilat; AC31–AC32, AC35–AC43. |
-| `style.css` | Responsiivinen grid; AC33–AC34. |
+| `src/ui/ui.ts`, `.test.ts` | InnerHTML, näkymänvalinta, enharmoninen valinta sekä tulos- ja kopiointitilat; AC31–AC44. |
+| `style.css` | Yhden täysleveän aktiivisen paneelin asettelu ja 80rem enimmäisleveys; AC34. |
 
 ## Risk
 - Putken järjestys voi rikkoa rekisterit/kohdistuksen; integraatiotesti lukitsee järjestyksen.
 - innerHTML on ulkoinen syöte; vain parseRichText jäsentää ja formatMusicResult tuottaa turvallisen HTML:n.
 - Clipboard API voi puuttua tai evätä oikeuden; virhe näytetään.
-- Vanha tulos voisi johtaa väärään kopioon; käsittelyvirhe tyhjentää sen atomisesti.
+- Enharmoninen esikatselu ja varsinainen ajo voivat eriytyä; päästä päähän -testi lukitsee valinnan välittymisen putkeen.
+- Keskeneräinen Clipboard-kirjoitus voi näyttää ennenaikaisen onnistumisen; promise-tilat testataan erikseen.
+- Vanha tai piilotettu tulos voisi johtaa väärään kopioon; käsittelyvirhe tyhjentää sen atomisesti ja poistaa tulosvalinnan käytöstä.
 - Kohdeohjelma voi suosia plain textiä tai vaihtaa fontin.
 - Rollback: poista uudet moduulit ja palauta ui.ts/style.css; vaiheiden 1–6 API:t säilyvät.
 
 ## Testing Strategy (MANDATORY)
-Täsmällinen 43/43-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC41–AC43. Aja `npm run lint`, `npm test`, `git diff --check`.
+Täsmällinen 45/45-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC45. Aja `npm run lint`, `npm test`, `git diff --check`.
 
 ## Spec Readiness checklist
 - [x] Every AC is Given/When/Then with a precise expected value
 - [x] Files to modify are listed with what changes in each
 - [x] Risk and rollback are documented
 - [x] Testing covers every AC plus error and edge cases
-- [x] Every AC has at least one named test case (43/43)
+- [x] Every AC has at least one named test case (45/45)
