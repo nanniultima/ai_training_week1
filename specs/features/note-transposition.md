@@ -285,13 +285,18 @@ palauteta. Muu rivityyppi hylätään virheellä
 **When** kukin sävel yritetään transponoida
 **Then** jokainen kutsu heittää virheen täsmällisellä viestillä `Rekisterin pitää olla kokonaisluku väliltä 1–4`
 
+### AC35: Ylennettyä säveltä seuraava pieni b on itsenäinen B-sävel
+**Given** sävelryhmä on `c#b`
+**When** `parseNoteGroup` jäsentää ryhmän
+**Then** tulos sisältää täsmälleen sävelet `C#` ja `B` tässä järjestyksessä
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `src/types.ts` | Lisää rekisteri-, sävel-, sävelryhmä-, semanttinen riviosa- ja `TransposedNoteLine`-tyypit ilman perittyjä lähdesegmenttejä. |
 | `src/logic/parseNoteGroup.ts` | Lisää pienen b:n, ison B:n, H:n, ylennysten ja yhteen kirjoitettujen sävelten jäsentäminen. |
-| `src/logic/parseNoteGroup.test.ts` | Lisää sävelryhmien onnistumis- ja virhetestit. |
+| `src/logic/parseNoteGroup.test.ts` | Lisää sävelryhmien onnistumis- ja virhetestit, mukaan lukien AC35. |
 | `src/logic/classifyLines.ts` | Korvaa erillinen sävelryhmäregex yhteisen `parseNoteGroup`-kieliopin käytöllä säilyttäen nykyiset luokittelusäännöt. |
 | `src/logic/classifyLines.test.ts` | Aja yhteisen parserin luokittelurajojen regressiot ja täsmennä enharmonisten lähtönimien hyväksyntä. |
 | `src/logic/transposeNote.ts` | Lisää yhden sävelen validointi, H/B-normalisointi, enharmoninen transponointi ja rekisterirajojen käsittely. |
@@ -358,6 +363,7 @@ palauteta. Muu rivityyppi hylätään virheellä
 | `parseNoteGroup` | `AC32 hylkää tyhjän ryhmän` | Tyhjä merkkijono | Jäsennetään | `Sävelryhmä ei saa olla tyhjä` |
 | `parseNoteGroup` | `AC33 hylkää virheellisen ryhmän` | C## ja J | Jäsennetään | Syötteen sisältävä täsmällinen virhe |
 | `transposeNote` | `AC34 hylkää virheellisen rekisterin` | 0, 5 ja 1.5 | Transponoidaan | Jokaisesta rekisterivälin täsmällinen virhe |
+| `parseNoteGroup` | `AC35 tulkitsee ylennyksen jälkeisen pienen b:n B-säveleksi` | `c#b` | Jäsennetään | `C#`, `B` |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

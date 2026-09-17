@@ -177,13 +177,23 @@ Editorin ulkopuolinen, ei-muokattava rivinumeropalsta numeroi vain LF-rivinvaihd
 **When** `classifyLines` luokittelee rivin
 **Then** rivin tyyppi on `note`, sisältö säilyy täsmälleen ja `warnings` on `[]`
 
+### AC26: Sävelrivin ympäröivät ASCII-välit eivät muuta luokkaa
+**Given** ainoan rivin sisältö on vuorollaan `c# ` ja ` c#`
+**When** `classifyLines` luokittelee kummankin rivin
+**Then** kummankin rivin tyyppi on `note`, alkuperäinen sisältö välilyönteineen säilyy täsmälleen ja `warnings` on `[]`
+
+### AC27: Ylennyksen jälkeinen B-sävel hyväksytään ryhmässä
+**Given** ainoan rivin sisältö on `g# c#b a`
+**When** `classifyLines` luokittelee rivin
+**Then** rivin tyyppi on `note`, sisältö säilyy täsmälleen ja `warnings` on `[]`
+
 ## Files to Modify
 
 | File | Change |
 |---|---|
 | `src/types.ts` | Lisää luokittelun julkiset tyypit. |
 | `src/logic/classifyLines.ts` | Lisää luokittelu, kielioppi, varoitus ja validointi. |
-| `src/logic/classifyLines.test.ts` | Lisää AC1–AC18:n ja AC25:n testit. |
+| `src/logic/classifyLines.test.ts` | Lisää AC1–AC18:n ja AC25–AC27:n testit. |
 | `src/ui/lineNumbers.ts` | Lisää LF-numerointi ja indeksimuunnos. |
 | `src/ui/lineNumbers.test.ts` | Lisää AC19–AC21:n testit. |
 | `src/ui/ui.ts` | Liitä palsta ja synkronoi vieritys. |
@@ -195,6 +205,7 @@ Editorin ulkopuolinen, ei-muokattava rivinumeropalsta numeroi vain LF-rivinvaihd
 - What could break: sanat voivat muistuttaa sävelryhmiä; kokonaisen tokenin sääntö ja `cafe`-testi rajaavat väärät varoitukset.
 - What could break: väljä viivasääntö voisi tulkita tavutettuja sanoja säveliksi; vain `sävelryhmä ␠-␠ sävelryhmä` hyväksytään.
 - What could break: segmenttien normalisointi voisi hävittää myöhemmän rekisteritiedon; rakenne testataan.
+- What could break: ympäröivien välien poistaminen itse sisällöstä rikkoisi kohdistuksen; vain kieliopin tarkistus käyttää rajattua näkymää ja palautettu sisältö säilyy ennallaan.
 - What could break: UI-muutos voi rikkoa nykyiset asetukset; nykyiset UI-testit ajetaan regressiotesteinä.
 - Rollback: poista uudet moduulit, tyypit, testit, UI-liitäntä ja tyylit yhtenä ominaisuusmuutoksena.
 
@@ -227,6 +238,8 @@ Editorin ulkopuolinen, ei-muokattava rivinumeropalsta numeroi vain LF-rivinvaihd
 | `initializeUi` | `AC23 synkronoi pystysuuntaisen vierityksen` | scrollTop 120 | Scroll | 120 |
 | `initializeUi` | `AC24 pitää numerot poissa editorin sisällöstä` | Kaksi riviä | Luetaan | Alkuperäinen sisältö |
 | `classifyLines` | `AC25 hyväksyy useat kohdistusvälit sävelrivillä` | `c c  a a a   gB g  g  c d   c` | Luokitellaan | Note, sisältö ennallaan, [] |
+| `classifyLines` | `AC26 hyväksyy sävelrivin ympäröivät ASCII-välit` | `c# ` ja ` c#` | Luokitellaan | Molemmat note, sisältö ennallaan, [] |
+| `classifyLines` | `AC27 hyväksyy ylennyksen jälkeisen B-sävelen ryhmässä` | `g# c#b a` | Luokitellaan | Note, sisältö ennallaan, [] |
 
 ## Spec Readiness checklist (run before calling the spec done)
 

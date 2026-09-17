@@ -29,9 +29,11 @@
 | [ ] | AC23 | `ui.test.ts` — `AC23 synkronoi pystysuuntaisen vierityksen` |
 | [ ] | AC24 | `ui.test.ts` — `AC24 pitää numerot poissa editorin sisällöstä` |
 | [ ] | AC25 | `classifyLines.test.ts` — `AC25 hyväksyy useat kohdistusvälit sävelrivillä` |
+| [ ] | AC26 | `classifyLines.test.ts` — `AC26 hyväksyy sävelrivin ympäröivät ASCII-välit` |
+| [ ] | AC27 | `classifyLines.test.ts` — `AC27 hyväksyy ylennyksen jälkeisen B-sävelen ryhmässä` |
 
 ## Virhe- ja reunatapaukset
 
 Testit kattavat tyhjän ja musiikittoman syötteen eri virheet, tyhjät ja muotoillut segmentit, putken etusijan, xN-rajat, viivan kaikki rajat, etumerkkirajat, useat kohdistusvälit, `cafe`-sanan, epäselvyysvaroituksen, sarkaimen, validoimattoman fonttikoon sekä UI:n DOM-omistajuuden ja vierityksen. Visuaalista layoutia ei väitetä Happy DOM -testillä todistetuksi.
 
-AC1–AC18 ja AC25 ajetaan ilman DOM:ia, AC19–AC21 puhtaina yksikkötesteinä ja AC22–AC24 Happy DOM:ssa. Kaikki testit ja tyyppitarkistus ajetaan jokaisen GREEN-vaiheen jälkeen.
+AC1–AC18 ja AC25–AC27 ajetaan ilman DOM:ia, AC19–AC21 puhtaina yksikkötesteinä ja AC22–AC24 Happy DOM:ssa. Kaikki testit ja tyyppitarkistus ajetaan jokaisen GREEN-vaiheen jälkeen.

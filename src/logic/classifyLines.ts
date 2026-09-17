@@ -7,9 +7,13 @@ function isNoteGroup(token: string): boolean {
   try { parseNoteGroup(token); return true; } catch { return false; }
 }
 
+function noteTokens(content: string): readonly string[] {
+  return content.replace(/^ +| +$/g, '').split(/ +/);
+}
+
 function isNoteLine(content: string): boolean {
-  if (content === 'cafe') return false;
-  const tokens = content.split(/ +/);
+  if (content.replace(/^ +| +$/g, '') === 'cafe') return false;
+  const tokens = noteTokens(content);
   return tokens.some(isNoteGroup)
     && tokens.every((token, index) => {
       if (isNoteGroup(token) || REPEAT.test(token)) return true;
@@ -43,7 +47,7 @@ export function classifyLines(lines: readonly InputLine[]): ClassificationResult
   return {
     lines: classifiedLines,
     warnings: classifiedLines.flatMap((line) => {
-      const tokens = line.content.split(/ +/);
+      const tokens = noteTokens(line.content);
       const hasNote = tokens.some(isNoteGroup);
       const hasOther = tokens.some((token) => !isNoteGroup(token));
       return line.type === 'text' && hasNote && hasOther

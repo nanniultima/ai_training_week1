@@ -29,10 +29,12 @@ Jokainen kohta tehdään omana RED–GREEN–REFACTOR-syklinään. Varmista oike
 - [ ] AC23: vierityssynkronointi.
 - [ ] AC24: numerot editorin sisällön ulkopuolella.
 - [ ] AC25: useat kohdistusvälit sävelrivillä.
+- [ ] AC26: sävelrivin ympäröivät ASCII-välit.
+- [ ] AC27: ylennyksen jälkeinen B-sävel sävelryhmässä.
 
 ## Valmistumisen tarkistus
 
-- [ ] AC1–AC25 ja nimetyt testit läpäisevät.
+- [ ] AC1–AC27 ja nimetyt testit läpäisevät.
 - [ ] `npm run lint`, `npm test` ja `git diff --check` läpäisevät.
 - [ ] Diffi pysyy Files to Modify -rajauksessa.
 - [ ] Review yhdistää muutokset AC:ihin ja päättyy verdictiin.

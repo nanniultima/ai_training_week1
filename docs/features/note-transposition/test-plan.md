@@ -22,6 +22,7 @@ Jokaisen GREEN-vaiheen jälkeen ajetaan kaikki testit.
 | AC31 | `AC31 enharmoniset lähtönimet` | `transposeNote.test.ts` |
 | AC32–AC33 | `AC32 tyhjä ryhmä`, `AC33 virheellinen ryhmä` | `parseNoteGroup.test.ts` |
 | AC34 | `AC34 virheellinen rekisteri` | `transposeNote.test.ts` |
+| AC35 | `AC35 ylennyksen jälkeinen pieni b` | `parseNoteGroup.test.ts` |
 
 ## Raja- ja virhekattavuus
 

@@ -109,12 +109,16 @@ UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöt
 **Given** C-duuri +1, syöte `C |G |` ja käyttäjän valitsema `Db` **When** painetaan Transponoi **Then** asetusten ratkaisu saa `targetTonicChoice: "Db"`, virhettä ei näytetä ja tulosnäkymässä plain text on `Db |Ab |`.
 ### AC45: Editorin kohdistusvälit säilyvät säveltransponoinnissa
 **Given** C-duuri +2 ja HTML-syöte `<div>c&nbsp;c&nbsp;&nbsp;g</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `D D  A`.
+### AC46: Sävelrivin ympäröivät välit säilyvät tuloksessa
+**Given** C-duuri +2 ja HTML-syöte `<div>&nbsp;c#&nbsp;</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen ` D# ` eikä epäselvän sävelrivin varoitusta muodostu.
+### AC47: Ylennetyn sävelen jälkeinen B transponoidaan samassa ryhmässä
+**Given** C-duuri +2 ja HTML-syöte `<div>g# c#b a</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `A# D#C# B` eikä epäselvän sävelrivin varoitusta muodostu.
 
 ## Files to Modify
 | File | Change |
 |---|---|
 | `src/types.ts` | Esitys-, varoitus-, Clipboard-adapteri- ja tulostilatyypit. |
-| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset ja editorivälien integraatio; AC1–AC10, AC45. |
+| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset ja editorivälien integraatio; AC1–AC10, AC45–AC47. |
 | `src/logic/createResultPresentation.ts`, `.test.ts` | HTML/plainText/varoitukset; AC11–AC25. |
 | `src/ui/copyResultToClipboard.ts`, `.test.ts` | ClipboardItem/Blob ja virheet; AC26–AC30. |
 | `src/ui/ui.ts`, `.test.ts` | InnerHTML, näkymänvalinta, enharmoninen valinta sekä tulos- ja kopiointitilat; AC31–AC44. |
@@ -131,11 +135,11 @@ UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöt
 - Rollback: poista uudet moduulit ja palauta ui.ts/style.css; vaiheiden 1–6 API:t säilyvät.
 
 ## Testing Strategy (MANDATORY)
-Täsmällinen 45/45-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC45. Aja `npm run lint`, `npm test`, `git diff --check`.
+Täsmällinen 47/47-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC47. Aja `npm run lint`, `npm test`, `git diff --check`.
 
 ## Spec Readiness checklist
 - [x] Every AC is Given/When/Then with a precise expected value
 - [x] Files to modify are listed with what changes in each
 - [x] Risk and rollback are documented
 - [x] Testing covers every AC plus error and edge cases
-- [x] Every AC has at least one named test case (45/45)
+- [x] Every AC has at least one named test case (47/47)

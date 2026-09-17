@@ -20,4 +20,7 @@ describe('parseNoteGroup', () => {
     expect(() => parseNoteGroup('C##')).toThrow('Virheellinen sävelryhmä: C##');
     expect(() => parseNoteGroup('J')).toThrow('Virheellinen sävelryhmä: J');
   });
+  it('AC35 ylennyksen jälkeinen pieni b', () => {
+    expect(parseNoteGroup('c#b')).toEqual(['C#', 'B']);
+  });
 });

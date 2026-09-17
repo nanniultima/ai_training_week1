@@ -11,7 +11,10 @@ export function parseNoteGroup(group: string): readonly string[] {
     const next = group[index + 1];
     const accidental = next === '#' || next === 'b' ? next : '';
     const following = group[index + 2];
-    if (accidental !== '' && (following === '#' || following === 'b')) {
+    if (
+      accidental !== ''
+      && (following === '#' || (accidental === 'b' && following === 'b'))
+    ) {
       throw new Error(`Virheellinen sävelryhmä: ${group}`);
     }
     notes.push(`${normalizedLetter}${accidental}`);

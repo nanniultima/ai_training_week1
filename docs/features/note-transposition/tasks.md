@@ -10,9 +10,10 @@
 - [ ] AC23–AC27: nykyiset virhe- ja rajatapaukset.
 - [ ] AC28–AC31: segmenttirekisterit, yhdysmerkki ja enharmoniset lähtönimet.
 - [ ] AC32–AC34: parserin ja rekisterin validointi.
+- [ ] AC35: ylennettyä säveltä seuraava pieni b tulkitaan B-säveleksi.
 - [ ] Lisää tulostyypin tyyppitesti.
 - [ ] Aja lint, kaikki testit ja `git diff --check`.
-- [ ] Vertaa diffiä AC1–AC34:ään review-työnkululla.
+- [ ] Vertaa diffiä AC1–AC35:een review-työnkululla.
 - [ ] Merkitse speksi `Done` vasta kaikkien tarkistusten jälkeen.
 
 Jokaisessa kohdassa kirjoita vain kyseisen AC:n epäonnistuva testi, varmista

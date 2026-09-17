@@ -111,4 +111,24 @@ describe('createTranspositionResult', () => {
       cMajorUpTwo,
     ).plainText).toBe('D D  A');
   });
+
+  it('AC46: säilyttää sävelrivin ympäröivät välit ilman epäselvyysvaroitusta', () => {
+    const result = createTranspositionResult(
+      '<div>&nbsp;c#&nbsp;</div>',
+      cMajorUpTwo,
+    );
+
+    expect(result.plainText).toBe(' D# ');
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('AC47: transponoi ylennyksen jälkeisen B-sävelen samassa ryhmässä', () => {
+    const result = createTranspositionResult(
+      '<div>g# c#b a</div>',
+      cMajorUpTwo,
+    );
+
+    expect(result.plainText).toBe('A# D#C# B');
+    expect(result.warnings).toEqual([]);
+  });
 });

@@ -185,4 +185,24 @@ describe("classifyLines", () => {
     expect(result.lines[0]?.content).toBe(content);
     expect(result.warnings).toEqual([]);
   });
+
+  it.each(["c# ", " c#"])(
+    "AC26 hyväksyy sävelrivin ympäröivät ASCII-välit: %j",
+    (content) => {
+      const result = classifyLines([line(content)]);
+
+      expect(result.lines[0]?.type).toBe("note");
+      expect(result.lines[0]?.content).toBe(content);
+      expect(result.warnings).toEqual([]);
+    },
+  );
+
+  it("AC27 hyväksyy ylennyksen jälkeisen B-sävelen ryhmässä", () => {
+    const content = "g# c#b a";
+    const result = classifyLines([line(content)]);
+
+    expect(result.lines[0]?.type).toBe("note");
+    expect(result.lines[0]?.content).toBe(content);
+    expect(result.warnings).toEqual([]);
+  });
 });
