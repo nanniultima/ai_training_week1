@@ -63,8 +63,10 @@ export function calculateAlignedColumns(group: AlignedLineGroup, anchors = colle
       if (!token) continue;
       delta = Math.max(delta, [...token.text].length - (token.sourceRange.end - token.sourceRange.start));
       const next = line.find(part => part.sourceRange.start === anchors[i]!);
-      const gap = next ? next.sourceRange.start - token.sourceRange.end : 0;
-      collision = Math.max(collision, columns[i - 1]! + [...token.text].length + gap);
+      if (next) {
+        const gap = next.sourceRange.start - token.sourceRange.end;
+        collision = Math.max(collision, columns[i - 1]! + [...token.text].length + gap);
+      }
     }
     const shifted = anchors[i]! + (delta === Number.NEGATIVE_INFINITY ? 0 : delta) + (columns[i - 1]! - previous);
     columns.push(Math.max(shifted, collision));

@@ -131,4 +131,26 @@ describe('createTranspositionResult', () => {
     expect(result.plainText).toBe('A# D#C# B');
     expect(result.warnings).toEqual([]);
   });
+
+  it('AC50: säilyttää luonnollisen sanavälin koko transponointiputkessa', () => {
+    const result = createTranspositionResult(
+      '<div>|A              ,Bm/D# |  </div>'
+        + '<div>c#               e d# d</div>'
+        + '<div>se iskee sieluun syvimpään</div>',
+      {
+        status: 'ready',
+        mode: 'major',
+        sourceTonic: 'A',
+        targetTonic: 'C',
+        step: 3,
+      },
+    );
+
+    expect(result.plainText).toBe(
+      '|C              ,Dm/F# |  \n'
+        + 'E                G F# F\n'
+        + 'se iskee sieluun syvimpään',
+    );
+    expect(result.warnings).toEqual([]);
+  });
 });

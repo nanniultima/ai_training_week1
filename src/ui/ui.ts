@@ -36,49 +36,7 @@ export function initializeUi(root: HTMLElement | null): void {
         </div>
       </div>
 
-      <div class="view-switcher" aria-label="Valitse näytettävä näkymä">
-        <button id="show-input" type="button" aria-pressed="true">Syöte</button>
-        <button id="show-result" type="button" aria-pressed="false" disabled>Tulos</button>
-      </div>
-
-      <div class="editor-result-grid">
-      <div id="input-editor-pane" class="input-editor-pane">
-      <div class="editor-with-line-numbers">
-        <div id="line-number-gutter" class="line-number-gutter" aria-hidden="true"></div>
-        <div
-          id="music-input"
-          class="rich-editor"
-          contenteditable="true"
-          role="textbox"
-          aria-label="Tahdistetut soinnut, sävelet ja laulun sanat"
-          aria-multiline="true"
-          data-placeholder="| C | Am | F | G |&#10;Laulun sanat omalle rivilleen"
-          spellcheck="true"
-        ></div>
-      </div>
-
-      <p class="editor-help">
-        Voit käyttää editorissa esimerkiksi näppäinyhdistelmiä
-        <kbd>Ctrl</kbd> + <kbd>B</kbd> ja <kbd>Ctrl</kbd> + <kbd>I</kbd>.
-      </p>
-      </div>
-
-      <section id="transposition-result" hidden>
-        <h2>Transponoitu tulos</h2>
-        <div
-          id="music-result"
-          class="rich-editor result-editor"
-          contenteditable="false"
-          role="textbox"
-          aria-readonly="true"
-          aria-label="Transponoitu tulos"
-        ></div>
-        <div id="result-warnings"></div>
-        <button id="copy-result" type="button" disabled>Kopioi tulos</button>
-        <p id="copy-status" aria-live="polite"></p>
-      </section>
-      </div>
-
+      <div class="workspace-layout">
       <section class="transposition-panel" aria-labelledby="transposition-title">
         <div class="panel-heading">
           <div>
@@ -129,6 +87,52 @@ export function initializeUi(root: HTMLElement | null): void {
           <button type="button" disabled>Transponoi</button>
         </div>
       </section>
+
+      <div class="workspace-content">
+      <div class="view-switcher" aria-label="Valitse näytettävä näkymä">
+        <button id="show-input" type="button" aria-pressed="true">Syöte</button>
+        <button id="show-result" type="button" aria-pressed="false" disabled>Tulos</button>
+      </div>
+
+      <div class="editor-result-grid">
+      <div id="input-editor-pane" class="input-editor-pane">
+      <div class="editor-with-line-numbers">
+        <div id="line-number-gutter" class="line-number-gutter" aria-hidden="true"></div>
+        <div
+          id="music-input"
+          class="rich-editor"
+          contenteditable="true"
+          role="textbox"
+          aria-label="Tahdistetut soinnut, sävelet ja laulun sanat"
+          aria-multiline="true"
+          data-placeholder="| C | Am | F | G |&#10;Laulun sanat omalle rivilleen"
+          spellcheck="true"
+        ></div>
+      </div>
+
+      <p class="editor-help">
+        Voit käyttää editorissa esimerkiksi näppäinyhdistelmiä
+        <kbd>Ctrl</kbd> + <kbd>B</kbd> ja <kbd>Ctrl</kbd> + <kbd>I</kbd>.
+      </p>
+      </div>
+
+      <section id="transposition-result" hidden>
+        <h2>Transponoitu tulos</h2>
+        <div
+          id="music-result"
+          class="rich-editor result-editor"
+          contenteditable="false"
+          role="textbox"
+          aria-readonly="true"
+          aria-label="Transponoitu tulos"
+        ></div>
+        <div id="result-warnings"></div>
+        <button id="copy-result" type="button" disabled>Kopioi tulos</button>
+        <p id="copy-status" aria-live="polite"></p>
+      </section>
+      </div>
+      </div>
+      </div>
     </section>
 
     <section class="chord-tool" aria-labelledby="chord-tool-title">

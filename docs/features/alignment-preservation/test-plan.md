@@ -2,11 +2,11 @@
 
 ## Traceability
 
-Speksissä on täsmälleen 43 AC:tä. Speksin Testing Strategy -taulukko nimeää
-vähintään yhden testin jokaiselle ja on normatiivinen 43/43-matriisi.
+Speksissä on täsmälleen 44 AC:tä. Speksin Testing Strategy -taulukko nimeää
+vähintään yhden testin jokaiselle ja on normatiivinen 44/44-matriisi.
 
 - AC1, AC24–AC27, AC30–AC34, AC36 ja AC38: `groupAlignedLines.test.ts`
-- AC2–AC23, AC28 ja AC38–AC43: `alignLineGroup.test.ts`
+- AC2–AC23, AC28 ja AC38–AC44: `alignLineGroup.test.ts`
 - AC29: `groupAlignedLines.test.ts` kattaa text-only- ja empty-only-syötteet
 - AC35: chord- ja note-transponoinnin lähdealue- ja tyyppitestit
 - AC37 ja AC43: `alignment.types.test.ts`, `alignLineGroup.test.ts` ja `formatMusicResult.test.ts`
@@ -40,6 +40,8 @@ neljän julkisen funktion rajauksen. AC39–AC42 lukitsevat paljaiden ja
 yhdistettyjen pipe/chord-yksiköiden täsmälliset alueet. AC43 tarkistaa kaikki
 ankkuritokenilajit yhdellä immutabiliteetti- ja pakollisuustestillä sekä
 aligned-tilan täsmällisen puuttuvan alueen virheen.
+AC44 lukitsee pilkun, luonnollisen sanavälin ja myöhemmät sävelankkurit sekä
+estää eri musiikkirivien tokenien välisen valetörmäyksen.
 
 ## Execution
 

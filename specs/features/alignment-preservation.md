@@ -47,7 +47,9 @@ välijaksoon ja yhdysmerkki sanan sisään; lyhyt teksti täytetään lisäyskoh
 Viiva lisätään vain ankkurirajalle, jota edeltää tekstimerkki, ja se perii
 edeltävän merkin koko muotoilun. Ensimmäinen ankkuri säilyy, joten kohdistus ei
 lisää viivaa tekstirivin alkuun.
-Lyheneminen saa poistaa vain siirtyvän ankkurirajan kohdistusviivan. Sarkain
+Lyheneminen saa poistaa vain siirtyvän ankkurirajan kohdistusviivan. Tokenien
+törmäysraja lasketaan vain saman musiikkirivin peräkkäisille ankkuritokeneille;
+eri riviltä puuttuva seuraava token ei saa siirtää yhteistä ankkuria. Sarkain
 kielletään koko syötteestä, myös itsenäisiltä text-riveiltä.
 Validointijärjestys on sarkain, chord/note-tulosvastaavuus,
 chord/note-lähdealueet ja vasta sitten ryhmittely sekä kohdistus. Text-only- ja
@@ -364,6 +366,11 @@ noteGroup-tokenilla on kohdistettua sisältösijaintia vastaava pakollinen
 aloitusta, ja aligned-tilan kutsu ilman yhdenkin ankkuritokenin `alignedRange`-
 kenttää heittää virheen `Kohdistettavalta tokenilta puuttuu kohdistettu sijainti`
 
+### AC44: Eri rivien tokenit eivät aiheuta valetörmäystä
+**Given** sointurivi `|A              ,Bm/D# |  `, sävelrivi `c#               e d# d`, tekstirivi `se iskee sieluun syvimpään` ja niiden `+3`-tulokset
+**When** riviryhmä kohdistetaan
+**Then** sisältörivit ovat täsmälleen `|C              ,Dm/F# |  `, `E                G F# F` ja `se iskee sieluun syvimpään`, pilkku säilyy, `G` alkaa sarakkeesta `17`, `F#` sarakkeesta `19` eikä tekstiin lisätä yhdysmerkkejä
+
 ## Files to Modify
 
 | File | Change |
@@ -373,7 +380,7 @@ kenttää heittää virheen `Kohdistettavalta tokenilta puuttuu kohdistettu sija
 | `src/logic/transposeNoteLine.ts`, `.test.ts`, `.types.test.ts` | NoteGroup-lähdeteksti ja -alueet. |
 | `src/logic/formatMusicResult.ts`, `.test.ts` | Kohdistetun semanttisen mallin muotoilu. |
 | `src/logic/groupAlignedLines.ts`, `.test.ts` | Yhdistäminen, validointi ja ryhmittely. |
-| `src/logic/alignLineGroup.ts`, `.test.ts` | Source/aligned-koordinaateista johdetut kohdistusyksiköt, tokeneita muuttamaton lähdeyksiköiden sarakelaskenta, sisältökohdistus ja pakolliset näkyvien tokenien `alignedRange`-alueet. |
+| `src/logic/alignLineGroup.ts`, `.test.ts` | Source/aligned-koordinaateista johdetut kohdistusyksiköt, rivikohtainen törmäyslaskenta, tokeneita muuttamaton lähdeyksiköiden sarakelaskenta, sisältökohdistus ja pakolliset näkyvien tokenien `alignedRange`-alueet. |
 | `src/logic/alignment.types.test.ts` | Julkinen API, kaksialueinen malli ja formatteriyhteensopiva tulostyyppi. |
 
 ## Risk
@@ -385,6 +392,7 @@ kenttää heittää virheen `Kohdistettavalta tokenilta puuttuu kohdistettu sija
   koordinaattitilallinen yksikköjohdanto ja AC3, AC5 sekä AC39–AC43 estävät sen.
 - Speksien 3–5 tulostyypit muuttuvat; koko regressiosarja ajetaan.
 - Luonnollinen viiva voi poistua väärin; poisto rajataan AC19–AC20:een.
+- Eri rivien tokenit voivat aiheuttaa valetörmäyksen; AC44 vaatii seuraavan tokenin samalta riviltä ennen törmäysrajan soveltamista.
 - Vanha osittainen koodi voi näyttää vihreältä väärällä testillä; AC1–AC22:n
   jälkeen TDD jatkuu uudesta AC23:sta.
 - Rollback: poista kohdistusmoduulit ja palauta speksien 3–5 tyyppi-, alue- ja formatterimuutokset speksi 5:n valmistuneeseen committiin.
@@ -438,8 +446,9 @@ Jokaiselle AC:lle kirjoitetaan vähintään yksi testi nimellä `ACn: <nimi>`.
 | AC41 | `AC41: pitää itsenäisen pipen omana ankkurina` | `alignLineGroup.test.ts` |
 | AC42 | `AC42: erottaa peräkkäiset pipet` | `alignLineGroup.test.ts` |
 | AC43 | `AC43: säilyttää lähdealueet ja lisää kaikki tulosalueet` | `alignLineGroup.test.ts`, `alignment.types.test.ts` |
+| AC44 | `AC44: estää eri rivien tokenien valetörmäyksen` | `alignLineGroup.test.ts` |
 
-Virheet: AC30–AC34, AC36. Reunat: AC8, AC13–AC24, AC26–AC29, AC35, AC38–AC43.
+Virheet: AC30–AC34, AC36. Reunat: AC8, AC13–AC24, AC26–AC29, AC35, AC38–AC44.
 Lopuksi ajetaan `npm run lint`, `npm test` ja `git diff --check`.
 Osittaisen TDD-ajon AC1–AC22 ovat valmiit. TDD jatkuu uudesta AC23:sta.
 Vanhat placeholder-testit korvataan vasta niitä vastaavan uuden AC:n RED-

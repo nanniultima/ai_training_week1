@@ -366,4 +366,51 @@ describe('alignLineGroup', () => {
     const missing = { chord: { ...aligned.chord, tokens: aligned.chord.tokens?.map((token, index) => index === 0 ? { ...token, alignedRange: undefined } : token) } };
     expect(() => collectAlignmentAnchors(missing, 'aligned')).toThrow('Kohdistettavalta tokenilta puuttuu kohdistettu sijainti');
   });
+
+  it('AC44: estää eri rivien tokenien valetörmäyksen', () => {
+    const candidate: AlignedLineGroup = {
+      chord: {
+        index: 0,
+        type: 'chord',
+        content: '|C              ,Dm/F# |  ',
+        segments: [],
+        warnings: [],
+        tokens: [
+          { type: 'pipe', text: '|', sourceRange: { start: 0, end: 1 } },
+          { type: 'chord', text: 'C', sourceRange: { start: 1, end: 2 } },
+          { type: 'text', text: ',', sourceRange: { start: 16, end: 17 } },
+          { type: 'chord', text: 'Dm/F#', sourceRange: { start: 17, end: 22 } },
+          { type: 'pipe', text: '|', sourceRange: { start: 23, end: 24 } },
+        ],
+      },
+      note: {
+        index: 1,
+        type: 'note',
+        content: 'E               G F# F',
+        parts: [
+          { type: 'noteGroup', notes: [{ name: 'E', register: 3 }], sourceText: 'c#', sourceRange: { start: 0, end: 2 } },
+          { type: 'noteGroup', notes: [{ name: 'G', register: 3 }], sourceText: 'e', sourceRange: { start: 17, end: 18 } },
+          { type: 'noteGroup', notes: [{ name: 'F#', register: 3 }], sourceText: 'd#', sourceRange: { start: 19, end: 21 } },
+          { type: 'noteGroup', notes: [{ name: 'F', register: 3 }], sourceText: 'd', sourceRange: { start: 22, end: 23 } },
+        ],
+      },
+      text: {
+        index: 2,
+        type: 'text',
+        content: 'se iskee sieluun syvimpään',
+        segments: [{ text: 'se iskee sieluun syvimpään', bold: false, italic: false }],
+      },
+    };
+
+    const result = alignLineGroup(candidate);
+
+    expect(result.map((line) => line.content)).toEqual([
+      '|C              ,Dm/F# |  ',
+      'E                G F# F',
+      'se iskee sieluun syvimpään',
+    ]);
+    expect((result[1] as TransposedNoteLine).parts
+      .filter((part) => part.type === 'noteGroup')
+      .map((part) => part.alignedRange?.start)).toEqual([0, 17, 19, 22]);
+  });
 });

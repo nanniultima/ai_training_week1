@@ -22,10 +22,11 @@
 10. AC43: todista lähdealueiden immutabiliteetti, kaikkien näkyvien
    ankkuritokenien `alignedRange`-kentän pakollisuus, johdettujen yksiköiden
    erillisyys tokenialueista ja aligned-tilan täsmällinen puuttuvan alueen virhe.
-11. Korvaa vanhat testit vain uuden vastaavan AC:n RED-vaiheessa; korvaa vanhat
+11. AC44: laske törmäys vain saman rivin peräkkäisille ankkuritokeneille ja estä eri rivien valetörmäys.
+12. Korvaa vanhat testit vain uuden vastaavan AC:n RED-vaiheessa; korvaa vanhat
    AC47/AC48-tyyppiplaceholderit uuden AC37:n RED-vaiheessa ja säilytä koodi
    vain uuden testin todistamana.
-12. Aja lint, kaikki testit ja diff-tarkistus; tee AC-kohtainen review.
-13. Muuta `In Progress → Done` vasta 43/43 AC:n ja lopputarkistusten jälkeen.
+13. Aja lint, kaikki testit ja diff-tarkistus; tee AC-kohtainen review.
+14. Muuta `In Progress → Done` vasta 44/44 AC:n ja lopputarkistusten jälkeen.
 
 Älä muuta UI:ta, tuota HTML:ää kohdistuslogiikassa tai toteuta speksiä 7.

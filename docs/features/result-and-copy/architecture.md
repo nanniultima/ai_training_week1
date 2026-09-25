@@ -40,10 +40,15 @@ Tulos on nimetty, `aria-readonly`-merkitty textbox. Kopiointitila käyttää onn
 
 ## Responsiivisuus
 
-Työtilan CSS-grid käyttää kaikilla leveyksillä yhtä `minmax(0,1fr)`-saraketta,
-jotta aktiivinen paneeli saa koko käytettävissä olevan leveyden. Sivun enimmäisleveys
-on `80rem`. Piilotettu paneeli ei varaa käyttäjälle näkyvää tilaa. Tulos käyttää monospace-
-fonttia ja `white-space: pre-wrap` -asetusta myös selaimessa.
+Työtilan ulompi `.workspace-layout`-grid käyttää yli `64rem` leveällä näytöllä
+sarakkeita `minmax(18rem, 0.75fr) minmax(0, 2fr)`. Transponointiasetukset ovat
+ensimmäisessä sarakkeessa ja `.workspace-content` toisessa; sisältöalue omistaa
+Syöte/Tulos-valitsimen ja nykyisen yhden sarakkeen `.editor-result-grid`-alueen.
+Asetukset eivät katoa näkymää vaihdettaessa. Enintään `64rem` leveydellä ulompi
+grid muuttuu sarakkeeksi `minmax(0, 1fr)`, jolloin DOM-järjestys sijoittaa asetukset
+ennen valitsinta ja aktiivista paneelia. Sivun enimmäisleveys on `80rem`.
+Piilotettu paneeli ei varaa käyttäjälle näkyvää tilaa. Tulos käyttää monospace-fonttia
+ja `white-space: pre-wrap` -asetusta myös selaimessa.
 
 ## Rollback
 

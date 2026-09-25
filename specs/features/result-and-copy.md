@@ -14,6 +14,8 @@ Lisätään `createTranspositionResult(inputHtml, settings)`, missä settings on
 
 UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöte`- ja `Tulos`-painikkeilla, joista vain aktiivisen näkymän sisältö näytetään koko käytettävissä olevalla leveydellä. Aluksi syöte on aktiivinen ja tulospainike pois käytöstä. Onnistunut transponointi ottaa tulospainikkeen käyttöön ja vaihtaa automaattisesti tulosnäkymään; käyttäjä voi sen jälkeen vaihtaa vapaasti näkymien välillä. Enharmonisen kirjoitusasun radiovalinta välitetään `targetTonicChoice`-arvona asetusten ratkaisuun myös varsinaisessa Transponoi-käsittelijässä. Tulos on `contenteditable="false"`, `role="textbox"`, `aria-readonly="true"`, nimeltään `Transponoitu tulos`. Se sisältää varoitukset, kopiointipainikkeen ja live-tilan, ei rivinumeroita tai latausta. Uusi yritys tyhjentää kopiointitilan; onnistuminen korvaa tuloksen; käsittelyvirhe tyhjentää tuloksen, poistaa tulosvalinnan käytöstä, palauttaa syötenäkymän ja näyttää poikkeusviestin. Kopioinnin onnistumistila näytetään vasta Clipboard-kirjoituksen ratkettua onnistuneesti; odotuksen aikana vanhaa onnistumisviestiä ei näytetä. Kopiointivirhe säilyttää tuloksen. `Luonnos` ja `Toiminto tulossa` poistetaan.
 
+Työtilan sisältö jaetaan leveällä näytöllä kahteen palstaan: transponointiasetukset ovat vasemmalla ja Syöte/Tulos-valitsin sekä aktiivinen sisältöpaneeli oikealla. Asetuspalsta pysyy näkyvissä näkymän vaihtuessa. Enintään `64rem` leveällä näytöllä palstat pinotaan yhdeksi sarakkeeksi niin, että asetukset ovat ennen näkymänvalitsinta ja aktiivista sisältöpaneelia.
+
 ## Acceptance Criteria
 
 ### AC1: Koko putki transponoi yhdistelmäsyötteen
@@ -113,16 +115,22 @@ UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöt
 **Given** C-duuri +2 ja HTML-syöte `<div>&nbsp;c#&nbsp;</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen ` D# ` eikä epäselvän sävelrivin varoitusta muodostu.
 ### AC47: Ylennetyn sävelen jälkeinen B transponoidaan samassa ryhmässä
 **Given** C-duuri +2 ja HTML-syöte `<div>g# c#b a</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `A# D#C# B` eikä epäselvän sävelrivin varoitusta muodostu.
+### AC48: Asetukset ovat aktiivisen paneelin vasemmalla puolella
+**Given** työtila renderöidään yli `64rem` leveällä näytöllä **When** syöte- tai tulosnäkymä on aktiivinen **Then** `.workspace-layout` käyttää sarakkeita `minmax(18rem, 0.75fr) minmax(0, 2fr)`, `.transposition-panel` on DOM-järjestyksessä ennen `.workspace-content`-aluetta ja Syöte/Tulos-valitsin sekä aktiivinen paneeli ovat `.workspace-content`-alueen sisällä.
+### AC49: Asetukset pinoutuvat mobiilissa sisällön edelle
+**Given** näkymän leveys on enintään `64rem` **When** työtila renderöidään **Then** `.workspace-layout` käyttää yhtä saraketta `minmax(0, 1fr)`, jolloin DOM-järjestyksen vuoksi asetukset näkyvät ennen Syöte/Tulos-valitsinta ja aktiivista sisältöpaneelia.
+### AC50: Luonnollinen sanaväli säilyy koko transponointiputkessa
+**Given** A-duuri `+3` ja HTML-rivit `<div>|A              ,Bm/D# |  </div><div>c#               e d# d</div><div>se iskee sieluun syvimpään</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `|C              ,Dm/F# |  \nE                G F# F\nse iskee sieluun syvimpään` eikä varoituksia muodostu
 
 ## Files to Modify
 | File | Change |
 |---|---|
 | `src/types.ts` | Esitys-, varoitus-, Clipboard-adapteri- ja tulostilatyypit. |
-| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset ja editorivälien integraatio; AC1–AC10, AC45–AC47. |
+| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset sekä editorivälien ja kohdistuksen integraatio; AC1–AC10, AC45–AC47, AC50. |
 | `src/logic/createResultPresentation.ts`, `.test.ts` | HTML/plainText/varoitukset; AC11–AC25. |
 | `src/ui/copyResultToClipboard.ts`, `.test.ts` | ClipboardItem/Blob ja virheet; AC26–AC30. |
-| `src/ui/ui.ts`, `.test.ts` | InnerHTML, näkymänvalinta, enharmoninen valinta sekä tulos- ja kopiointitilat; AC31–AC44. |
-| `style.css` | Yhden täysleveän aktiivisen paneelin asettelu ja 80rem enimmäisleveys; AC34. |
+| `src/ui/ui.ts`, `.test.ts` | InnerHTML, näkymänvalinta, enharmoninen valinta, tulos- ja kopiointitilat sekä työtilan palstarakenne; AC31–AC44, AC48–AC49. |
+| `style.css` | Aktiivisen paneelin sisäinen yhden sarakkeen asettelu, 80rem enimmäisleveys sekä työtilan kaksi palstaa ja `64rem` pinoamisraja; AC34, AC48–AC49. |
 
 ## Risk
 - Putken järjestys voi rikkoa rekisterit/kohdistuksen; integraatiotesti lukitsee järjestyksen.
@@ -131,15 +139,16 @@ UI lukee `music-input.innerHTML`:n. Syöte- ja tulosnäkymää vaihdetaan `Syöt
 - Enharmoninen esikatselu ja varsinainen ajo voivat eriytyä; päästä päähän -testi lukitsee valinnan välittymisen putkeen.
 - Keskeneräinen Clipboard-kirjoitus voi näyttää ennenaikaisen onnistumisen; promise-tilat testataan erikseen.
 - Vanha tai piilotettu tulos voisi johtaa väärään kopioon; käsittelyvirhe tyhjentää sen atomisesti ja poistaa tulosvalinnan käytöstä.
+- Asetuspalsta voi kaventaa editoria liikaa; oikea palsta käyttää `minmax(0, 2fr)`-saraketta ja asettelu pinoutuu viimeistään `64rem` leveydellä.
 - Kohdeohjelma voi suosia plain textiä tai vaihtaa fontin.
 - Rollback: poista uudet moduulit ja palauta ui.ts/style.css; vaiheiden 1–6 API:t säilyvät.
 
 ## Testing Strategy (MANDATORY)
-Täsmällinen 47/47-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC47. Aja `npm run lint`, `npm test`, `git diff --check`.
+Täsmällinen 50/50-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC50. Aja `npm run lint`, `npm test`, `git diff --check`.
 
 ## Spec Readiness checklist
 - [x] Every AC is Given/When/Then with a precise expected value
 - [x] Files to modify are listed with what changes in each
 - [x] Risk and rollback are documented
 - [x] Testing covers every AC plus error and edge cases
-- [x] Every AC has at least one named test case (47/47)
+- [x] Every AC has at least one named test case (50/50)

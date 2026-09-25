@@ -626,4 +626,29 @@ describe('initializeUi', () => {
     expect(gutter?.textContent).toBe("1\n2");
     expect(editor?.textContent).toBe("C |G |\nonpa");
   });
+
+  it('AC48: sijoittaa asetukset aktiivisen paneelin vasemmalle puolelle', () => {
+    const root = document.createElement('div');
+    initializeUi(root);
+    const layout = root.querySelector<HTMLElement>('.workspace-layout');
+    const settings = layout?.querySelector<HTMLElement>('.transposition-panel');
+    const content = layout?.querySelector<HTMLElement>('.workspace-content');
+
+    expect(layout).not.toBeNull();
+    expect(settings).not.toBeNull();
+    expect(content).not.toBeNull();
+    expect(settings?.nextElementSibling).toBe(content);
+    expect(content?.querySelector('.view-switcher')).not.toBeNull();
+    expect(content?.querySelector('#input-editor-pane')).not.toBeNull();
+    expect(content?.querySelector('#transposition-result')).not.toBeNull();
+    expect(styles).toMatch(
+      /\.workspace-layout\s*\{[^}]*grid-template-columns:\s*minmax\(18rem,\s*0\.75fr\)\s+minmax\(0,\s*2fr\)/s,
+    );
+  });
+
+  it('AC49: pinoaa asetukset mobiilissa aktiivisen paneelin edelle', () => {
+    expect(styles).toMatch(
+      /@media\s*\(max-width:\s*64rem\)[\s\S]*?\.workspace-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+    );
+  });
 });

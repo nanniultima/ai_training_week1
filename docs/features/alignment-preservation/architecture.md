@@ -55,8 +55,10 @@ speksi 5:n `formatMusicResult` → myöhempi UI.
    alueet säilyvät, mutta yhdistelmäsoinnun alku ei muodosta toista ankkuria.
 8. Lisää musiikkiin muotoilemattomia välejä ja tekstiin välejä tai
    muotoilun periviä viivoja. Poista lyhentyessä vain kohdistusrajan viiva.
+   Sovella törmäysrajaa vain, kun samalla musiikkirivillä on token sekä
+   nykyisessä että seuraavassa ankkurissa; eri rivit eivät törmää keskenään.
 
-AC2–AC6:n kokonaiset esimerkit ja tekstijako sekä AC38–AC43:n chord/pipe-
+AC2–AC6:n kokonaiset esimerkit ja tekstijako sekä AC38–AC44:n chord/pipe-
 rakenteet ovat ensisijainen hyväksyntäoraakkeli.
 
 ## Partial TDD restart

@@ -13,12 +13,15 @@ jälkeen `Done`.
 7. AC45: lisää koko putken regressiotesti editorin sitoville kohdistusvälilyönneille.
 8. AC46: lisää koko putken regressiotesti sävelrivin ympäröivien välien säilymiselle.
 9. AC47: lisää koko putken regressiotesti ryhmälle `c#b`.
-10. Refaktoroi vain vihreänä; pidä liiketoimintalogiikka UI:n ulkopuolella.
-11. Aja `npm run lint`, `npm test`, `git diff --check`; tee spec-diff-review ja merkitse `Done` vain verdictillä `APPROVED`.
+10. AC48: siirrä asetuspaneeli työtilan vasempaan palstaan ja kääri näkymänvalitsin sekä aktiivinen paneeli oikeaan sisältöalueeseen.
+11. AC49: lisää `64rem` pinoamisraja, jossa asetukset ovat aktiivisen paneelin edellä.
+12. AC50: lisää koko putken regressiotesti pilkun ja luonnollisen sanavälin säilymiselle sävelen lyhentyessä.
+13. Refaktoroi vain vihreänä; pidä liiketoimintalogiikka UI:n ulkopuolella.
+14. Aja `npm run lint`, `npm test`, `git diff --check`; tee spec-diff-review ja merkitse `Done` vain verdictillä `APPROVED`.
 
 ## Valmistumisehdot
 
-- AC1–AC47 ovat vihreitä ja jäljitettävyys on 47/47.
+- AC1–AC50 ovat vihreitä ja jäljitettävyys on 50/50.
 - Jokaisella julkisella funktiolla on onnistuva testi ja epäonnistuvalla API:lla virhetesti.
 - Tulos ei sisällä käyttäjän vaarallista HTML:ää eikä varoituksia.
 - Kopiointi kirjoittaa molemmat MIME-muodot yhdellä kutsulla.
