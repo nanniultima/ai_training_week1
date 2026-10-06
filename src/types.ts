@@ -131,7 +131,25 @@ export interface AlignedLineGroup {
   readonly text?: FormattedTextLine | undefined;
 }
 export type AlignedResultItem = AlignedLineGroup | FormattedTextLine | EmptyResultLine;
-export type AlignedMusicResultLine = MusicResultLine;
+export type AlignedChordResultToken =
+  | (ChordResultToken & {
+      readonly type: 'chord' | 'suspiciousChord' | 'pipe';
+      readonly sourceRange: SourceRange;
+      readonly alignedRange: AlignedRange;
+    })
+  | (ChordResultToken & { readonly type: 'text' });
+export type AlignedNoteGroupPart = TransposedNoteGroupPart & {
+  readonly sourceRange: SourceRange;
+  readonly alignedRange: AlignedRange;
+};
+export type AlignedNoteLinePart = AlignedNoteGroupPart | SeparatorPart | RepeatPart;
+export type AlignedChordLine = Omit<TransposedChordLine, 'tokens'> & {
+  readonly tokens: readonly AlignedChordResultToken[];
+};
+export type AlignedNoteLine = Omit<TransposedNoteLine, 'parts'> & {
+  readonly parts: readonly AlignedNoteLinePart[];
+};
+export type AlignedMusicResultLine = AlignedChordLine | AlignedNoteLine | FormattedTextLine | EmptyResultLine;
 
 export interface AmbiguousNoteLineWarning {
   readonly code: 'AMBIGUOUS_NOTE_LINE';

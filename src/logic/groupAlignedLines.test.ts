@@ -15,10 +15,27 @@ const noteResult: MusicResultLine = { index: 1, type: 'note', content: 'C C  A A
 ] };
 
 describe('groupAlignedLines', () => {
+  it('AC50: sointu melodian jälkeen aloittaa uuden ryhmän', () => {
+    const rows = [input(0, 'text', 'alku'), input(1, 'note', 'c'), input(2, 'chord', 'C |'),
+      input(3, 'note', 'c'), input(4, 'text', 'loppu')];
+    const n1 = { ...noteResult, index: 1 }, c2 = { ...chordResult, index: 2 }, n3 = { ...noteResult, index: 3 };
+    expect(groupAlignedLines(rows, [n1, c2, n3])).toEqual([
+      rows[0], { note: n1 }, { chord: c2, note: n3, text: rows[4] },
+    ]);
+  });
+  it('AC49: uusi musiikki ei kohdistu edellisiin sanoihin', () => {
+    const rows = [input(0, 'chord', 'C |'), input(1, 'note', 'c'), input(2, 'text', 'eka'),
+      input(3, 'note', 'c'), input(4, 'text', 'toka'), input(5, 'chord', 'C |'), input(6, 'text', 'kolmas')];
+    const c0 = { ...chordResult, index: 0 }, n1 = { ...noteResult, index: 1 };
+    const n3 = { ...noteResult, index: 3 }, c5 = { ...chordResult, index: 5 };
+    expect(groupAlignedLines(rows, [c0, n1, n3, c5])).toEqual([
+      { chord: c0, note: n1, text: rows[2] }, { note: n3, text: rows[4] }, { chord: c5, text: rows[6] },
+    ]);
+  });
   it('AC1: ryhmittelee kokonaisen lähtöesimerkin', () => {
     const grouped = groupAlignedLines([
       input(0, 'chord', 'C    |Am     |G       |C      |'),
-      input(1, 'note', 'c c  a a a   gb g  g  c d   c'),
+      input(1, 'note', 'c c  a a a   gB g  g  c d   c'),
       input(2, 'text', 'onpa i-hanaa laulella sateessa'),
     ], [chordResult, noteResult]);
     expect(grouped).toHaveLength(1);

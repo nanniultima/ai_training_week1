@@ -6,6 +6,28 @@ import { parseRichText } from './parseRichText.js';
 const seg = (text: string, bold=false, italic=false, fontSizePx?: number): FormattedTextSegment => ({text,bold,italic,...(fontSizePx === undefined ? {} : {fontSizePx})});
 const inner = (line: MusicResultLine) => formatMusicResult([line],12).replace(/^<div style="font-size:12px"><div>|<\/div><\/div>$/g, '');
 describe('formatMusicResult', () => {
+ it.each('| , . - : / ( )'.split(' '))('AC37 / AC18: kohdistettu erillinen musiikkimerkki lihavoidaan (%s)', text => {
+   const content = `C# ${text}|`;
+   expect(inner({ index: 0, type: 'chord', content, segments: [seg(content)], warnings: [], tokens: [
+     { type: 'chord', text: 'C#', sourceRange: { start: 0, end: 1 }, alignedRange: { start: 0, end: 2 } },
+     { type: 'text', text: ' ', sourceRange: { start: 1, end: 2 } },
+     { type: 'text', text, sourceRange: { start: 2, end: 3 } },
+     { type: 'text', text: ' ', sourceRange: { start: 3, end: 4 } },
+     { type: 'pipe', text: '|', sourceRange: { start: 4, end: 5 }, alignedRange: { start: 4, end: 5 } },
+   ] })).toBe(`<strong><span>C#</span></strong><span> </span><strong><span>${text}</span></strong><strong><span>|</span></strong>`);
+ });
+ it('AC37 / AC20: kohdistetun tekstitokenin sisäinen piste säilyy tavallisena', () => {
+   const element = document.createElement('div');
+   element.innerHTML = inner({ index: 0, type: 'chord', content: 'C# rit.|', segments: [seg('C# '), seg('rit', false, true), seg('.|')], warnings: [], tokens: [
+     { type: 'chord', text: 'C#', sourceRange: { start: 0, end: 1 }, alignedRange: { start: 0, end: 2 } },
+     { type: 'text', text: ' ', sourceRange: { start: 1, end: 2 } },
+     { type: 'text', text: 'rit.', sourceRange: { start: 2, end: 6 }, formatting: [seg('rit', false, true), seg('.')] },
+     { type: 'pipe', text: '|', sourceRange: { start: 7, end: 8 }, alignedRange: { start: 7, end: 8 } },
+   ] });
+   expect(element.textContent).toBe('C# rit.|');
+   expect([...element.querySelectorAll('strong')].map(node => node.textContent)).toEqual(['C#', '|']);
+   expect([...element.querySelectorAll('em')].map(node => node.textContent).join('')).toBe('rit');
+ });
  const sanitizedInner = (html: string) => inner({type:'text',segments:parseRichText(html).lines[0]!.segments});
  it.each([[1,'<strong><em><span>C</span></em></strong>'],[2,'<strong><span>C</span></strong>'],[3,'<span>C</span>'],[4,'<em><span>C</span></em>']])('AC15 Sävelen neljä rekisteriä muotoillaan',(register,html)=>expect(inner({index:0,type:'note',content:'C',parts:[{type:'noteGroup',notes:[{name:'C',register:register as 1|2|3|4}]}]})).toBe(html));
  it('AC16 Ryhmän rekisterit voivat erota',()=>expect(inner({index:0,type:'note',content:'AbC',parts:[{type:'noteGroup',notes:[{name:'Ab',register:3},{name:'C',register:4}]}]})).toBe('<span>Ab</span><em><span>C</span></em>'));

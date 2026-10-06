@@ -1,5 +1,5 @@
 import type { ReadyTranspositionSettings, TranspositionPresentation } from '../types.js';
-import type { AlignedLineGroup, MusicResultLine } from '../types.js';
+import type { AlignedLineGroup, AlignedMusicResultLine, MusicResultLine } from '../types.js';
 import { alignLineGroup } from './alignLineGroup.js';
 import { classifyLines } from './classifyLines.js';
 import { resolveBaseFontSize } from './formatMusicResult.js';
@@ -24,7 +24,7 @@ export function createTranspositionResult(
     line.type === 'chord' ? line.warnings : [],
   );
   const lines = groupAlignedLines(classified.lines, transposed)
-    .flatMap((item): MusicResultLine[] => {
+    .flatMap((item): AlignedMusicResultLine[] => {
       if ('type' in item) return [item];
       return alignLineGroup(item as AlignedLineGroup);
     })

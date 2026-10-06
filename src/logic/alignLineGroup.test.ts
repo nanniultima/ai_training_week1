@@ -1,36 +1,122 @@
 import { describe, expect, it } from 'vitest';
-import type { AlignedLineGroup, TransposedChordLine, TransposedNoteLine } from '../types.js';
+import type { AlignedLineGroup, ClassifiedLine, ReadyTranspositionSettings, TransposedChordLine, TransposedNoteLine } from '../types.js';
 import { alignLineGroup, calculateAlignedColumns, collectAlignmentAnchors } from './alignLineGroup.js';
+import { groupAlignedLines } from './groupAlignedLines.js';
+import { transposeChordLine } from './transposeChordLine.js';
+import { transposeNoteLine } from './transposeNoteLine.js';
 
-const chord = (content: string): TransposedChordLine => ({
-  index: 0, type: 'chord', content, segments: [], warnings: [],
-  tokens: [
-    ['chord', 'C', 0, 1], ['pipe', '|', 5, 6], ['chord', 'A#m', 6, 8],
-    ['pipe', '|', 13, 14], ['chord', 'G#', 14, 15], ['pipe', '|', 22, 23],
-    ['chord', 'C#', 23, 24], ['pipe', '|', 30, 31],
-  ].map(([type, text, start, end]) => ({ type, text, sourceRange: { start, end } })) as TransposedChordLine['tokens'],
-});
-const note = (content: string): TransposedNoteLine => ({
-  index: 1, type: 'note', content,
-  parts: [
-    ['C#', 0, 1], ['C#', 2, 3], ['A#', 5, 6], ['A#', 7, 8], ['A#', 9, 10],
-    ['G#C', 13, 15], ['G#', 16, 17], ['G#', 19, 20], ['C#', 22, 23],
-    ['D#', 24, 25], ['C#', 28, 29],
-  ].map(([name, start, end]) => ({ type: 'noteGroup', notes: [{ name, register: 3 }], sourceText: name, sourceRange: { start, end } })) as TransposedNoteLine['parts'],
-});
-const group: AlignedLineGroup = {
-  chord: chord('C#    |A#m     |G#       |C#      |'),
-  note: note('C# C#  A# A# A#   G#C G#  G# C# D#   C#'),
-  text: { index: 2, type: 'text', content: 'onpa i-hanaa laulella sateessa', segments: [{ text: 'onpa i-hanaa laulella sateessa', bold: false, italic: false }] },
-};
-const plusTwoGroup: AlignedLineGroup = {
-  chord: { ...chord('D    |Bm     |A       |D      |'), tokens: chord('D    |Bm     |A       |D      |').tokens?.map((token) => ({ ...token, text: token.type === 'chord' ? ({ C: 'D', 'A#m': 'Bm', 'G#': 'A', 'C#': 'D' }[token.text] ?? token.text) : token.text })) },
-  note: { ...note('D D  B B B   AC# A  A  D E   D'), parts: note('D D  B B B   AC# A  A  D E   D').parts.map((part, index) => part.type === 'noteGroup' ? { ...part, notes: [{ ...part.notes[0]!, name: ['D', 'D', 'B', 'B', 'B', 'AC#', 'A', 'A', 'D', 'E', 'D'][index]! }] } : part) },
-  text: group.text,
-};
+const plusOne = { status: 'ready', mode: 'major', sourceTonic: 'C', targetTonic: 'C#', step: 1 } as const;
+function transposedGroup(rows: readonly (readonly [ClassifiedLine['type'], string])[], settings: ReadyTranspositionSettings = plusOne): AlignedLineGroup {
+  const originals: ClassifiedLine[] = rows.map(([type, content], index) => ({
+    index, type, content, segments: [{ text: content, bold: false, italic: false }],
+  }));
+  const transposed = originals.flatMap<TransposedChordLine | TransposedNoteLine>(line => line.type === 'chord'
+    ? [transposeChordLine(line, settings)]
+    : line.type === 'note' ? [transposeNoteLine(line, settings)] : []);
+  const result = groupAlignedLines(originals, transposed)[0]!;
+  if ('type' in result) throw new Error('Test requires a music group');
+  return result;
+}
 
+const exampleRows = [
+  ['chord', 'C    |Am     |G       |C      |'],
+  ['note', 'c c  a a a   gB g  g  c d   c'],
+  ['text', 'onpa i-hanaa laulella sateessa'],
+] as const;
+const group = transposedGroup(exampleRows);
+const plusTwoGroup = transposedGroup(exampleRows, { ...plusOne, targetTonic: 'D', step: 2 });
 describe('alignLineGroup', () => {
+  it.each([
+    ['gb c', 'on-pa', 1, 'C#', 'G C#', 'onpa', 2],
+    ['gB c', 'on-pa', 1, 'C#', 'G#C C#', 'on--pa', 4],
+    ['gb c', 'on-pa', 2, 'D', 'G# D', 'on-pa', 3],
+    ['gB c', 'on-pa', 2, 'D', 'AC# D', 'on--pa', 4],
+    ['gb c', 'on-pa', 0, 'C', 'Gb C', 'on-pa', 3],
+    ['gB c', 'on-pa', 0, 'C', 'GB C', 'on-pa', 3],
+    ['gbc  d', 'onpa  ihanaa', 1, 'C#', 'GC#  D#', 'onpa  ihanaa', 5],
+    ['gBc  d', 'onpa  ihanaa', 1, 'C#', 'G#CC# D#', 'onpa   ihanaa', 6],
+  ] as const)('AC56: erottaa gb- ja gB-ryhmien kohdistuksen (%s, %s, %i)', (source, lyrics, step, targetTonic, expectedNote, expectedText, column) => {
+    const candidate = transposedGroup([['note', source], ['text', lyrics]], { ...plusOne, step, targetTonic });
+    const sourceRanges = candidate.note!.parts.filter(part => part.type === 'noteGroup').map(part => part.sourceRange);
+    const result = alignLineGroup(candidate);
+    expect(result.map(line => line.content)).toEqual([expectedNote, expectedText]);
+    const line = result[0];
+    if (line?.type !== 'note') throw new Error('Expected note');
+    expect(collectAlignmentAnchors({ note: line }, 'aligned')).toEqual([0, column]);
+    const groups = line.parts.filter(part => part.type === 'noteGroup');
+    expect(groups.map(part => part.sourceRange)).toEqual(sourceRanges);
+    expect(groups[0]?.sourceRange).toEqual({ start: 0, end: source.indexOf(' ') });
+    expect(groups[1]?.sourceRange.start).toBe(source.endsWith('d') ? 5 : 3);
+    if (source.includes('B') && step > 0) expect(groups[0]?.notes[1]?.register).toBe(4);
+  });
+  it('AC55: kohdistaa myös nolla-askeleella', () => {
+    const result = alignLineGroup(transposedGroup([
+      ['chord', 'C    |Am     |G       |C      |'],
+      ['note', 'c c  a a a   gB g  g  c d   c'],
+      ['text', 'onpa i-hanaa laulella sateessa'],
+    ], { ...plusOne, targetTonic: 'C', step: 0 }));
+    expect(result.map(line => line.content)).toEqual([
+      'C    |Am     |G       |C      |', 'C C  A A A   GB G  G  C D   C', 'onpa i-hanaa laulella sateessa',
+    ]);
+    const chordLine = result[0], noteLine = result[1];
+    if (chordLine?.type !== 'chord' || noteLine?.type !== 'note') throw new Error('Expected music');
+    expect(collectAlignmentAnchors({ chord: chordLine, note: noteLine }, 'aligned')).toEqual([0, 2, 5, 7, 9, 13, 16, 19, 22, 24, 28, 30]);
+    for (const token of chordLine.tokens) {
+      if (token.type !== 'text') expect(token.alignedRange).toEqual(token.sourceRange);
+    }
+    for (const part of noteLine.parts) {
+      if (part.type === 'noteGroup') expect(part.alignedRange).toEqual(part.sourceRange);
+    }
+  });
+  it('AC54: hylkää musiikittoman suoran kutsun', () => {
+    expect(() => alignLineGroup({})).toThrowError(new Error('Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi'));
+  });
+  it.each([
+    { source: 'c  c', settings: plusOne, expected: 'C# C#', anchors: [0, 3] },
+    { source: 'c#  d', settings: { ...plusOne, sourceTonic: 'D#', targetTonic: 'D', step: -1 } as const, expected: 'C   C#', anchors: [0, 4] },
+  ])('AC53: joustaa melodian ylimääräistä väliä ($source)', ({ source, settings, expected, anchors }) => {
+    const result = alignLineGroup(transposedGroup([['note', source], ['text', 'onpa']], settings));
+    expect(result.map(line => line.content)).toEqual([expected, 'onpa']);
+    const line = result[0];
+    if (line?.type !== 'note') throw new Error('Expected note');
+    expect(collectAlignmentAnchors({ note: line }, 'aligned')).toEqual(anchors);
+  });
+  it('AC52: siirtää ahdasta putkea vain vähimmäismäärän', () => {
+    const candidate = transposedGroup([['chord', '|C|G'], ['text', 'onpa']]);
+    const result = alignLineGroup(candidate);
+    expect(result.map(line => line.content)).toEqual(['|C#|G#', 'on-pa']);
+    expect(collectAlignmentAnchors(candidate)).toEqual([0, 2]);
+    const line = result[0];
+    if (line?.type !== 'chord') throw new Error('Expected chord');
+    expect(collectAlignmentAnchors({ chord: line }, 'aligned')).toEqual([0, 3]);
+    expect(line.tokens.filter(token => token.type === 'pipe')[1]?.alignedRange).toEqual({ start: 3, end: 4 });
+    expect(line.tokens.filter(token => token.type === 'chord')[1]?.alignedRange).toEqual({ start: 4, end: 6 });
+  });
+  it.each(['C |G', 'C |'])('AC51: putki melodia ja sanat siirtyvät yhdessä (%s)', source => {
+    const candidate = transposedGroup([['chord', source], ['note', 'c c'], ['text', 'onpa']]);
+    const result = alignLineGroup(candidate);
+    expect(result.map(line => line.content)).toEqual([source === 'C |G' ? 'C# |G#' : 'C# |', 'C# C#', 'on-pa']);
+    const chordLine = result[0], noteLine = result[1];
+    if (chordLine?.type !== 'chord' || noteLine?.type !== 'note') throw new Error('Expected music');
+    expect(chordLine.tokens.find(token => token.type === 'pipe')).toMatchObject({ sourceRange: { start: 2 }, alignedRange: { start: 3 } });
+    expect(noteLine.parts.filter(part => part.type === 'noteGroup')[1]).toMatchObject({ sourceRange: { start: 2 }, alignedRange: { start: 3 } });
+    expect(collectAlignmentAnchors(candidate)).toEqual([0, 2]);
+    expect(collectAlignmentAnchors({ chord: chordLine, note: noteLine }, 'aligned')).toEqual([0, 3]);
+  });
+  it('AC46: säilyttää putkien sarakkeet joustamalla välejä', () => {
+    const candidate = transposedGroup([
+      ['chord', '|C         |Bm        |Em'], ['text', 'kun laivat saapui satamaan'],
+    ], { ...plusOne, targetTonic: 'D', step: 2 });
+    const result = alignLineGroup(candidate);
+    expect(result.map(line => line.content)).toEqual(['|D         |C#m       |F#m', 'kun laivat saapui satamaan']);
+    const line = result[0];
+    if (line?.type !== 'chord') throw new Error('Expected chord');
+    expect(line.tokens.filter(token => token.type === 'pipe')
+      .map(token => [token.sourceRange?.start, token.alignedRange?.start])).toEqual([[0, 0], [11, 11], [22, 22]]);
+    expect(result[1]?.content?.[22]).toBe('m');
+  });
   it('AC2: kohdistaa koko C#-duurin +1-esimerkin', () => {
+    expect(calculateAlignedColumns(group)).toEqual([0, 3, 6, 9, 12, 16, 20, 23, 26, 29, 33, 35]);
     expect(alignLineGroup(group).map((line) => line.content)).toEqual([
       'C#    |A#m      |G#       |C#      |',
       'C# C# A# A# A#  G#C G# G# C# D#  C#',
@@ -90,7 +176,7 @@ describe('alignLineGroup', () => {
   it('AC8: pitää noteGroupin yhtenä ankkurina', () => {
     expect(collectAlignmentAnchors({ note: {
       index: 0, type: 'note', content: 'G#C',
-      parts: [{ type: 'noteGroup', notes: [{ name: 'G#', register: 3 }, { name: 'C', register: 3 }], sourceText: 'gb', sourceRange: { start: 13, end: 15 } }],
+      parts: [{ type: 'noteGroup', notes: [{ name: 'G#', register: 3 }, { name: 'C', register: 4 }], sourceText: 'gB', sourceRange: { start: 13, end: 15 } }],
     } })).toEqual([13]);
   });
   it('AC9: pidentää vain AC#-ryhmän sanaa', () => {
@@ -106,14 +192,16 @@ describe('alignLineGroup', () => {
   });
   it('AC11: lisää välijaksoon välilyönnin', () => {
     const aligned = alignLineGroup({
-      note: { index: 0, type: 'note', content: 'C#   D', parts: [
-        { type: 'noteGroup', notes: [{ name: 'C#', register: 3 }], sourceText: 'c', sourceRange: { start: 0, end: 1 } },
-        { type: 'separator', text: '    ' },
-        { type: 'noteGroup', notes: [{ name: 'D', register: 3 }], sourceText: 'd', sourceRange: { start: 5, end: 6 } },
+      note: { index: 0, type: 'note', content: 'G#CC#  D#', parts: [
+        { type: 'noteGroup', notes: [{ name: 'G#', register: 3 }, { name: 'C', register: 4 }, { name: 'C#', register: 3 }], sourceText: 'gBc', sourceRange: { start: 0, end: 3 } },
+        { type: 'separator', text: '  ' },
+        { type: 'noteGroup', notes: [{ name: 'D#', register: 3 }], sourceText: 'd', sourceRange: { start: 5, end: 6 } },
       ] },
       text: { index: 1, type: 'text', content: 'onpa  ihanaa', segments: [{ text: 'onpa  ihanaa', bold: false, italic: false }] },
     });
-    expect(aligned[1]?.content).toBe('onpa   ihanaa');
+    expect(aligned.map(line => line.content)).toEqual(['G#CC# D#', 'onpa   ihanaa']);
+    expect((aligned[0] as TransposedNoteLine).parts.filter(part => part.type === 'noteGroup')
+      .map(part => part.alignedRange?.start)).toEqual([0, 6]);
   });
   it('AC12: lisää sanaan kaksi viivaa', () => {
     const aligned = alignLineGroup({
@@ -185,7 +273,7 @@ describe('alignLineGroup', () => {
         { type: 'chord', text: 'C', sourceRange: { start: 0, end: 2 } },
         { type: 'chord', text: 'C#', sourceRange: { start: 3, end: 4 } },
       ],
-    } });
+    }, text: { index: 1, type: 'text', content: 'on-pa', segments: [{ text: 'on-pa', bold: false, italic: false }] } });
     const line = aligned[0] as TransposedChordLine;
     expect(line.content).toBe('C C#');
     expect(line.tokens?.[1]).toMatchObject({ sourceRange: { start: 3 }, alignedRange: { start: 2 } });
@@ -196,7 +284,7 @@ describe('alignLineGroup', () => {
         { type: 'chord', text: 'Cmaj7', sourceRange: { start: 0, end: 1 } },
         { type: 'chord', text: 'B', sourceRange: { start: 2, end: 3 } },
       ],
-    } };
+    }, text: { index: 1, type: 'text', content: 'onpa', segments: [{ text: 'onpa', bold: false, italic: false }] } };
     expect(calculateAlignedColumns(candidate, [0, 2])).toEqual([0, 6]);
     expect((alignLineGroup(candidate)[0] as TransposedChordLine).tokens?.[1]).toMatchObject({ alignedRange: { start: 6 } });
   });
@@ -226,7 +314,7 @@ describe('alignLineGroup', () => {
         { type: 'chord', text: 'C#', sourceRange: { start: 0, end: 1 } },
         { type: 'chord', text: 'C', sourceRange: { start: 2, end: 3 } },
       ],
-    } });
+    }, text: { index: 1, type: 'text', content: 'onpa', segments: [{ text: 'onpa', bold: false, italic: false }] } });
     const line = aligned[0] as TransposedChordLine;
     expect(line.content).toBe('C# C');
     expect(line.segments).toContainEqual({ text: ' ', bold: false, italic: false });
@@ -248,7 +336,7 @@ describe('alignLineGroup', () => {
     expect(textLine.segments.find((segment) => segment.text.includes('--'))).toMatchObject({ bold: true, italic: false, fontSizePx: 18 });
   });
   it('AC23: säilyttää xN-merkinnän', () => {
-    const aligned = alignLineGroup({ chord: {
+    const transposed: TransposedChordLine = {
       index: 0, type: 'chord', content: 'C# x2 |G# |', warnings: [],
       segments: [
         { text: 'C# ', bold: false, italic: false },
@@ -263,16 +351,29 @@ describe('alignLineGroup', () => {
         { type: 'text', text: ' ', sourceRange: { start: 7, end: 8 } },
         { type: 'pipe', text: '|', sourceRange: { start: 8, end: 9 } },
       ],
+    };
+    const aligned = alignLineGroup({ chord: transposed, text: {
+      index: 1, type: 'text', content: 'onpa nyt',
+      segments: [{ text: 'onpa nyt', bold: false, italic: false }],
     } });
     const line = aligned[0] as TransposedChordLine;
-    expect(line.content).toBe('C# x2 |G# |');
+    expect(line.content).toBe('C# x2|G#|');
     expect(line.segments.filter((segment) => segment.italic && segment.text === 'x2')).toHaveLength(1);
-    expect(line.tokens?.[2]).toMatchObject({ alignedRange: { start: 6, end: 7 } });
-    expect(line.tokens?.[3]).toMatchObject({ alignedRange: { start: 7, end: 9 } });
+    expect(line.tokens?.[2]).toMatchObject({ alignedRange: { start: 5, end: 6 } });
+    expect(line.tokens?.[3]).toMatchObject({ alignedRange: { start: 6, end: 8 } });
+    expect(line.tokens?.[5]).toMatchObject({ alignedRange: { start: 8, end: 9 } });
+    expect(aligned[1]?.content).toBe('onpa nyt');
+
+    const single = alignLineGroup({ chord: transposed })[0] as TransposedChordLine;
+    expect(single.content).toBe('C# x2 |G# |');
+    expect(single.segments).toEqual(transposed.segments);
+    expect(single.tokens?.[2]).toMatchObject({ alignedRange: { start: 6, end: 7 } });
+    expect(single.tokens?.[5]).toMatchObject({ alignedRange: { start: 10, end: 11 } });
   });
-  it('AC28: hyväksyy yhden musiikkirivin ryhmät', () => {
+  it('AC28: säilyttää yksittäisen musiikkirivin sisällön välit ja muotoilut', () => {
     const chordOnly = alignLineGroup({ chord: {
-      index: 0, type: 'chord', content: 'C# |G# |', segments: [], warnings: [], tokens: [
+      index: 0, type: 'chord', content: 'C# |G# |',
+      segments: [{ text: 'C# |G# |', bold: true, italic: true, fontSizePx: 18 }], warnings: [], tokens: [
         { type: 'chord', text: 'C#', sourceRange: { start: 0, end: 1 } },
         { type: 'pipe', text: '|', sourceRange: { start: 2, end: 3 } },
         { type: 'chord', text: 'G#', sourceRange: { start: 3, end: 4 } },
@@ -288,6 +389,29 @@ describe('alignLineGroup', () => {
     } });
     expect(chordOnly[0]?.content).toBe('C# |G# |');
     expect(noteOnly[0]?.content).toBe('C# C#');
+    const chordLine = chordOnly[0] as TransposedChordLine;
+    expect(chordLine.segments).toEqual([{ text: 'C# |G# |', bold: true, italic: true, fontSizePx: 18 }]);
+    expect(chordLine.tokens?.filter(token => token.type === 'pipe')
+      .map(token => [token.sourceRange?.start, token.alignedRange?.start])).toEqual([[2, 3], [5, 7]]);
+    expect(calculateAlignedColumns({ chord: chordLine })).toEqual([0, 3, 7]);
+    expect(collectAlignmentAnchors({ note: noteOnly[0] as TransposedNoteLine }, 'aligned')).toEqual([0, 3]);
+
+    const wide: TransposedNoteLine = {
+      index: 0, type: 'note', content: 'C#  C#', parts: [
+        { type: 'noteGroup', notes: [{ name: 'C#', register: 4 }], sourceText: 'c', sourceRange: { start: 0, end: 1 } },
+        { type: 'separator', text: '  ', formatting: [{ text: '  ', bold: true, italic: true, fontSizePx: 18 }] },
+        { type: 'noteGroup', notes: [{ name: 'C#', register: 2 }], sourceText: 'c', sourceRange: { start: 3, end: 4 } },
+      ],
+    };
+    const before = structuredClone(wide);
+    const singleNote = alignLineGroup({ note: wide })[0] as TransposedNoteLine;
+    expect(singleNote.content).toBe('C#  C#');
+    expect(singleNote.parts[1]).toEqual(wide.parts[1]);
+    expect(singleNote.parts.filter(part => part.type === 'noteGroup')
+      .map(part => [part.sourceRange?.start, part.alignedRange?.start, part.notes[0]?.register]))
+      .toEqual([[0, 0, 4], [3, 4, 2]]);
+    expect(calculateAlignedColumns({ note: wide })).toEqual([0, 4]);
+    expect(wide).toEqual(before);
   });
   it('AC39: yhdistää pipen chordiin ja suspiciousChordiin', () => {
     const candidate: AlignedLineGroup = { chord: { index: 0, type: 'chord', content: 'C |Am |Cfoo', segments: [], warnings: [], tokens: [
@@ -360,9 +484,15 @@ describe('alignLineGroup', () => {
     const result = alignLineGroup(candidate);
     const aligned = { chord: result[0] as TransposedChordLine, note: result[1] as TransposedNoteLine };
     expect({ chord: aligned.chord.tokens?.map((token) => token.sourceRange), note: aligned.note.parts.filter((part) => part.type === 'noteGroup').map((part) => part.sourceRange) }).toEqual(sourceRanges);
-    expect(aligned.chord.tokens?.filter((token) => token.type !== 'text').every((token) => token.alignedRange)).toBe(true);
-    expect(aligned.note.parts.filter((part) => part.type === 'noteGroup').every((part) => part.alignedRange)).toBe(true);
-    expect(collectAlignmentAnchors(aligned, 'aligned')).not.toContain(4);
+    expect(aligned.chord.tokens?.map(token => token.alignedRange)).toEqual([
+      { start: 0, end: 2 }, { start: 3, end: 4 }, { start: 4, end: 6 },
+      { start: 7, end: 8 }, { start: 8, end: 12 },
+    ]);
+    expect(aligned.note.parts.filter(part => part.type === 'noteGroup').map(part => part.alignedRange))
+      .toEqual([{ start: 0, end: 2 }, { start: 3, end: 4 }]);
+    expect(collectAlignmentAnchors(aligned, 'aligned')).toEqual([0, 3, 7]);
+    expect(aligned.chord.content).toBe('C# |Am |Cfoo');
+    expect(aligned.note.content).toBe('C# D');
     const missing = { chord: { ...aligned.chord, tokens: aligned.chord.tokens?.map((token, index) => index === 0 ? { ...token, alignedRange: undefined } : token) } };
     expect(() => collectAlignmentAnchors(missing, 'aligned')).toThrow('Kohdistettavalta tokenilta puuttuu kohdistettu sijainti');
   });
@@ -412,5 +542,65 @@ describe('alignLineGroup', () => {
     expect((result[1] as TransposedNoteLine).parts
       .filter((part) => part.type === 'noteGroup')
       .map((part) => part.alignedRange?.start)).toEqual([0, 17, 19, 22]);
+  });
+
+  it('AC45: jättää itsenäisten pipejen siirtymät pois tekstikohdistuksesta', () => {
+    const terminalPipe: AlignedLineGroup = {
+      chord: {
+        index: 0,
+        type: 'chord',
+        content: '|C#m/G#       |',
+        segments: [],
+        warnings: [],
+        tokens: [
+          { type: 'pipe', text: '|', sourceRange: { start: 0, end: 1 } },
+          { type: 'chord', text: 'C#m/G#', sourceRange: { start: 1, end: 6 } },
+          { type: 'pipe', text: '|', sourceRange: { start: 13, end: 14 } },
+        ],
+      },
+      text: {
+        index: 1,
+        type: 'text',
+        content: 'niin kuin muut',
+        segments: [{ text: 'niin kuin muut', bold: false, italic: false }],
+      },
+    };
+    const multiplePipes: AlignedLineGroup = {
+      chord: {
+        index: 0,
+        type: 'chord',
+        content: 'C# |   |',
+        segments: [],
+        warnings: [],
+        tokens: [
+          { type: 'chord', text: 'C#', sourceRange: { start: 0, end: 1 } },
+          { type: 'pipe', text: '|', sourceRange: { start: 2, end: 3 } },
+          { type: 'pipe', text: '|', sourceRange: { start: 6, end: 7 } },
+        ],
+      },
+      text: {
+        index: 1,
+        type: 'text',
+        content: 'nytkin taas',
+        segments: [{ text: 'nytkin taas', bold: false, italic: false }],
+      },
+    };
+
+    expect.soft(alignLineGroup(terminalPipe).map((line) => line.content)).toEqual([
+      '|C#m/G#      |',
+      'niin kuin muut',
+    ]);
+    expect.soft(alignLineGroup(multiplePipes).map((line) => line.content)).toEqual([
+      'C#|   |',
+      'nytkin taas',
+    ]);
+    const terminalChord = alignLineGroup(terminalPipe)[0] as TransposedChordLine;
+    expect(terminalChord.tokens?.at(-1)).toMatchObject({
+      sourceRange: { start: 13, end: 14 }, alignedRange: { start: 13, end: 14 },
+    });
+    const multipleChord = alignLineGroup(multiplePipes)[0] as TransposedChordLine;
+    expect(multipleChord.tokens?.filter(token => token.type === 'pipe')
+      .map(token => [token.sourceRange?.start, token.alignedRange?.start]))
+      .toEqual([[2, 2], [6, 6]]);
   });
 });

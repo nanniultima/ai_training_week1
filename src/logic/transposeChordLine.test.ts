@@ -167,4 +167,14 @@ describe('transposeChordLine', () => {
     expect(result.content).toBe('(D): D, D. D-D / D |');
     expect(result.warnings).toEqual([]);
   });
+
+  it('AC47: säilyttää Unicode-symbolietuliitteet ilman merkkilistaa', () => {
+    const result = transposeChordLine(
+      chordLine(0, '|↓G |↑B7 |→Em |★Dm'),
+      settings('major', 'D', 3, 'F'),
+    );
+
+    expect(result.content).toBe('|↓Bb |↑D7 |→Gm |★Fm');
+    expect(result.warnings).toEqual([]);
+  });
 });

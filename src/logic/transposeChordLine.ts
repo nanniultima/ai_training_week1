@@ -18,7 +18,37 @@ function formattingForRange(line: ClassifiedLine, start: number, end: number) {
   return result;
 }
 
+function formattingPrefix(
+  segments: ReturnType<typeof formattingForRange>,
+  length: number,
+): ReturnType<typeof formattingForRange> {
+  let remaining = length;
+  const result: ReturnType<typeof formattingForRange> = [];
+  for (const segment of segments) {
+    if (remaining <= 0) break;
+    const characters = [...segment.text];
+    const text = characters.slice(0, remaining).join('');
+    if (text !== '') result.push({ ...segment, text });
+    remaining -= [...text].length;
+  }
+  return result;
+}
+
 const codePointColumn = (text: string, utf16Index: number): number => [...text.slice(0, utf16Index)].length;
+
+const SUPPORTED_CHORD = /^[A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?$/;
+const PREFIXED_SUPPORTED_CHORD = /^([^\p{L}\p{N}\s|]+)([A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?)$/u;
+
+function transposeSupportedToken(
+  token: string,
+  settings: ReadyTranspositionSettings,
+): string | undefined {
+  if (SUPPORTED_CHORD.test(token)) return transposeChordSymbol(token, settings);
+  const prefixed = PREFIXED_SUPPORTED_CHORD.exec(token);
+  return prefixed
+    ? `${prefixed[1]}${transposeChordSymbol(prefixed[2]!, settings)}`
+    : undefined;
+}
 
 export function transposeChordLine(
   _line: ClassifiedLine,
@@ -30,9 +60,8 @@ export function transposeChordLine(
   const content = _line.content.split(/([|\s,.\-:()]+)/).map((token) => {
     const tokenStart = startIndex;
     startIndex += token.length;
-    if (/^[A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?$/.test(token)) {
-      return transposeChordSymbol(token, _settings);
-    }
+    const transposed = transposeSupportedToken(token, _settings);
+    if (transposed !== undefined) return transposed;
     if (/^[A-H][#b]?\/$/.test(token)) {
       const output = `${transposeChordSymbol(token.slice(0, -1), _settings)}/`;
       warnings.push({
@@ -59,9 +88,7 @@ export function transposeChordLine(
   const segments = _line.segments.map((segment) => ({
     ...segment,
     text: segment.text.split(/([|\s,.\-:()]+)/).map((token) => (
-      /^[A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?$/.test(token)
-        ? transposeChordSymbol(token, _settings)
-        : token
+      transposeSupportedToken(token, _settings) ?? token
     )).join(''),
   }));
 
@@ -78,14 +105,14 @@ export function transposeChordLine(
     tokenOffset += original.length;
     const sourceRange = { start: codePointColumn(_line.content, start), end: codePointColumn(_line.content, tokenOffset) };
     const formatting = formattingForRange(_line, start, tokenOffset);
-    if (/^[A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?$/.test(original)) {
+    if (SUPPORTED_CHORD.test(original)) {
       return { type: 'chord' as const, text: transposeChordSymbol(original, _settings), sourceRange, formatting };
     }
     const suspicious = warnings.some((warning) => warning.code === 'SUSPICIOUS_CHORD' && warning.startIndex === start);
     const type = original === '|' ? 'pipe' as const : suspicious ? 'suspiciousChord' as const : 'text' as const;
     return { type, text: original, sourceRange, formatting };
   });
-  const chordSuffix = /^(.+?)([A-H][#b]?(?:m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/[A-H][#b]?)?)$/;
+  const chordSuffix = PREFIXED_SUPPORTED_CHORD;
   const tokens = rawTokens.flatMap((token) => {
     if (token.type !== 'text') return [token];
     const match = chordSuffix.exec(token.text);
@@ -94,7 +121,12 @@ export function transposeChordLine(
     const chord = match[2]!;
     const chordStart = token.sourceRange.start + [...prefix].length;
     return [
-      { ...token, text: prefix, sourceRange: { start: token.sourceRange.start, end: chordStart } },
+      {
+        ...token,
+        text: prefix,
+        sourceRange: { start: token.sourceRange.start, end: chordStart },
+        formatting: formattingPrefix(token.formatting, [...prefix].length),
+      },
       { type: 'chord' as const, text: transposeChordSymbol(chord, _settings), sourceRange: { start: chordStart, end: token.sourceRange.end }, formatting: token.formatting },
     ];
   });

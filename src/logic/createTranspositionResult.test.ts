@@ -153,4 +153,155 @@ describe('createTranspositionResult', () => {
     );
     expect(result.warnings).toEqual([]);
   });
+
+  it('AC45: jättää itsenäisen loppuputken pois tekstin tavutuksesta', () => {
+    const result = createTranspositionResult(
+      '<div>|Bm/F#       |</div><div>niin kuin muut</div>',
+      cMajorUpTwo,
+    );
+
+    expect(result.plainText).toBe('|C#m/G#      |\nniin kuin muut');
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('AC47: säilyttää Unicode-symbolietuliitteet ilman sointujen kahdentumista', () => {
+    const result = createTranspositionResult(
+      '<div>|↓G |↑B7 |→Em |★Dm</div>',
+      { status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3 },
+    );
+
+    expect(result.plainText).toBe('|↓Bb |↑D7 |→Gm |★Fm');
+    expect([...result.plainText.matchAll(/\|/g)].map(match => match.index))
+      .toEqual([0, 5, 10, 15]);
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('AC48: joustaa symbolietuliitteisten sointujen tahtivälejä tekstiryhmässä', () => {
+    const result = createTranspositionResult(
+      '<div>|D.       |↓G          |↓B7       |↓Em</div>'
+        + '<div>Tää yö on aikaa, me ei mennä nukkumaan</div>',
+      {
+        status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3,
+      },
+    );
+
+    expect(result.plainText).toBe(
+      '|F.       |↓Bb         |↓D7       |↓Gm\n'
+        + 'Tää yö on aikaa, me ei mennä nukkumaan',
+    );
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('AC47: poistaa vanhat soinnut nuolten jälkeen koko käyttäjäesimerkissä', () => {
+    const result = createTranspositionResult(
+      '<div>|D.       |↓G          |↓B7       |↓Em</div>'
+        + '<div><br></div>'
+        + '<div>  Tää yö on aikaa, me ei mennä nukkumaan</div>'
+        + '<div><br></div>'
+        + '<div>    |↓Dm  G7     |C              |E7            |Am        |Am/G</div>'
+        + '<div><br></div>'
+        + '<div>Jos uskot siihen taikaan, on sun tähtimerkit kohdallaan</div>',
+      {
+        status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3,
+      },
+    );
+
+    expect(result.plainText).not.toMatch(/↓(?:G|B7|Em|Dm)(?:Bb|D7|Gm|Fm)/);
+    expect(result.plainText).toContain('|↓Bb');
+    expect(result.plainText).toContain('|↓Fm  Bb7');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    const renderedLines = [...rendered.querySelectorAll('div[style^="font-size"] > div')]
+      .map((line) => line.textContent ?? '');
+    expect(renderedLines.join('\n')).toBe(result.plainText);
+  });
+
+  it('Pasted AC4: säilyttää liitetyn CSS-muotoilun koko tulosputkessa', () => {
+    const result = createTranspositionResult(
+      '<div>C |G |</div><div><span style="font-weight:700">lihavö</span> '
+        + '<span style="font-style:italic">kursiivi</span></div>',
+      cMajorUpTwo,
+    );
+
+    expect(result.plainText).toBe('D |A |\nlihavö kursiivi');
+    expect(result.html.match(/<strong><span>lihavö<\/span><\/strong>/g)).toHaveLength(1);
+    expect(result.html.match(/<em><span>kursiivi<\/span><\/em>/g)).toHaveLength(1);
+    expect(result.html).not.toMatch(/font-weight|font-style/);
+  });
+
+  it('AC48: säilyttää laulutekstit tahtivälien joustaessa', () => {
+    const input = [
+      '|D.       |↓G          |↓B7       |↓Em',
+      '',
+      '  Tää yö on aikaa, me ei mennä nukkumaan',
+      '',
+      '    |↓Dm  G7     |C              |E7            |Am        |Am/G',
+      '',
+      'Jos uskot siihen taikaan, on sun tähtimerkit kohdallaan',
+      '',
+      '          |Bm            |E7          |Am        |D- ',
+      '',
+      'Ja pienen hetken koko maailman omistaa sä saat',
+      '',
+      '        |↓G          |↓B7       |↓Em',
+      '',
+      'En helminauhaa tahdo sadun kaukomaan',
+      '',
+      '   |↓Dm     G7     |C          |E7              |Am       |Am/G',
+      '',
+      'mä vain jos voisin rauhaan ikuiseen tän maailman tuudittaa',
+      '',
+      '            |Bm         |E7       |Am      |D-           |G   |',
+      '',
+      'Nyt muistoissa on nuoruuteni heinäkuut. Ei oltu niin kuin muut',
+    ];
+    const html = input.map((line) => `<div>${line || '<br>'}</div>`).join('');
+    const result = createTranspositionResult(html, {
+      status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3,
+    });
+    const output = result.plainText.split('\n');
+
+    for (const index of [2, 6, 10, 14, 18, 22]) expect(output[index]).toBe(input[index]);
+    expect(result.plainText).not.toContain('ikui-seen');
+    expect(result.plainText).not.toContain('siihen  taikaan');
+    expect(result.plainText).not.toContain('sun  tähtimerkit');
+  });
+
+  it('AC48: kohdistaa koko nelirivisen esimerkin ja erottaa tyhjän rivin', () => {
+    const input = [
+      '    |↓Dm  G7     |C              |E7            |Am        |Am/G',
+      'Jos uskot siihen taikaan, on sun tähtimerkit kohdallaan',
+      '   |↓Dm     G7     |C          |E7              |Am       |Am/G',
+      'mä vain jos voisin rauhaan ikuiseen tän maailman tuudittaa',
+    ];
+    const result = createTranspositionResult(input.map(line => `<div>${line}</div>`).join(''),
+      { status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3 });
+    expect(result.plainText).toBe([
+      '    |↓Fm  Bb7    |Eb             |G7            |Cm        |Cm/Bb',
+      input[1],
+      '   |↓Fm     Bb7    |Eb         |G7              |Cm       |Cm/Bb',
+      input[3],
+    ].join('\n'));
+    const rows = result.plainText.split('\n');
+    const pipes = (line: string) => [...line].flatMap((char, index) => char === '|' ? [index] : []);
+    expect(pipes(rows[0]!)).toEqual([4, 17, 33, 48, 59]);
+    expect(pipes(rows[2]!)).toEqual([3, 19, 31, 48, 58]);
+    expect(rows[0]!.indexOf('Bb7')).toBe(10);
+    expect(rows[2]!.indexOf('Bb7')).toBe(12);
+    const separate = createTranspositionResult('<div>|C |Bm |Em</div><div><br></div><div>onpa</div>', cMajorUpTwo);
+    expect(separate.plainText).toBe('|D |C#m |F#m\n\nonpa');
+    expect(pipes(separate.plainText.split('\n')[0]!)).toEqual([0, 3, 8]);
+  });
+
+  it('AC48: ei tavuta ikuiseen-sanaa C-soinnun kasvaessa Eb-soinnuksi', () => {
+    const result = createTranspositionResult(
+      '<div>   |↓Dm     G7     |C          |E7              |Am       |Am/G</div>'
+        + '<div>mä vain jos voisin rauhaan ikuiseen tän maailman tuudittaa</div>',
+      { status: 'ready', mode: 'major', sourceTonic: 'D', targetTonic: 'F', step: 3 },
+    );
+
+    expect(result.plainText.split('\n')[1]).toBe(
+      'mä vain jos voisin rauhaan ikuiseen tän maailman tuudittaa',
+    );
+  });
 });

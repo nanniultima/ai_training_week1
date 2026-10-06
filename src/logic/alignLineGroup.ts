@@ -1,6 +1,44 @@
-import type { AlignedLineGroup, AlignedRange, ChordResultToken, FormattedTextSegment, MusicResultLine, SourceRange, TransposedNoteLinePart } from '../types.js';
+import type { AlignedChordResultToken, AlignedLineGroup, AlignedMusicResultLine, AlignedNoteLinePart, AlignedRange, ChordResultToken, FormattedTextSegment, MusicResultLine, SourceRange, TransposedNoteGroupPart, TransposedNoteLinePart } from '../types.js';
 
 type RangedPart = { readonly sourceRange: SourceRange; readonly alignedRange?: AlignedRange | undefined; readonly text: string };
+
+function copyNoteGroup(part: TransposedNoteGroupPart): TransposedNoteGroupPart {
+  return {
+    ...part,
+    ...(part.sourceRange ? { sourceRange: part.sourceRange } : {}),
+    ...(part.sourceText !== undefined ? { sourceText: part.sourceText } : {}),
+  };
+}
+
+function requireSourceRange(part: { readonly sourceRange?: SourceRange }): SourceRange {
+  if (!part.sourceRange) throw new Error('Kohdistettavalta tokenilta puuttuu alkuperäinen sijainti');
+  return part.sourceRange;
+}
+
+function requireAlignedRange(part: { readonly alignedRange?: AlignedRange | undefined }): AlignedRange {
+  if (!part.alignedRange) throw new Error('Kohdistettavalta tokenilta puuttuu kohdistettu sijainti');
+  return part.alignedRange;
+}
+
+function validatedAlignedLine(line: MusicResultLine): AlignedMusicResultLine {
+  if (line.type === 'chord') {
+    const tokens = (line.tokens ?? []).map((token): AlignedChordResultToken => {
+      if (token.type === 'text') return { ...token, type: 'text' };
+      return { ...token, type: token.type, sourceRange: requireSourceRange(token), alignedRange: requireAlignedRange(token) };
+    });
+    return { ...line, tokens };
+  }
+  if (line.type === 'note') {
+    const parts = line.parts.map((part): AlignedNoteLinePart => {
+      if (part.type !== 'noteGroup') return part;
+      return { ...part, sourceRange: requireSourceRange(part), alignedRange: requireAlignedRange(part) };
+    });
+    return { ...line, parts };
+  }
+  return line;
+}
+
+const isSymbolPrefix = (text: string): boolean => /^[^\p{L}\p{N}\s|]+$/u.test(text);
 
 function rangedParts(group: AlignedLineGroup): RangedPart[][] {
   const lines: RangedPart[][] = [];
@@ -11,24 +49,82 @@ function rangedParts(group: AlignedLineGroup): RangedPart[][] {
 
 function alignmentParts(group: AlignedLineGroup): RangedPart[][] {
   const raw = rangedParts(group);
-  const chordParts = raw[0] ?? [];
   const combined: RangedPart[] = [];
-  for (let index = 0; index < chordParts.length; index += 1) {
-    const part = chordParts[index]!;
-    const next = chordParts[index + 1];
-    if (part.text === '|' && next && part.sourceRange.end === next.sourceRange.start && next.text !== '|') {
+  const chordTokens = (group.chord?.tokens ?? [])
+    .filter((token): token is ChordResultToken & { sourceRange: SourceRange } => token.sourceRange !== undefined);
+  for (let index = 0; index < chordTokens.length; index += 1) {
+    const part = chordTokens[index]!;
+    if (part.type === 'text') continue;
+    let chordIndex = index + 1;
+    let end = part.sourceRange.end;
+    let prefix = '';
+    while (part.type === 'pipe') {
+      const candidate = chordTokens[chordIndex];
+      if (!candidate || candidate.sourceRange.start !== end || candidate.type !== 'text' || !isSymbolPrefix(candidate.text)) break;
+      prefix += candidate.text;
+      end = candidate.sourceRange.end;
+      chordIndex += 1;
+    }
+    const next = chordTokens[chordIndex];
+    if (part.type === 'pipe' && next && next.sourceRange.start === end && (next.type === 'chord' || next.type === 'suspiciousChord')) {
       combined.push({
         sourceRange: { start: part.sourceRange.start, end: next.sourceRange.end },
         ...(part.alignedRange && next.alignedRange ? { alignedRange: { start: part.alignedRange.start, end: next.alignedRange.end } } : {}),
-        text: part.text + next.text,
+        text: part.text + prefix + next.text,
       });
-      index += 1;
-    } else combined.push(part);
+      index = chordIndex;
+    } else combined.push({ sourceRange: part.sourceRange, alignedRange: part.alignedRange, text: part.text });
   }
   const lines: RangedPart[][] = [];
   if (group.chord) lines.push(combined);
   if (group.note) lines.push(raw[group.chord ? 1 : 0] ?? []);
   return lines;
+}
+
+function isStandalonePipeOnlyAnchor(group: AlignedLineGroup, anchor: number): boolean {
+  const [chordParts, noteParts] = alignmentParts(group);
+  const chordPart = chordParts?.find((part) => part.sourceRange.start === anchor);
+  const hasNotePart = noteParts?.some((part) => part.sourceRange.start === anchor) ?? false;
+  return chordPart?.text === '|' && !hasNotePart;
+}
+
+function naturalChordGroup(group: AlignedLineGroup): AlignedLineGroup {
+  if (!group.chord) return group;
+  let outputColumn = 0;
+  let sourceColumn = 0;
+  const tokens = group.chord.tokens?.map(token => {
+    if (token.sourceRange) {
+      outputColumn += Math.max(0, token.sourceRange.start - sourceColumn);
+    }
+    const alignedRange = { start: outputColumn, end: outputColumn + cp(token.text).length };
+    outputColumn = alignedRange.end;
+    sourceColumn = token.sourceRange?.end ?? sourceColumn + cp(token.text).length;
+    return token.type === 'text' ? { ...token } : { ...token, alignedRange };
+  });
+  return { ...group, chord: { ...group.chord, tokens } };
+}
+
+function naturalNoteGroup(group: AlignedLineGroup): AlignedLineGroup {
+  if (!group.note) return group;
+  let outputColumn = 0;
+  let sourceColumn = 0;
+  const parts = group.note.parts.map(part => {
+    if (part.type !== 'noteGroup') {
+      const length = cp(part.text).length;
+      outputColumn += length;
+      sourceColumn += length;
+      return { ...part };
+    }
+    if (part.sourceRange) {
+      outputColumn += Math.max(0, part.sourceRange.start - sourceColumn);
+    }
+    const length = part.notes.reduce((sum, note) => sum + cp(note.name).length, 0);
+    const alignedRange = { start: outputColumn, end: outputColumn + length };
+    outputColumn = alignedRange.end;
+    sourceColumn = part.sourceRange?.end ?? sourceColumn + length;
+    return { ...copyNoteGroup(part), alignedRange };
+  });
+  return { ...group, note: { ...group.note, parts } };
 }
 
 export function collectAlignmentAnchors(group: AlignedLineGroup, coordinate: 'source' | 'aligned' = 'source'): number[] {
@@ -52,24 +148,51 @@ export function collectAlignmentAnchors(group: AlignedLineGroup, coordinate: 'so
 
 export function calculateAlignedColumns(group: AlignedLineGroup, anchors = collectAlignmentAnchors(group)): number[] {
   if (anchors.length === 0) return [];
+  if (group.chord && !group.note && !group.text) {
+    return collectAlignmentAnchors(naturalChordGroup(group), 'aligned');
+  }
+  if (group.note && !group.chord && !group.text) {
+    return collectAlignmentAnchors(naturalNoteGroup(group), 'aligned');
+  }
   const lines = alignmentParts(group);
   const columns: number[] = [anchors[0]!];
   for (let i = 1; i < anchors.length; i += 1) {
-    const previous = anchors[i - 1]!;
-    let delta = Number.NEGATIVE_INFINITY;
-    let collision = columns[i - 1]!;
-    for (const line of lines) {
-      const token = line.find(part => part.sourceRange.start === previous);
-      if (!token) continue;
-      delta = Math.max(delta, [...token.text].length - (token.sourceRange.end - token.sourceRange.start));
-      const next = line.find(part => part.sourceRange.start === anchors[i]!);
-      if (next) {
-        const gap = next.sourceRange.start - token.sourceRange.end;
-        collision = Math.max(collision, columns[i - 1]! + [...token.text].length + gap);
+    const anchor = anchors[i]!;
+    const previousAnchor = anchors[i - 1]!;
+    const carriedShift = columns[i - 1]! - previousAnchor;
+    const baseline = anchor + carriedShift;
+    const isPipeAnchor = Boolean(group.chord && lines[0]?.some(
+      part => part.sourceRange.start === anchor && part.text.startsWith('|'),
+    ));
+    const proposals: number[] = [];
+    for (const [lineIndex, line] of lines.entries()) {
+      const previous = line.filter(part => part.sourceRange.start < anchor).at(-1);
+      if (!previous) continue;
+      const current = line.find(part => part.sourceRange.start === anchor);
+      const isChordLine = Boolean(group.chord) && lineIndex === 0;
+      if (current) {
+        const previousColumn = columns[anchors.indexOf(previous.sourceRange.start)]!;
+        const outputEnd = previousColumn + cp(previous.text).length;
+        const gap = anchor - previous.sourceRange.end;
+        if (isChordLine && current.text.startsWith('|')) {
+          const between = (group.chord?.tokens ?? [])
+            .filter(token => token.type === 'text' && token.sourceRange
+              && token.sourceRange.start >= previous.sourceRange.end
+              && token.sourceRange.end <= anchor)
+            .map(token => token.text).join('').replace(/ +$/, '');
+          proposals.push(Math.max(baseline, outputEnd + cp(between).length));
+        } else if (gap > 1) {
+          proposals.push(Math.max(baseline, outputEnd + 1));
+        } else {
+          proposals.push(outputEnd + gap);
+        }
+      } else if (previous.sourceRange.start === previousAnchor) {
+        const growth = cp(previous.text).length
+          - (previous.sourceRange.end - previous.sourceRange.start);
+        proposals.push(baseline + (isPipeAnchor ? 0 : growth));
       }
     }
-    const shifted = anchors[i]! + (delta === Number.NEGATIVE_INFINITY ? 0 : delta) + (columns[i - 1]! - previous);
-    columns.push(Math.max(shifted, collision));
+    columns.push(proposals.length === 0 ? baseline : Math.max(...proposals));
   }
   return columns;
 }
@@ -134,62 +257,64 @@ function alignMusicSegments(segments: readonly FormattedTextSegment[], content: 
   return merged;
 }
 
-function rewriteMusic(content: string, parts: readonly RangedPart[], anchors: readonly number[], columns: readonly number[]): string {
-  let result = content;
-  const originalCharacters = cp(content);
-  let scanFrom = 0;
-  const outputStarts = new Map<RangedPart, number>();
-  for (const part of parts) {
-    const tokenCharacters = cp(part.text);
-    for (let at = scanFrom; at <= originalCharacters.length - tokenCharacters.length; at += 1) {
-      if (tokenCharacters.every((character, offset) => originalCharacters[at + offset] === character)) {
-        outputStarts.set(part, at);
-        scanFrom = at + tokenCharacters.length;
-        break;
-      }
+function nonAnchorParts(group: AlignedLineGroup): RangedPart[] {
+  if (group.chord) return (group.chord.tokens ?? [])
+    .filter((token): token is ChordResultToken & { sourceRange: SourceRange } => token.type === 'text' && token.sourceRange !== undefined)
+    .map(token => ({ sourceRange: token.sourceRange, text: token.text }));
+  let sourceColumn = 0;
+  const parts: RangedPart[] = [];
+  for (const part of group.note?.parts ?? []) {
+    if (part.type === 'noteGroup') {
+      sourceColumn = requireSourceRange(part).end;
+    } else {
+      const end = sourceColumn + cp(part.text).length;
+      parts.push({ sourceRange: { start: sourceColumn, end }, text: part.text });
+      sourceColumn = end;
     }
   }
-  let adjustment = 0;
-  for (let i = 1; i < anchors.length; i += 1) {
-    const part = parts.find(p => p.sourceRange.start === anchors[i]!);
-    if (!part) continue;
-    const characters = cp(result);
-    const originalStart = outputStarts.get(part);
-    if (originalStart === undefined) continue;
-    const current = originalStart + adjustment;
-    const desired = columns[i]!;
-    const add = desired - current;
-    if (add > 0) characters.splice(current, 0, ...cp(' '.repeat(add)));
-    else if (add < 0) characters.splice(Math.max(0, current + add), Math.min(-add, Math.max(0, current - (current + add))));
-    result = characters.join('');
-    adjustment += add;
-  }
-  return result;
+  return parts;
 }
 
-export function alignLineGroup(group: AlignedLineGroup): MusicResultLine[] {
-  if (!group.chord && !group.note) throw new Error('Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi');
-  if (group.chord?.content === 'C#    |A#m     |G#       |C#      |'
-    && group.note?.content === 'C# C#  A# A# A#   G#C G#  G# C# D#   C#'
-    && group.text?.content === 'onpa i-hanaa laulella sateessa') {
-    const chordStarts = [0, 6, 7, 16, 17, 26, 27, 35];
-    const noteStarts = [0, 3, 6, 9, 12, 16, 20, 23, 26, 29, 33];
-    return [
-      { ...group.chord, content: 'C#    |A#m      |G#       |C#      |', tokens: group.chord.tokens?.map((token, index) => ({ ...token, alignedRange: { start: chordStarts[index]!, end: chordStarts[index]! + [...token.text].length } })) },
-      { ...group.note, content: 'C# C# A# A# A#  G#C G# G# C# D#  C#', parts: group.note.parts.map((part, index) => part.type === 'noteGroup' ? { ...part, alignedRange: { start: noteStarts[index]!, end: noteStarts[index]! + part.notes.map(note => [...note.name].length).reduce((sum, length) => sum + length, 0) } } : part) },
-      { ...group.text, content: 'on-pa i--ha-naa lau-lella sa-teessa', segments: [{ text: 'on-pa i--ha-naa lau-lella sa-teessa', bold: false, italic: false }] },
-    ];
+function rewriteMusic(content: string, parts: readonly RangedPart[], extras: readonly RangedPart[]): string {
+  let result = '';
+  let sourceColumn = 0;
+  const gapBetween = (from: number, to: number): string => {
+    let gap = '';
+    let cursor = from;
+    for (const extra of extras) {
+      if (extra.sourceRange.start < from || extra.sourceRange.end > to) continue;
+      gap += ' '.repeat(Math.max(0, extra.sourceRange.start - cursor)) + extra.text;
+      cursor = extra.sourceRange.end;
+    }
+    return gap + ' '.repeat(Math.max(0, to - cursor));
+  };
+  for (const part of parts) {
+    const gap = cp(gapBetween(sourceColumn, part.sourceRange.start));
+    const desired = requireAlignedRange(part).start - cp(result).length;
+    // Only whitespace may be consumed; symbols and repeat markers remain intact.
+    for (let index = gap.length - 1; gap.length > desired && index >= 0; index -= 1) {
+      if (gap[index] === ' ') gap.splice(index, 1);
+    }
+    if (gap.length < desired) {
+      let at = gap.length;
+      while (at > 0 && isSymbolPrefix(gap[at - 1]!)) at -= 1;
+      gap.splice(at, 0, ...cp(' '.repeat(desired - gap.length)));
+    }
+    result += gap.join('') + part.text;
+    sourceColumn = part.sourceRange.end;
   }
-  if (group.chord?.content === 'D    |Bm     |A       |D      |'
-    && group.note?.content === 'D D  B B B   AC# A  A  D E   D'
-    && group.text?.content === 'onpa i-hanaa laulella sateessa') {
-    const chordStarts = [0, 5, 6, 13, 14, 23, 24, 31];
-    const noteStarts = [0, 2, 5, 7, 9, 13, 17, 20, 23, 25, 29];
-    return [
-      { ...group.chord, content: 'D    |Bm     |A        |D      |', tokens: group.chord.tokens?.map((token, index) => ({ ...token, alignedRange: { start: chordStarts[index]!, end: chordStarts[index]! + [...token.text].length } })) },
-      { ...group.note, content: 'D D  B B B   AC# A  A  D E   D', parts: group.note.parts.map((part, index) => part.type === 'noteGroup' ? { ...part, alignedRange: { start: noteStarts[index]!, end: noteStarts[index]! + part.notes.reduce((length, note) => length + [...note.name].length, 0) } } : part) },
-      { ...group.text, content: 'onpa i-hanaa lau-lella sateessa', segments: [{ text: 'onpa i-hanaa lau-lella sateessa', bold: false, italic: false }] },
-    ];
+  const trailing = extras.filter(part => part.sourceRange.start >= sourceColumn);
+  if (trailing.length) result += gapBetween(sourceColumn, trailing.at(-1)!.sourceRange.end);
+  else result += / *$/.exec(content)?.[0] ?? '';
+  return result;
+}
+function buildAlignedLines(group: AlignedLineGroup): MusicResultLine[] {
+  if (!group.chord && !group.note) throw new Error('Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi');
+  if (group.chord && !group.note && !group.text) {
+    return [naturalChordGroup(group).chord!];
+  }
+  if (group.note && !group.chord && !group.text) {
+    return [naturalNoteGroup(group).note!];
   }
   const anchors = collectAlignmentAnchors(group);
   const columns = calculateAlignedColumns(group, anchors);
@@ -198,30 +323,41 @@ export function alignLineGroup(group: AlignedLineGroup): MusicResultLine[] {
   if (group.chord) {
     const tokens = group.chord.tokens?.map((token, index, all) => {
       if (!token.sourceRange || token.type === 'text') return { ...token };
-      const previous = all[index - 1];
+      let previousIndex = index - 1;
+      let prefixLength = 0;
+      let expectedStart = token.sourceRange.start;
+      while (previousIndex >= 0) {
+        const candidate = all[previousIndex];
+        if (candidate?.type !== 'text' || !candidate.sourceRange || candidate.sourceRange.end !== expectedStart || !isSymbolPrefix(candidate.text)) break;
+        prefixLength += cp(candidate.text).length;
+        expectedStart = candidate.sourceRange.start;
+        previousIndex -= 1;
+      }
+      const previous = all[previousIndex];
       const isCombinedChord = (token.type === 'chord' || token.type === 'suspiciousChord')
-        && previous?.type === 'pipe' && previous.sourceRange?.end === token.sourceRange.start;
+        && previous?.type === 'pipe' && previous.sourceRange?.end === expectedStart;
       const anchor = isCombinedChord ? previous.sourceRange!.start : token.sourceRange.start;
       const unitStart = columnByAnchor.get(anchor) ?? anchor;
-      const start = unitStart + (isCombinedChord ? 1 : 0);
+      const start = unitStart + (isCombinedChord ? 1 + prefixLength : 0);
       return { ...token, alignedRange: { start, end: start + cp(token.text).length } };
     });
-    const content = rewriteMusic(group.chord.content, rangedParts({ chord: group.chord })[0] ?? [], anchors, columns);
+    const content = rewriteMusic(group.chord.content, rangedParts({ chord: { ...group.chord, tokens } })[0] ?? [], nonAnchorParts({ chord: group.chord }));
     output.push({ ...group.chord, content, segments: alignMusicSegments(group.chord.segments, content), tokens });
   }
-  if (group.note) output.push({
-    ...group.note,
-    content: rewriteMusic(group.note.content, rangedParts({ note: group.note })[0] ?? [], anchors, columns),
-    parts: group.note.parts.map((part) => {
+  if (group.note) {
+    const parts = group.note.parts.map((part) => {
       if (part.type !== 'noteGroup' || !part.sourceRange) return { ...part };
       const start = columnByAnchor.get(part.sourceRange.start) ?? part.sourceRange.start;
-      return { ...part, alignedRange: { start, end: start + part.notes.reduce((length, note) => length + cp(note.name).length, 0) } };
-    }),
-  });
+      return { ...copyNoteGroup(part), alignedRange: { start, end: start + part.notes.reduce((length, note) => length + cp(note.name).length, 0) } };
+    });
+    const content = rewriteMusic(group.note.content, rangedParts({ note: { ...group.note, parts } })[0] ?? [], nonAnchorParts({ note: group.note }));
+    output.push({ ...group.note, content, parts });
+  }
   if (group.text) {
     let segments = group.text.segments.map(s => ({ ...s }));
     let currentShift = 0;
     for (let i = 1; i < anchors.length; i += 1) {
+      if (isStandalonePipeOnlyAnchor(group, anchors[i]!)) continue;
       const targetShift = columns[i]! - anchors[i]!;
       if (targetShift > currentShift) segments = insertText(segments, anchors[i]! + currentShift, targetShift - currentShift);
       else if (targetShift < currentShift) segments = removeAlignmentHyphens(segments, columns[i]!, currentShift - targetShift);
@@ -230,4 +366,8 @@ export function alignLineGroup(group: AlignedLineGroup): MusicResultLine[] {
     output.push({ ...group.text, content: segments.map(s => s.text).join(''), segments });
   }
   return output;
+}
+
+export function alignLineGroup(group: AlignedLineGroup): AlignedMusicResultLine[] {
+  return buildAlignedLines(group).map(validatedAlignedLine);
 }
