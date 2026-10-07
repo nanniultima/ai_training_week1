@@ -1,6 +1,6 @@
 import type { InputLine } from '../types.js';
 
-export function parseRichText(_html: string): { readonly lines: readonly InputLine[] } {
+export function parseRichText(_html: string, options: { readonly allowEmpty?: boolean } = {}): { readonly lines: readonly InputLine[] } {
   const template = document.createElement('template');
   template.innerHTML = _html;
   const lines: { segments: { text: string; bold: boolean; italic: boolean; fontSizePx?: number }[] }[] = [{ segments: [] }];
@@ -19,6 +19,16 @@ export function parseRichText(_html: string): { readonly lines: readonly InputLi
   const lineBreak = (force = false): void => { if (force || lines.at(-1)!.segments.length > 0) lines.push({ segments: [] }); };
   const discarded = new Set(['SCRIPT', 'STYLE', 'IMG', 'VIDEO', 'AUDIO', 'CANVAS', 'SVG', 'IFRAME', 'OBJECT']);
   const blocks = new Set(['DIV', 'P']);
+  const hasBoldStyle = (element: HTMLElement): boolean => {
+    const value = element.style.getPropertyValue('font-weight').trim().toLowerCase();
+    if (value === 'bold' || value === 'bolder') return true;
+    const weight = Number(value);
+    return Number.isFinite(weight) && weight >= 600;
+  };
+  const hasItalicStyle = (element: HTMLElement): boolean => {
+    const value = element.style.getPropertyValue('font-style').trim().toLowerCase();
+    return value === 'italic' || value === 'oblique';
+  };
   const visit = (node: Node, inherited: Style): void => {
     if (node.nodeType === Node.TEXT_NODE) { append(node.textContent ?? '', inherited); return; }
     if (!(node instanceof HTMLElement) || discarded.has(node.tagName)) return;
@@ -26,8 +36,8 @@ export function parseRichText(_html: string): { readonly lines: readonly InputLi
     const isBlock = blocks.has(node.tagName);
     if (isBlock && lines.at(-1)!.segments.length > 0) lineBreak();
     const style: Style = {
-      bold: inherited.bold || node.tagName === 'STRONG' || node.tagName === 'B',
-      italic: inherited.italic || node.tagName === 'EM' || node.tagName === 'I',
+      bold: inherited.bold || node.tagName === 'STRONG' || node.tagName === 'B' || hasBoldStyle(node),
+      italic: inherited.italic || node.tagName === 'EM' || node.tagName === 'I' || hasItalicStyle(node),
     };
     const fontValue = node.style.getPropertyValue('font-size').trim();
     const match = /^([+]?(?:\d+(?:\.\d*)?|\.\d+))px$/i.exec(fontValue);
@@ -38,7 +48,7 @@ export function parseRichText(_html: string): { readonly lines: readonly InputLi
   };
   template.content.childNodes.forEach((node) => visit(node, { bold: false, italic: false }));
   if (lines.length > 1 && lines.at(-1)!.segments.length === 0) lines.pop();
-  if (!lines.some((line) => line.segments.some((segment) => /\S/.test(segment.text)))) throw new Error('Rikastekstisyöte ei saa olla tyhjä');
+  if (!options.allowEmpty && !lines.some((line) => line.segments.some((segment) => /\S/.test(segment.text)))) throw new Error('Rikastekstisyöte ei saa olla tyhjä');
   return { lines: lines.map((line) => {
     const result: InputLine = { segments: line.segments };
     Object.defineProperty(result, 'text', { value: line.segments.map((segment) => segment.text).join(''), enumerable: false });

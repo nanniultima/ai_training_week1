@@ -27,12 +27,49 @@ const group = transposedGroup(exampleRows);
 const plusTwoGroup = transposedGroup(exampleRows, { ...plusOne, targetTonic: 'D', step: 2 });
 describe('alignLineGroup', () => {
   it.each([
+    ['c x2 d', 'C# x2 D#', 5, 6, 'onpa  ihanaa'],
+    ['c - d', 'C# - D#', 4, 5, 'onpa  ihanaa'],
+    ['c x2 x3 d', 'C# x2 x3 D#', 8, 9, 'onpa iha-naa'],
+  ] as const)('AC23: sävelrivin välisisältö ja erottimet säilyvät (%s)', (source, expectedNote, sourceStart, outputStart, expectedText) => {
+    const candidate = transposedGroup([['note', source], ['text', 'onpa ihanaa']]);
+    const result = alignLineGroup(candidate);
+    expect(result.map(line => line.content)).toEqual([expectedNote, expectedText]);
+    expect(calculateAlignedColumns(candidate)).toEqual([0, outputStart]);
+    const noteLine = result[0];
+    if (noteLine?.type !== 'note') throw new Error('Expected note');
+    expect(noteLine.parts.filter(part => part.type === 'noteGroup')[1])
+      .toMatchObject({ sourceRange: { start: sourceStart }, alignedRange: { start: outputStart } });
+  });
+  it('Amendments AC29: hylkää musiikittoman preserve-kutsun', () => {
+    expect(() => alignLineGroup({}, 'preserve')).toThrowError(new Error('Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi'));
+  });
+  it('Amendments AC28: säilyttää monirivisen ryhmän luonnolliset tulosalueet', () => {
+    const candidate = transposedGroup([['chord', 'C |G |'], ['note', 'c c'], ['text', 'onpa']]);
+    const before = structuredClone(candidate);
+    const chordSource = structuredClone(candidate.chord!.tokens!.map(token => token.sourceRange));
+    const noteSource = structuredClone(candidate.note!.parts.filter(part => part.type === 'noteGroup').map(part => part.sourceRange));
+    const result = alignLineGroup(candidate, 'preserve');
+    expect(result.map(line => line.content)).toEqual(['C# |G# |', 'C# C#', 'onpa']);
+    const chordLine = result[0], noteLine = result[1];
+    if (chordLine?.type !== 'chord' || noteLine?.type !== 'note') throw new Error('Expected music');
+    expect(chordLine.tokens.filter(token => token.type !== 'text').map(token => token.alignedRange))
+      .toEqual([{ start: 0, end: 2 }, { start: 3, end: 4 }, { start: 4, end: 6 }, { start: 7, end: 8 }]);
+    expect(noteLine.parts.filter(part => part.type === 'noteGroup').map(part => part.alignedRange))
+      .toEqual([{ start: 0, end: 2 }, { start: 3, end: 5 }]);
+    expect(chordLine.tokens.map(token => token.sourceRange)).toEqual(chordSource);
+    expect(noteLine.parts.filter(part => part.type === 'noteGroup').map(part => part.sourceRange)).toEqual(noteSource);
+    expect(chordLine.segments).toEqual(candidate.chord!.segments);
+    expect(noteLine.parts.filter(part => part.type === 'noteGroup').map(part => part.notes))
+      .toEqual(candidate.note!.parts.filter(part => part.type === 'noteGroup').map(part => part.notes));
+    expect(candidate).toEqual(before);
+  });
+  it.each([
     ['gb c', 'on-pa', 1, 'C#', 'G C#', 'onpa', 2],
     ['gB c', 'on-pa', 1, 'C#', 'G#C C#', 'on--pa', 4],
     ['gb c', 'on-pa', 2, 'D', 'G# D', 'on-pa', 3],
     ['gB c', 'on-pa', 2, 'D', 'AC# D', 'on--pa', 4],
-    ['gb c', 'on-pa', 0, 'C', 'Gb C', 'on-pa', 3],
-    ['gB c', 'on-pa', 0, 'C', 'GB C', 'on-pa', 3],
+    ['gb c', 'on-pa', 0, 'C', 'gb c', 'on-pa', 3],
+    ['gB c', 'on-pa', 0, 'C', 'gB c', 'on-pa', 3],
     ['gbc  d', 'onpa  ihanaa', 1, 'C#', 'GC#  D#', 'onpa  ihanaa', 5],
     ['gBc  d', 'onpa  ihanaa', 1, 'C#', 'G#CC# D#', 'onpa   ihanaa', 6],
   ] as const)('AC56: erottaa gb- ja gB-ryhmien kohdistuksen (%s, %s, %i)', (source, lyrics, step, targetTonic, expectedNote, expectedText, column) => {
@@ -56,7 +93,7 @@ describe('alignLineGroup', () => {
       ['text', 'onpa i-hanaa laulella sateessa'],
     ], { ...plusOne, targetTonic: 'C', step: 0 }));
     expect(result.map(line => line.content)).toEqual([
-      'C    |Am     |G       |C      |', 'C C  A A A   GB G  G  C D   C', 'onpa i-hanaa laulella sateessa',
+      'C    |Am     |G       |C      |', 'c c  a a a   gB g  g  c d   c', 'onpa i-hanaa laulella sateessa',
     ]);
     const chordLine = result[0], noteLine = result[1];
     if (chordLine?.type !== 'chord' || noteLine?.type !== 'note') throw new Error('Expected music');

@@ -44,3 +44,16 @@ red-kierroksen jälkeen.
 - [ ] Kaikki speksissä olevat AC:t on suljettu ja niitä vastaavat testit läpäisevät.
 - [ ] Diffissä ei ole speksin ulkopuolista toteutusta.
 - [ ] Speksin tila voidaan päivittää `Done`-tilaan vasta review-workflown hyväksynnän jälkeen.
+
+## Käyttöliittymän askelvirheen korjaus 7.10.2026
+
+AC16–AC18:n validointiviesti välitetään nyt käyttöliittymään myös Transponoi-
+painalluksessa. Asetusten ratkaisu siirrettiin tulosputken kanssa samaan
+try/catch-käsittelyyn; laskenta ja sallittu askelväli eivät muuttuneet.
+RED vahvistui arvoilla -12, 12, 19 ja 1.5: resolverin poikkeus karkasi
+käsittelijästä eikä näkyvää ilmoitusta muodostunut.
+GREEN: roolilla alert näkyvä täsmällinen viesti, vanhan tuloksen/varoitusten/
+kopiointitilan tyhjennys ja paluu syötenäkymään. Testi tarkistaa myös uuden
+kelvollisen 2-askeleen onnistumisen saman virhetilan jälkeen.
+21 testitiedostoa, 430 onnistunutta testiä, 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät. Tämän korjauksen review: APPROVED.

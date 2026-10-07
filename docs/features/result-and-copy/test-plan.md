@@ -59,9 +59,10 @@ GREEN-vaiheen jälkeen.
 | AC48 | `AC48: sijoittaa asetukset aktiivisen paneelin vasemmalle puolelle` | `ui.test.ts` |
 | AC49 | `AC49: pinoaa asetukset mobiilissa aktiivisen paneelin edelle` | `ui.test.ts` |
 | AC50 | `AC50: säilyttää luonnollisen sanavälin koko transponointiputkessa` | `createTranspositionResult.test.ts` |
+| AC51 | Nykyinen yhteinen regressio `AC45: jättää itsenäisen loppuputken pois tekstin tavutuksesta` (kohdistusspeksin AC45, tämän speksin AC51) | `createTranspositionResult.test.ts` |
 
 ## Kattavuus
 
-Jäljitettävyys 50/50. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38,
+Jäljitettävyys 51/51. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38,
 AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34,
-AC39, AC41–AC50. Lopputarkistus: `npm run lint`, `npm test`, `git diff --check`.
+AC39, AC41–AC51. Lopputarkistus: `npm run lint`, `npm test`, `git diff --check`.

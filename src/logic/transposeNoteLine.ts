@@ -52,7 +52,8 @@ export function transposeNoteLine(line: ClassifiedLine, settings: ReadyTransposi
     const notes = [];
     let local = 0;
     for (const name of names) {
-      notes.push(transposeNote(name, registerAt(line, position + local), settings));
+      const sourceName = settings.step === 0 ? token.slice(local, local + name.length) : name;
+      notes.push(transposeNote(sourceName, registerAt(line, position + local), settings));
       local += name.length;
     }
     const group = { type: 'noteGroup' as const, notes };

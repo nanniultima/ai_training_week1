@@ -119,3 +119,17 @@ HTML:n näkyviä rivejä kohdistettujen rivien sisältöihin.
 Lopullinen ajo: 21 testitiedostoa, 340 onnistunutta, 0 epäonnistunutta,
 0 ohitettua testiä; lint ja diff-tarkistus läpäisevät. Review: APPROVED.
 Speksi on Done; yllä oleva execution-osio kuvaa toteutuksen työjärjestystä.
+## Toistomerkintöjen ja viivaerottimen regressiot 7.10.2026
+
+AC23:n välisisältösäännön lisätestit:
+- AC23: sävelrivin välisisältö ja erottimet säilyvät — alignLineGroup.test.ts:
+  c x2 d → C# x2 D#, ankkuri 5 → 6;
+  c - d → C# - D#, ankkuri 4 → 5;
+  c x2 x3 d → C# x2 x3 D#, ankkuri 8 → 9.
+- Alignment AC23: sävelrivin erottimet säilyvät koko putkessa — createTranspositionResult.test.ts:
+  HTML ja plainText ovat samat, laulutekstin vastaava kohta siirtyy mukana.
+- Alignment AC23: välisisällön lähdemuotoilu säilyy — createTranspositionResult.test.ts:
+  x2:n italic ja viivaerottimen bold säilyvät.
+
+Koko sarja: 21 testitiedostoa, 445 onnistunutta testiä,
+0 epäonnistunutta, 0 ohitettua. Lint ja diff-tarkistus läpäisevät.

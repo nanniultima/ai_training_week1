@@ -18,6 +18,50 @@ const chordLine = (index: number, content: string): ClassifiedLine => ({
 });
 
 describe('transposeChordLine', () => {
+  it('AC28: soinnun muotoiluraja ei muuta transponoinnin sisältöä', () => {
+    const result = transposeChordLine({ index: 0, type: 'chord', content: 'C#m |', segments: [
+      { text: 'C', bold: false, italic: false, fontSizePx: 16 },
+      { text: '#m', bold: false, italic: true, fontSizePx: 22 },
+      { text: ' |', bold: false, italic: false, fontSizePx: 16 },
+    ] }, settings('major', 'C', 1, 'C#'));
+    expect(result.content).toBe('Dm |');
+    expect(result.segments).toEqual([
+      { text: 'D', bold: false, italic: false, fontSizePx: 16 },
+      { text: 'm', bold: false, italic: true, fontSizePx: 22 },
+      { text: ' |', bold: false, italic: false, fontSizePx: 16 },
+    ]);
+    expect(result.segments.map(segment => segment.text).join('')).toBe(result.content);
+  });
+  it('AC28: bassosävel perii kirjaimensa muotoilun yli segmenttirajan', () => {
+    const result = transposeChordLine({ index: 0, type: 'chord', content: 'C/G# |', segments: [
+      { text: 'C', bold: false, italic: true, fontSizePx: 18 },
+      { text: '/', bold: false, italic: false, fontSizePx: 12 },
+      { text: 'G', bold: false, italic: false, fontSizePx: 20 },
+      { text: '#', bold: true, italic: false, fontSizePx: 24 },
+      { text: ' |', bold: false, italic: false, fontSizePx: 12 },
+    ] }, settings('major', 'C', 1, 'C#'));
+    expect(result.content).toBe('C#/A |');
+    expect(result.segments).toEqual([
+      { text: 'C#', bold: false, italic: true, fontSizePx: 18 },
+      { text: '/', bold: false, italic: false, fontSizePx: 12 },
+      { text: 'A', bold: false, italic: false, fontSizePx: 20 },
+      { text: ' |', bold: false, italic: false, fontSizePx: 12 },
+    ]);
+    expect(result.segments.map(segment => segment.text).join('')).toBe(result.content);
+  });
+  it.each(['cafe', 'Cafe', 'CAFE'])('Amendments AC18: säilyttää cafe-sanamuodot sointurivin tekstinä (%s)', word => {
+    const result = transposeChordLine({ ...chordLine(0, `${word} |C |`), segments: [{ text: word, bold: false, italic: true }, { text: ' |C |', bold: false, italic: false }] }, settings('major', 'C', 2, 'D'));
+    expect(result.content).toBe(`${word} |D |`);
+    expect(result.warnings).toEqual([]);
+    expect(result.tokens?.[0]).toMatchObject({ type: 'text', text: word, formatting: [{ text: word, bold: false, italic: true }] });
+  });
+  it('Amendments AC14: säilyttää tukemattoman soinnun rivillä varoituksella', () => {
+    const result = transposeChordLine({ index: 0, type: 'chord', content: 'Cb |C |', segments: [{ text: 'Cb |C |', bold: false, italic: false }] },
+      { status: 'ready', mode: 'major', sourceTonic: 'C', targetTonic: 'D', step: 2 });
+    expect(result.content).toBe('Cb |D |');
+    expect(result.warnings).toEqual([{ code: 'SUSPICIOUS_CHORD', lineIndex: 0, startIndex: 0, original: 'Cb', output: 'Cb' }]);
+    expect(result.tokens?.[0]).toMatchObject({ type: 'suspiciousChord', text: 'Cb', sourceRange: { start: 0, end: 2 } });
+  });
   it('AC35: tuottaa chordien Unicode-koodipistealueet', () => {
     const result = transposeChordLine(chordLine(0, '😀C |G |'), settings('major', 'C', 0, 'C'));
     expect(result.tokens?.find((token) => token.type === 'chord' && token.text === 'C')?.sourceRange).toEqual({ start: 1, end: 2 });
@@ -87,6 +131,8 @@ describe('transposeChordLine', () => {
       settings('major', 'G', 2, 'A'),
     );
     expect(result.content).toBe('A/ |D |');
+    expect(result.segments.map(segment => segment.text).join('')).toBe('A/ |D |');
+    expect(result.tokens?.[0]).toMatchObject({ type: 'suspiciousChord', text: 'A/', sourceRange: { start: 0, end: 2 } });
     expect(result.warnings).toEqual([
       { code: 'SUSPICIOUS_CHORD', lineIndex: 0, startIndex: 0, original: 'G/', output: 'A/' },
     ]);

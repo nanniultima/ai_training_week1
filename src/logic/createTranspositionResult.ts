@@ -9,6 +9,10 @@ import { transposeChordLine } from './transposeChordLine.js';
 import { transposeNoteLine } from './transposeNoteLine.js';
 import { createResultPresentation } from './createResultPresentation.js';
 
+type SourceFormattedChordLine = Extract<AlignedMusicResultLine, { type: 'chord' }> & {
+  readonly preserveSourceFormatting: true;
+};
+
 export function createTranspositionResult(
   inputHtml: string,
   settings: ReadyTranspositionSettings,
@@ -26,7 +30,12 @@ export function createTranspositionResult(
   const lines = groupAlignedLines(classified.lines, transposed)
     .flatMap((item): AlignedMusicResultLine[] => {
       if ('type' in item) return [item];
-      return alignLineGroup(item as AlignedLineGroup);
+      const aligned = alignLineGroup(item as AlignedLineGroup, settings.step === 0 ? 'preserve' : 'align');
+      return aligned.map(line => {
+        if (settings.step !== 0 || line.type !== 'chord') return line;
+        const preserved: SourceFormattedChordLine = { ...line, preserveSourceFormatting: true };
+        return preserved;
+      });
     })
     .sort((left, right) => (left.index ?? 0) - (right.index ?? 0));
   const fontSizePx = Number.parseFloat(resolveBaseFontSize(parsed.lines));

@@ -7,7 +7,135 @@ import { readFileSync } from 'node:fs';
 import { initializeUi } from './ui.js';
 const styles = readFileSync('style.css', 'utf8');
 
+function amendmentsUi() {
+  const root = document.createElement('div');
+  initializeUi(root);
+  root.querySelector<HTMLInputElement>('input[name=key-mode][value=major]')!.click();
+  const source = root.querySelector<HTMLSelectElement>('#source-key')!;
+  source.value = 'C';
+  source.dispatchEvent(new Event('change'));
+  const step = root.querySelector<HTMLInputElement>('#transpose-step')!;
+  step.value = '2';
+  step.dispatchEvent(new Event('input'));
+  const input = root.querySelector<HTMLElement>('#music-input')!;
+  input.innerHTML = '<div>C |G |</div>';
+  return { root, step, input, button: root.querySelector<HTMLButtonElement>('.transpose-actions button')! };
+}
+
 describe('initializeUi', () => {
+  it.each(['-12', '12', '19', '1.5'])('Settings AC16–AC18 / Result AC37: näyttää virheellisen askelmäärän virheen (%s)', value => {
+    const { root, input, step, button } = amendmentsUi();
+    button.click();
+    expect(root.querySelector('#music-result')!.textContent).toBe('D |A |');
+    const before = input.innerHTML;
+    root.querySelector('#result-warnings')!.textContent = 'vanha varoitus';
+    root.querySelector('#copy-status')!.textContent = 'Tulos kopioitu';
+    step.value = value;
+    step.dispatchEvent(new Event('input'));
+    button.click();
+    const error = root.querySelector<HTMLElement>('#transposition-error')!;
+    expect(error.textContent).toBe('Askelmäärän pitää olla kokonaisluku väliltä -11–11');
+    expect(error.hidden).toBe(false);
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(root.querySelector('#music-result')!.innerHTML).toBe('');
+    expect(root.querySelector('#result-warnings')!.textContent).toBe('');
+    expect(root.querySelector('#copy-status')!.textContent).toBe('');
+    expect(root.querySelector<HTMLElement>('#input-editor-pane')!.hidden).toBe(false);
+    expect(root.querySelector<HTMLElement>('#transposition-result')!.hidden).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('#show-result')!.disabled).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('#copy-result')!.disabled).toBe(true);
+    expect(input.innerHTML).toBe(before);
+    step.value = '2';
+    step.dispatchEvent(new Event('input'));
+    button.click();
+    expect(error.hidden).toBe(true);
+    expect(root.querySelector('#music-result')!.textContent).toBe('D |A |');
+  });
+  it('Editor lines AC6: näyttää varoituksessa numeropalstan rivin', () => {
+    const { root, input, button } = amendmentsUi();
+    input.innerHTML = '<div>C |</div><div>Cfoo |</div>';
+    const before = input.innerHTML;
+    input.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#line-number-gutter')!.textContent).toBe('1\n2');
+    button.click();
+    const warnings = [...root.querySelectorAll('#result-warnings p')];
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]!.textContent?.startsWith('Rivi 2, kohta 1: epäilyttävä sointu "Cfoo"')).toBe(true);
+    expect(input.innerHTML).toBe(before);
+  });
+  it.each([
+    ['', '1'], ['<div><br></div>', '1'], ['<div><br></div><div><br></div>', '1\n2'],
+  ])('Editor lines AC4: numeroi tyhjän editorin (%s)', (html, expected) => {
+    const { root, input } = amendmentsUi();
+    input.innerHTML = html;
+    input.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#line-number-gutter')!.textContent).toBe(expected);
+    expect(root.querySelector<HTMLElement>('#transposition-error')!.hidden).toBe(true);
+  });
+  it('Editor lines AC3: normalisoi sisäkkäiset lohkot', () => {
+    const { root, input } = amendmentsUi();
+    input.innerHTML = '<div><p>C |G |</p></div><div>onpa</div>';
+    input.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#line-number-gutter')!.textContent).toBe('1\n2');
+  });
+  it.each([
+    ['<div>C |G |<br>onpa</div>', '1\n2'],
+    ['<div>C |G |</div><div><br></div><div>onpa</div>', '1\n2\n3'],
+  ])('Editor lines AC2: numeroi br-erottimen ja tyhjän rivin (%s)', (html, expected) => {
+    const { root, input } = amendmentsUi();
+    input.innerHTML = html;
+    input.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#line-number-gutter')!.textContent).toBe(expected);
+  });
+  it('Editor lines AC1: numeroi HTML-lohkorivit muuttamatta editoria', () => {
+    const { root, input } = amendmentsUi();
+    input.innerHTML = '<div>C |G |</div><div>onpa</div>';
+    const before = input.innerHTML;
+    input.dispatchEvent(new Event('input'));
+    expect(root.querySelector('#line-number-gutter')!.textContent).toBe('1\n2');
+    expect(input.innerHTML).toBe(before);
+  });
+  it('Amendments AC10: hyväksyy eksplisiittisen nollan', () => {
+    const { root, step, input, button } = amendmentsUi();
+    input.innerHTML = '<div>H |G |</div>';
+    step.value = '0';
+    step.dispatchEvent(new Event('input'));
+    button.click();
+    expect(root.querySelector('#music-result')!.textContent).toBe('B |G |');
+    expect(root.querySelector<HTMLElement>('#transposition-error')!.hidden).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('#show-result')!.disabled).toBe(false);
+    expect(root.querySelector<HTMLButtonElement>('#copy-result')!.disabled).toBe(false);
+    expect(root.querySelector('#target-key-preview')!.textContent).toBe('Kohdesävellaji: C-duuri');
+  });
+  it('Amendments AC9: näyttää tyhjän askelkentän virheen', () => {
+    const { root, step, button } = amendmentsUi();
+    button.click();
+    expect(root.querySelector('#music-result')!.textContent).toBe('D |A |');
+    root.querySelector('#result-warnings')!.textContent = 'vanha varoitus';
+    step.value = '';
+    step.dispatchEvent(new Event('input'));
+    button.click();
+    const error = root.querySelector<HTMLElement>('#transposition-error')!;
+    expect(error.textContent).toBe('Anna puolisävelaskelten määrä');
+    expect(error.hidden).toBe(false);
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(root.querySelector('#music-result')!.innerHTML).toBe('');
+    expect(root.querySelector('#result-warnings')!.textContent).toBe('');
+    expect(root.querySelector('#show-input')!.getAttribute('aria-pressed')).toBe('true');
+    expect(root.querySelector<HTMLElement>('#transposition-result')!.hidden).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('#show-result')!.disabled).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('#copy-result')!.disabled).toBe(true);
+  });
+  it('Amendments AC8: piilottaa esikatselun tyhjällä askelkentällä', () => {
+    const { root, step, input } = amendmentsUi();
+    expect(root.querySelector<HTMLElement>('#target-key-preview')!.textContent).toBe('Kohdesävellaji: D-duuri');
+    const before = input.innerHTML;
+    step.value = '';
+    step.dispatchEvent(new Event('input'));
+    expect(root.querySelector<HTMLElement>('#target-key-preview')!.hidden).toBe(true);
+    expect(root.querySelector<HTMLElement>('#enharmonic-choice')!.hidden).toBe(true);
+    expect(input.innerHTML).toBe(before);
+  });
   it('AC31: alustaa aktiivisen syötenäkymän ja käytöstä poistetun tulosvalinnan', () => {
     const root = document.createElement('div');
     initializeUi(root);

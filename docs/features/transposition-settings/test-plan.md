@@ -60,3 +60,14 @@ AC3 on koneellisesti tarkistettava, joten `[?]`-merkintää ei tarvita.
 | [ ] | AC28 | `transpositionSettings.test.ts` — `AC28 hylkää virheellisen moodin ajonaikana` | Dorian, C, `1` | `Tuntematon sävellajin laatu: dorian` |
 
 Kaikki speksissä olevat 28 AC:tä ovat koneellisesti tarkistettavia; `[?]`-rivejä ei ole.
+
+## UI-validoinnin regressio 7.10.2026
+
+`Settings AC16–AC18 / Result AC37: näyttää virheellisen askelmäärän virheen`
+on ui.test.ts:ssä parametrisoitu arvoille -12, 12, 19 ja 1.5.
+Testi aloittaa oikeasta valmiista tuloksesta, vahvistaa täsmällisen
+askelmääräviestin sekä tyhjän tulos-/varoitus-/kopiointitilan, syötenäkymän
+ja käytöstä poistetut tulos-/kopiointipainikkeet. Syötteen HTML säilyy.
+Arvon 2 syöttäminen virheen jälkeen tuottaa jälleen D |A | ilman näkyvää alertia.
+Koko sarja: 21 testitiedostoa, 430 onnistunutta testiä,
+0 epäonnistunutta, 0 ohitettua. Lint ja diff-tarkistus läpäisevät.

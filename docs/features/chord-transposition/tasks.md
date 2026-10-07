@@ -49,3 +49,41 @@ kaikki testit. Lopeta kahden peräkkäisen red-kierroksen jälkeen.
 - [ ] Diffi pysyy speksin Files to Modify -rajauksessa.
 - [ ] Review yhdistää jokaisen muutoksen AC:hen ja päättyy verdictiin.
 - [ ] Tila vaihtuu `Draft` → `In Progress` develop-vaiheessa ja `Done` vasta hyväksytyn review-vaiheen jälkeen.
+
+## AC23:n sisältömallin korjaus 7.10.2026
+
+RED vahvistettiin ennen tuotantokoodia: G/ +2 tuotti contentiin A/,
+mutta segmenttien ja tokenin teksti oli edelleen G/. Koko putken testeissä
+yksirivisen tuloksen HTML näytti väärän G/:n ja tekstikumppanin kanssa
+myös plainText palautui G/:ksi.
+
+GREEN: keskeneräisen tuetun bassosoinnun yksityinen muunnosfunktio on
+yhteinen contentille ja segmenteille; suspiciousChord-token käyttää
+varoituksen output-arvoa alkuperäisen tokenin sijaan. SourceRange säilyy
+alkuperäisenä. Tuntematon sointupääte tai tukematon lähtösävel jää edelleen
+muuttumattomaksi varoituksella.
+
+Regressiot: AC23:n tokeni ja segmentit, koko putki ilman sanoja ja sanojen
+kanssa, pitenevä G/ → G#/ sekä H/ → B/ nolla-askeleella.
+21 testitiedostoa ja 426 testiä läpäisevät, 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät. Tämän korjauksen review: APPROVED.
+Yllä oleva alkuperäinen tehtävälista on aiemman toteutuksen suunnitelma.
+
+## AC28:n segmenttirajakorjaus 7.10.2026
+
+RED: C#m jaksoissa C + #m transponoitui contentissa Dm:ksi, mutta
+segmenteissä C# + #m:ksi. C/G#-bassosoinnun G + #-jako tuotti vastaavan
+sisältö-/muotoiluristiriidan. Odotukset lukittiin ennen tuotantomuutosta.
+GREEN: transponointi tehdään alkuperäisistä kokonaisista tokeneista ja
+segmentit muodostetaan samoista tuotetuista tokenarvoista. Perus- ja
+bassosävelen korvaus perii sävelkirjaimen muotoilun; pääte, vinoviiva,
+Unicode-etuliite ja muu muuttumaton sisältö säilyttävät lähdemuotoilunsa.
+Viereiset segmentit yhdistetään vain samoilla bold/italic/fontSizePx-arvoilla.
+
+Erilliset musiikkimerkit tokenisoidaan merkkikohtaisesti; tekstisanan
+sisäinen piste, kuten rit., säilyy samassa tekstiyksikössä. Samalla
+LOWERCASE_CHORD-regex otettiin yhteiseksi tunnistussäännöksi.
+Regressiot kattavat myös seuraavan rit.-tekstin kursivoinnin ja
+nolla-askeleen soinnun sisäisen muotoilurajan.
+21 testitiedostoa, 438 onnistunutta testiä, 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät. Näiden korjausten review: APPROVED.

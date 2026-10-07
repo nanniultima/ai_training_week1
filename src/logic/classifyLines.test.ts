@@ -12,6 +12,22 @@ const segment = (text: string): FormattedTextSegment => ({
 const line = (text: string): InputLine => ({ segments: [segment(text)] });
 
 describe("classifyLines", () => {
+  it.each(['cafe', 'Cafe', 'CAFE'])('Amendments AC17: hylkää pelkän cafe-syötteen musiikittomana (%s)', text => {
+    expect(() => classifyLines([line(text)])).toThrowError(new Error('Syötteestä ei löytynyt sointu- tai sävelrivejä'));
+  });
+  it.each(['cafe c', 'Cafe c', 'c CAFE'])('Amendments AC16: pitää cafe-sekasisällön tekstinä (%s)', text => {
+    const result = classifyLines([line('C |'), line(text)]);
+    expect(result.lines.map(row => row.type)).toEqual(['chord', 'text']);
+    expect(result.lines[1]?.content).toBe(text);
+    expect(result.warnings).toEqual([{ code: 'AMBIGUOUS_NOTE_LINE', lineIndex: 1, content: text }]);
+  });
+  it.each(['cafe', 'Cafe', 'CAFE'])('Amendments AC15: pitää cafe-sanamuodot tekstinä (%s)', text => {
+    const input = line(text);
+    const result = classifyLines([line('C |'), input]);
+    expect(result.lines.map(row => row.type)).toEqual(['chord', 'text']);
+    expect(result.lines[1]).toEqual({ index: 1, type: 'text', content: text, segments: input.segments });
+    expect(result.warnings).toEqual([]);
+  });
   it("AC1 säilyttää tyhjemerkkirivin musiikkisyötteessä", () => {
     const whitespaceLine = line("   ");
 

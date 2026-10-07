@@ -11,6 +11,11 @@ type ReturnedNoteGroup = Extract<ReturnedNote['parts'][number], { type: 'noteGro
 type AlignedNote = Extract<AlignedMusicResultLine, { type: 'note' }>;
 type AlignedNoteGroup = Extract<AlignedNote['parts'][number], { type: 'noteGroup' }>;
 
+it('Amendments AC28: tyypittää valinnaisen preserve-tilan', () => {
+  expectTypeOf(alignLineGroup).toEqualTypeOf<(group: AlignedLineGroup, mode?: 'align' | 'preserve') => AlignedMusicResultLine[]>();
+  expectTypeOf(alignLineGroup).returns.toEqualTypeOf<AlignedMusicResultLine[]>();
+});
+
 it('AC37: lukitsee API:n ja formatterin', () => {
   expectTypeOf(groupAlignedLines).toBeFunction();
   expectTypeOf(collectAlignmentAnchors).toEqualTypeOf<(group: AlignedLineGroup, coordinate?: 'source' | 'aligned') => number[]>();

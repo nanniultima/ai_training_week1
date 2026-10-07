@@ -8,6 +8,27 @@ const settings = (step: number, targetTonic: string, mode: 'major' | 'minor' = '
 });
 
 describe('transposeNote', () => {
+  it.each([['', 'Sävel ei saa olla tyhjä'], ['J', 'Tuntematon sävel: J']])('Amendments AC26: validoi sävelnimen myös nolla-askeleella (%s)', (name, message) => {
+    expect(() => transposeNote(name, 3, settings(0, 'C'))).toThrowError(new Error(message));
+  });
+  it.each([['h', 'B'], ['H', 'B'], ['Hb', 'Bb'], ['H#', 'B#']])('Amendments AC12: normalisoi H:n säilyttäen rekisterin nolla-askeleella (%s)', (name, expectedName) => {
+    for (const register of [1, 2, 3, 4]) {
+      const first = transposeNote(name, register, settings(0, 'C'));
+      expect(first).toEqual({ name: expectedName, register });
+      expect(transposeNote(first.name, first.register, settings(0, 'C'))).toEqual(first);
+    }
+  });
+  it.each([0, 5, 1.5])('Amendments AC11: validoi lähtörekisterin myös nolla-askeleella (%s)', register => {
+    expect(() => transposeNote('C', register, settings(0, 'C')))
+      .toThrowError(new Error('Rekisterin pitää olla kokonaisluku väliltä 1–4'));
+  });
+  it.each(['c', 'Cb', 'B#'])('Amendments AC3: säilyttää nimet ja rekisterit toistuvalla nolla-askeleella (%s)', name => {
+    for (const register of [1, 2, 3, 4]) {
+      const first = transposeNote(name, register, settings(0, 'C'));
+      expect(first).toEqual({ name, register });
+      expect(transposeNote(first.name, first.register, settings(0, 'C'))).toEqual({ name, register });
+    }
+  });
   it('AC1 pieni kirjain', () => {
     expect(transposeNote('c', 3, settings(2, 'D'))).toEqual({ name: 'D', register: 3 });
   });

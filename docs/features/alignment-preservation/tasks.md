@@ -273,3 +273,18 @@ Muutos palvelee kohdistuksen AC37:n formatteriyhteensopivuutta ja säilyttää
 rich-text-formatting AC18/AC20:n säännöt. Toteutus- ja testitiedostot ovat
 speksin sallimalla listalla. Aiempi P2-havainto on korjattu.
 Loppuarvio: APPROVED. Kohdistusspeksi siirretty In Progress → Done.
+## Sävelrivin välisisällön korjaus 7.10.2026
+
+RED vahvistettiin lähteille c x2 d, c - d ja c x2 x3 d tekstikumppanin
+kanssa: kohdistus poisti erottimen ennen seuraavaa säveltä eikä siirtänyt
+vastaavaa tekstikohtaa. Odotukset johdettiin sarakelaskentasäännöstä,
+joka säilyttää ei-tyhjän välisisällön muun kuin pipeankkurin edellä.
+GREEN: sarakelaskenta tunnistaa ei-ankkuriosista toistomerkinnät ja
+viivaerottimen; koko lähdevälijakso lisätään edeltävän sävelryhmän tulosloppuun.
+Pelkkien ylimääräisten välilyöntien ja tahtiputkien joustosäännöt säilyvät.
+
+Koko putken regressiot vertaavat HTML:n näkyvää sisältöä plainTextiin.
+Lisätestit kattavat x2:n kursivoinnin ja viivaerottimen lihavoinnin.
+21/21 testitiedostoa ja 445/445 testiä onnistuu; 0 epäonnistunutta,
+0 ohitettua. Lint ja diff-tarkistus läpäisevät. Review: APPROVED.
+Käyttäjän pyynnöstä korjattu merkintä poistettiin minor bugs.md -listasta.

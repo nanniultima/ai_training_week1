@@ -6,6 +6,13 @@ import { parseRichText } from './parseRichText.js';
 const seg = (text: string, bold=false, italic=false, fontSizePx?: number): FormattedTextSegment => ({text,bold,italic,...(fontSizePx === undefined ? {} : {fontSizePx})});
 const inner = (line: MusicResultLine) => formatMusicResult([line],12).replace(/^<div style="font-size:12px"><div>|<\/div><\/div>$/g, '');
 describe('formatMusicResult', () => {
+ it('Amendments AC23: ohittaa myöhemmän fonttikoon', () => {
+   expect(resolveBaseFontSize([{ segments: [seg('C', false, false, 18), seg('D', false, false, 0)] }])).toBe('18px');
+ });
+ it.each([0, -1, NaN, Infinity, -Infinity])('Amendments AC22: hylkää määräävän merkin virheellisen koon (%s)', size => {
+   expect(() => resolveBaseFontSize([{ segments: [seg('C', false, false, size)] }]))
+     .toThrowError(new Error('Fonttikoon pitää olla positiivinen luku'));
+ });
  it.each('| , . - : / ( )'.split(' '))('AC37 / AC18: kohdistettu erillinen musiikkimerkki lihavoidaan (%s)', text => {
    const content = `C# ${text}|`;
    expect(inner({ index: 0, type: 'chord', content, segments: [seg(content)], warnings: [], tokens: [

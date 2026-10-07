@@ -41,7 +41,7 @@ describe('transposeNoteLine', () => {
   });
   it('AC22 nolla', () => {
     const result = transposeNoteLine(noteLine([segment('c# db h')]), settings(0, 'C'));
-    expect(result.content).toBe('C# Db B');
+    expect(result.content).toBe('c# db B');
     expect(result.parts.flatMap((part) => part.type === 'noteGroup' ? part.notes : []).every(({ register }) => register === 3)).toBe(true);
   });
   it('AC25 tuntematon rivitoken', () => {
@@ -55,8 +55,8 @@ describe('transposeNoteLine', () => {
   });
   it('AC28 ryhmän eri rekisterit', () => {
     const result = transposeNoteLine(noteLine([segment('g'), segment('B', false, true)]), settings(0, 'C'));
-    expect(result.content).toBe('GB');
-    expect(result.parts).toEqual([{ type: 'noteGroup', notes: [{ name: 'G', register: 3 }, { name: 'B', register: 4 }] }]);
+    expect(result.content).toBe('gB');
+    expect(result.parts).toEqual([{ type: 'noteGroup', notes: [{ name: 'g', register: 3 }, { name: 'B', register: 4 }] }]);
   });
   it('AC29 kirjain määrää rekisterin', () => {
     const result = transposeNoteLine(noteLine([segment('C'), segment('#', false, true)]), settings(0, 'C'));
@@ -64,7 +64,7 @@ describe('transposeNoteLine', () => {
   });
   it('AC30 tiukka yhdysmerkki', () => {
     const result = transposeNoteLine(noteLine([segment('G#C - abC')]), settings(0, 'C'));
-    expect(result.content).toBe('G#C - AbC');
+    expect(result.content).toBe('G#C - abC');
     expect(result.parts[1]).toEqual({ type: 'separator', text: ' - ' });
   });
 });

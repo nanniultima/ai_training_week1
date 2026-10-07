@@ -48,3 +48,31 @@ kaikki erilliset musiikkimerkit sekä segmenttirajat ja fonttikoon.
 Odotusarvoja ei lasketa testattavalla tuotantokoodilla. Merkkiperhematriisi
 käyttää speksissä lueteltuja eksplisiittisiä kohdelistoja. Jokaisen AC:n
 TDD-syklissä ajetaan ensin kohdetesti ja GREEN-vaiheessa koko testisarja.
+
+## AC23:n lisäregressiot 7.10.2026
+
+- `AC23 säilyttää keskeneräisen bassosoinnun ja varoittaa`: content,
+  segmenttien liitos ja suspiciousChord-token sisältävät kaikki A/.
+- `Chord AC23: keskeneräisen bassosoinnun HTML ja plainText täsmäävät`:
+  koko putki ilman sanoja ja sanojen kanssa; molemmat esitysmuodot A/ |D |.
+- `Chord AC23: pitenevä keskeneräinen bassosointu säilyy HTML:ssä ja kohdistuksessa`:
+  G/ +1 → G#/; rivin oma väli säilyy yksin, tekstikumppanin tahtiväli joustaa.
+- `Chord AC23: nolla-askel normalisoi keskeneräisen H-bassosoinnun yhtenäisesti`:
+  H/ → B/ sekä HTML:ssä että plainTextissä.
+
+Koko sarja: 21 testitiedostoa, 426 onnistunutta testiä,
+0 epäonnistunutta, 0 ohitettua. Lint ja diff-tarkistus läpäisevät.
+
+## AC28:n segmenttirajat 7.10.2026
+
+- `AC28: soinnun muotoiluraja ei muuta transponoinnin sisältöä`: C + #m
+  → D + m, eri fonttikoot ja kursivointi, content/segmentit täsmäävät.
+- `AC28: bassosävel perii kirjaimensa muotoilun yli segmenttirajan`:
+  C/G + # → C#/A, perussävelen ja basson omat lähdemuotoilut säilyvät.
+- `Chord AC28: segmenttirajan transponointi säilyttää seuraavan tekstin muotoilun`:
+  koko tulosputki ja seuraavan rit.-tekstin kursivointi.
+- `Chord AC28: nolla-askel säilyttää soinnun sisäisen muotoilurajan`:
+  alkuperäinen #m-kursivointi säilyy, sointu lihavoidaan.
+
+Viimeisin koko sarja: 21 testitiedostoa, 438 onnistunutta testiä,
+0 epäonnistunutta, 0 ohitettua. Lint ja diff-tarkistus läpäisevät.

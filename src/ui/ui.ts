@@ -6,6 +6,7 @@ import type { KeyMode } from '../types.js';
 import type { TranspositionPresentation } from '../types.js';
 import { createTranspositionResult } from '../logic/createTranspositionResult.js';
 import { renderLineNumbers } from './lineNumbers.js';
+import { parseRichText } from '../logic/parseRichText.js';
 import { copyResultToClipboard } from './copyResultToClipboard.js';
 
 function getModeName(mode: KeyMode): 'duuri' | 'molli' {
@@ -191,7 +192,9 @@ export function initializeUi(root: HTMLElement | null): void {
   });
   musicInput?.addEventListener('input', () => {
     if (lineNumberGutter !== null) {
-      lineNumberGutter.textContent = renderLineNumbers(musicInput.textContent ?? '').join('\n');
+      const lines = parseRichText(musicInput.innerHTML, { allowEmpty: true }).lines;
+      const content = lines.map(line => line.segments.map(segment => segment.text).join('')).join('\n');
+      lineNumberGutter.textContent = renderLineNumbers(content).join('\n');
     }
   });
   if (lineNumberGutter !== null) lineNumberGutter.textContent = '1';
@@ -247,6 +250,7 @@ export function initializeUi(root: HTMLElement | null): void {
     if (
       (mode !== 'major' && mode !== 'minor') ||
       sourceKey.value === '' ||
+      stepInput.value.trim() === '' ||
       !Number.isInteger(step) ||
       step < -11 ||
       step > 11
@@ -347,23 +351,30 @@ export function initializeUi(root: HTMLElement | null): void {
       return;
     }
 
-    const step = Number(stepInput?.value);
-    const targetTonicChoice = root.querySelector<HTMLInputElement>(
-      'input[name=enharmonic-choice]:checked',
-    )?.value;
-    const settings = resolveTranspositionSettings({
-      mode,
-      sourceTonic: sourceKey.value,
-      step,
-      ...(targetTonicChoice === undefined ? {} : { targetTonicChoice }),
-    });
-    if (settings.status !== 'ready') {
+    if (!stepInput || stepInput.value.trim() === '') {
       clearResult();
-      transpositionError.textContent = 'Valitse kohdesävellajin kirjoitusasu';
+      transpositionError.textContent = 'Anna puolisävelaskelten määrä';
       transpositionError.hidden = false;
       return;
     }
+
+    const step = Number(stepInput.value);
+    const targetTonicChoice = root.querySelector<HTMLInputElement>(
+      'input[name=enharmonic-choice]:checked',
+    )?.value;
     try {
+      const settings = resolveTranspositionSettings({
+        mode,
+        sourceTonic: sourceKey.value,
+        step,
+        ...(targetTonicChoice === undefined ? {} : { targetTonicChoice }),
+      });
+      if (settings.status !== 'ready') {
+        clearResult();
+        transpositionError.textContent = 'Valitse kohdesävellajin kirjoitusasu';
+        transpositionError.hidden = false;
+        return;
+      }
       const presentation: TranspositionPresentation = createTranspositionResult(
         musicInput?.innerHTML ?? '',
         settings,

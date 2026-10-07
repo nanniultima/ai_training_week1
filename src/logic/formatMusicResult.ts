@@ -11,7 +11,9 @@ const span = (text: string, bold: boolean, italic: boolean): string => {
 const segments = (items: readonly FormattedTextSegment[]): string => items.map(item => span(item.text, item.bold, item.italic)).join('');
 const isMusicSymbol = (text: string): boolean => /^[|,.\-:/()]$/.test(text);
 
-function formatAlignedMusic(line: Extract<MusicResultLine, { type: 'chord' | 'note' }>): string | undefined {
+type ChordSourceFormatting = { readonly preserveSourceFormatting?: boolean };
+
+function formatAlignedMusic(line: Extract<MusicResultLine, { type: 'chord' | 'note' }> & ChordSourceFormatting): string | undefined {
   const characters = [...line.content];
   let cursor = 0;
   let html = '';
@@ -39,14 +41,23 @@ function formatAlignedMusic(line: Extract<MusicResultLine, { type: 'chord' | 'no
     for (const token of line.tokens ?? []) {
       if (token.type === 'text' && isMusicSymbol(token.text)) {
         const column = visibleColumns[visibleIndex];
-        if (column !== undefined) styledCharacters[column] = { text: token.text, bold: true, italic: false };
+        if (column !== undefined) styledCharacters[column] = { text: token.text, bold: true, italic: line.preserveSourceFormatting === true && styledCharacters[column]!.italic };
       }
       visibleIndex += [...token.text].filter(character => character !== ' ').length;
     }
     for (const token of tokens) {
       const range = token.alignedRange!;
       appendGap(range.start, styledCharacters.slice(cursor, range.start));
-      html += span(token.text, true, false);
+      if (line.preserveSourceFormatting) {
+        const formatted: FormattedTextSegment[] = [];
+        for (const [offset, text] of [...token.text].entries()) {
+          const italic = sourceStyles[range.start + offset]?.italic ?? false;
+          const previous = formatted.at(-1);
+          if (previous?.italic === italic) formatted[formatted.length - 1] = { ...previous, text: previous.text + text };
+          else formatted.push({ text, bold: true, italic });
+        }
+        html += segments(formatted);
+      } else html += span(token.text, true, false);
       cursor = range.end;
     }
     appendGap(characters.length, styledCharacters.slice(cursor));

@@ -1,6 +1,10 @@
 # Feature: Syötteen rivien tunnistaminen
 
 **Status:** Done
+> Voimassa oleva täsmennys: [transposition-spec-amendments](transposition-spec-amendments.md).
+> Muutosspeksi on toteutettu. Sen nolla-askel-, cafe-, sointusanasto- ja
+> fonttikokosäännöt korvaavat ristiriitaiset tämän tiedoston aiemman version
+> säännöt ja esimerkit. Alkuperäiset AC-numerot säilyvät jäljitettävyyttä varten.
 
 ## Problem Statement
 

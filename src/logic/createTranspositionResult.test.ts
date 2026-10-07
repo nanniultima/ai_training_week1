@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { ReadyTranspositionSettings } from '../types.js';
 import { createTranspositionResult } from './createTranspositionResult.js';
@@ -20,6 +20,202 @@ const cMajorUnchanged: ReadyTranspositionSettings = {
 };
 
 describe('createTranspositionResult', () => {
+  it.each([
+    ['<div>c <em>x2</em> d</div>', 'C# x2 D#', 'repeat'],
+    ['<div>c<strong> - </strong>d</div>', 'C# - D#', 'hyphen'],
+  ])('Alignment AC23: välisisällön lähdemuotoilu säilyy (%s)', (html, expected, kind) => {
+    const result = createTranspositionResult(`${html}<div>onpa ihanaa</div>`,
+      { ...cMajorUpTwo, targetTonic: 'C#', step: 1 });
+    expect(result.plainText).toBe(`${expected}\nonpa  ihanaa`);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    const note = rendered.querySelector('div[style="font-size:12px"] > div')!;
+    expect(note.textContent).toBe(expected);
+    if (kind === 'repeat') expect([...note.querySelectorAll('em')].map(node => node.textContent).join('')).toBe('x2');
+    else {
+      const hyphen = [...note.querySelectorAll('span')].find(node => node.textContent === '-');
+      expect(hyphen).toBeDefined();
+      expect(hyphen?.closest('strong')).not.toBeNull();
+    }
+  });
+  it.each([['c x2 d', 'C# x2 D#'], ['c - d', 'C# - D#']])('Alignment AC23: sävelrivin erottimet säilyvät koko putkessa (%s)', (source, expected) => {
+    const result = createTranspositionResult(`<div>${source}</div><div>onpa ihanaa</div>`,
+      { ...cMajorUpTwo, targetTonic: 'C#', step: 1 });
+    expect(result.plainText).toBe(`${expected}\nonpa  ihanaa`);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect([...rendered.querySelectorAll('div[style="font-size:12px"] > div')].map(row => row.textContent))
+      .toEqual([expected, 'onpa  ihanaa']);
+  });
+  it('Chord AC28: segmenttirajan transponointi säilyttää seuraavan tekstin muotoilun', () => {
+    const result = createTranspositionResult('<div><span>C</span><em>#m</em> |<em>rit</em>. |</div>',
+      { ...cMajorUpTwo, targetTonic: 'C#', step: 1 });
+    expect(result.plainText).toBe('Dm |rit. |');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(rendered.textContent).toBe(result.plainText);
+    expect([...rendered.querySelectorAll('em')].map(node => node.textContent).join('')).toBe('rit');
+  });
+  it('Chord AC28: nolla-askel säilyttää soinnun sisäisen muotoilurajan', () => {
+    const result = createTranspositionResult('<div><span>C</span><em>#m</em> |</div>', cMajorUnchanged);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(result.plainText).toBe('C#m |');
+    expect(rendered.textContent).toBe(result.plainText);
+    expect([...rendered.querySelectorAll('em')].map(node => node.textContent).join('')).toBe('#m');
+    expect([...rendered.querySelectorAll('strong')].map(node => node.textContent).join('')).toBe('C#m|');
+  });
+  it.each([0, 2])('Rich text AC18: vierekkäiset musiikkimerkit lihavoidaan (%i)', step => {
+    const result = createTranspositionResult('<div>(C): C, C. C-C / C |</div>', step === 0 ? cMajorUnchanged : cMajorUpTwo);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(rendered.textContent).toBe(step === 0 ? '(C): C, C. C-C / C |' : '(D): D, D. D-D / D |');
+    const symbols = [...rendered.querySelectorAll('span')].filter(node => /^[|,.\-:/()]$/.test(node.textContent ?? ''));
+    expect(symbols.map(node => node.textContent)).toEqual(['(', ')', ':', ',', '.', '-', '/', '|']);
+    for (const symbol of symbols) expect(symbol.closest('strong'), symbol.textContent ?? '').not.toBeNull();
+    for (const node of [...rendered.querySelectorAll('span')].filter(span => span.textContent === ' ')) {
+      expect(node.closest('strong')).toBeNull();
+    }
+  });
+  it.each([0, 2])('Rich text AC20: rit.-tekstin sisäinen piste säilyttää muotoilunsa putkessa (%i)', step => {
+    const result = createTranspositionResult('<div>C |<em>rit</em>. |</div>', step === 0 ? cMajorUnchanged : cMajorUpTwo);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(result.plainText).toBe(step === 0 ? 'C |rit. |' : 'D |rit. |');
+    expect([...rendered.querySelectorAll('em')].map(node => node.textContent).join('')).toBe('rit');
+    const dot = [...rendered.querySelectorAll('span')].find(node => node.textContent === '.');
+    expect(dot).toBeDefined();
+    expect(dot?.closest('strong')).toBeNull();
+    expect(dot?.closest('em')).toBeNull();
+  });
+  it('Chord AC23: pitenevä keskeneräinen bassosointu säilyy HTML:ssä ja kohdistuksessa', () => {
+    for (const withLyrics of [false, true]) {
+      const result = createTranspositionResult('<div>G/ |C |</div>' + (withLyrics ? '<div>onpa nyt</div>' : ''),
+        { ...cMajorUpTwo, targetTonic: 'C#', step: 1 });
+      const expected = withLyrics ? ['G#/|C#|', 'onpa nyt'] : ['G#/ |C# |'];
+      expect(result.plainText).toBe(expected.join('\n'));
+      const rendered = document.createElement('div');
+      rendered.innerHTML = result.html;
+      expect([...rendered.querySelectorAll('div[style="font-size:12px"] > div')].map(row => row.textContent)).toEqual(expected);
+      expect(result.warnings).toEqual(['Rivi 1, kohta 1: epäilyttävä sointu "G/" muutettiin muotoon "G#/".']);
+    }
+  });
+  it('Chord AC23: nolla-askel normalisoi keskeneräisen H-bassosoinnun yhtenäisesti', () => {
+    const result = createTranspositionResult('<div>H/ |C |</div>', cMajorUnchanged);
+    expect(result.plainText).toBe('B/ |C |');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(rendered.querySelector('div[style="font-size:12px"] > div')?.textContent).toBe('B/ |C |');
+    expect(result.warnings).toEqual(['Rivi 1, kohta 1: epäilyttävä sointu "H/" muutettiin muotoon "B/".']);
+  });
+  it.each([false, true])('Chord AC23: keskeneräisen bassosoinnun HTML ja plainText täsmäävät (sanat=%s)', withLyrics => {
+    const result = createTranspositionResult('<div>G/ |C |</div>' + (withLyrics ? '<div>onpa nyt</div>' : ''),
+      { status: 'ready', mode: 'major', sourceTonic: 'G', targetTonic: 'A', step: 2 });
+    const expected = withLyrics ? ['A/ |D |', 'onpa nyt'] : ['A/ |D |'];
+    expect(result.plainText).toBe(expected.join('\n'));
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect([...rendered.querySelectorAll('div[style="font-size:12px"] > div')].map(row => row.textContent)).toEqual(expected);
+    expect([...rendered.querySelectorAll('strong')].map(node => node.textContent)).toContain('A/');
+    expect(result.warnings).toEqual(['Rivi 1, kohta 1: epäilyttävä sointu "G/" muutettiin muotoon "A/".']);
+  });
+  it('Pasted AC4: säilyttää desimaalisen CSS-lihavoinnin sävelrekisterinä', () => {
+    // The single input span needs a decimal CSS value that Happy DOM discards.
+    const original = CSSStyleDeclaration.prototype.getPropertyValue;
+    const css = vi.spyOn(CSSStyleDeclaration.prototype, 'getPropertyValue')
+      .mockImplementation(function (this: CSSStyleDeclaration, property: string) {
+        return property === 'font-weight' ? '600.5' : original.call(this, property);
+      });
+    try {
+      const result = createTranspositionResult('<span style="font-weight:600.5">c</span>', cMajorUpTwo);
+      expect(result.plainText).toBe('D');
+      expect(result.html).toContain('<strong><span>D</span></strong>');
+      expect(result.html).not.toContain('font-weight');
+      expect(result.warnings).toEqual([]);
+    } finally { css.mockRestore(); }
+  });
+  it('Amendments AC27: säilyttää tyhjät alkurivit fonttikoon valinnassa', () => {
+    const result = createTranspositionResult('<div><br></div><div><span style="font-size:18.5px">C |</span></div>', cMajorUnchanged);
+    expect(result.plainText).toBe('\nC |');
+    expect(result.html.match(/style="font-size:18.5px"/g)).toHaveLength(1);
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect(rendered.querySelector('div[style="font-size:18.5px"] > div')?.outerHTML).toBe('<div><br></div>');
+  });
+  it('Amendments AC25: säilyttää soinnun kursivoinnin nollan lihavoinnissa', () => {
+    const result = createTranspositionResult('<div><em>C#</em> |</div>', cMajorUnchanged);
+    expect(result.plainText).toBe('C# |');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    const chord = [...rendered.querySelectorAll('span')].find(node => node.textContent === 'C#');
+    const pipe = [...rendered.querySelectorAll('span')].find(node => node.textContent === '|');
+    const space = [...rendered.querySelectorAll('span')].find(node => node.textContent === ' ');
+    expect(chord?.closest('strong')).not.toBeNull();
+    expect(chord?.closest('em')).not.toBeNull();
+    expect(pipe?.closest('strong')).not.toBeNull();
+    expect(pipe?.closest('em')).toBeNull();
+    expect(space?.closest('strong')).toBeNull();
+    expect(space?.closest('em')).toBeNull();
+    expect(result.html.match(/style="font-size:12px"/g)).toHaveLength(1);
+  });
+  it.each([0, 2])('Amendments AC24: ohittaa alkuvälien koon säilyttäen välit (%i)', step => {
+    const result = createTranspositionResult('<div><span style="font-size:18px">  </span><span style="font-size:24px">c  </span></div><div> onpa  </div>', step === 0 ? cMajorUnchanged : cMajorUpTwo);
+    const expected = step === 0 ? '  c  \n onpa  ' : '  D  \n onpa  ';
+    expect(result.plainText).toBe(expected);
+    expect(result.html.match(/style="font-size:24px"/g)).toHaveLength(1);
+    expect(result.html).not.toContain('font-size:18px');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect([...rendered.querySelectorAll('div[style="font-size:24px"] > div')].map(row => row.textContent)).toEqual(expected.split('\n'));
+  });
+  it('Amendments AC21: käyttää ensimmäisen merkin puuttuvan koon oletusta', () => {
+    const result = createTranspositionResult('<div>C |</div><div><span style="font-size:24px">onpa</span></div>', cMajorUnchanged);
+    expect(result.html.match(/style="font-size:12px"/g)).toHaveLength(1);
+    expect(result.html).not.toContain('font-size:24px');
+    expect(result.plainText).toBe('C |\nonpa');
+  });
+  it.each([0, 2])('Amendments AC20: käyttää ensimmäisen merkin kokoa myös nolla-askeleella (%i)', step => {
+    const result = createTranspositionResult('<div><span style="font-size:18px">C |</span></div><div><span style="font-size:24px">onpa</span></div>', step === 0 ? cMajorUnchanged : cMajorUpTwo);
+    expect(result.html.match(/style="font-size:18px"/g)).toHaveLength(1);
+    expect(result.html).not.toMatch(/font-size:(12|24)px/);
+    expect(result.plainText).toBe(step === 0 ? 'C |\nonpa' : 'D |\nonpa');
+  });
+  it('Amendments AC19: transponoi erilliset C A F E -sävelet', () => {
+    const result = createTranspositionResult('<div>c a f e</div>', cMajorUpTwo);
+    expect(result.plainText).toBe('D B G F#');
+    expect(result.warnings).toEqual([]);
+  });
+  it('Amendments AC7: säilyttää sävelrivin lähdemuotoilun nolla-askeleella', () => {
+    const result = createTranspositionResult('<div>c <strong>d </strong><strong><em>e </em></strong><em>f</em></div>', cMajorUnchanged);
+    expect(result.plainText).toBe('c d e f');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    for (const [name, bold, italic] of [['c', false, false], ['d', true, false], ['e', true, true], ['f', false, true]] as const) {
+      const node = [...rendered.querySelectorAll('span')].find(span => span.textContent === name);
+      expect(node, name).toBeDefined();
+      expect(Boolean(node?.closest('strong')), name).toBe(bold);
+      expect(Boolean(node?.closest('em')), name).toBe(italic);
+    }
+  });
+  it('Amendments AC6: lisää nolla-askeleella vain sointurivin lihavoinnin', () => {
+    const result = createTranspositionResult('<div>H7 |G/H |</div><div>onpa nyt</div>', cMajorUnchanged);
+    expect(result.plainText).toBe('B7 |G/B |\nonpa nyt');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    expect([...rendered.querySelectorAll('strong')].map(node => node.textContent)).toEqual(['B7', '|', 'G/B', '|']);
+    expect(rendered.querySelector('div[style="font-size:12px"] > div:last-child')?.innerHTML).toBe('<span>onpa nyt</span>');
+  });
+  it('Amendments AC4: ohittaa monirivisen nollasyötteen kohdistuksen', () => {
+    const result = createTranspositionResult('<div>C# |G |</div><div>c# d</div><div>on-pa</div>', cMajorUnchanged);
+    expect(result.plainText).toBe('C# |G |\nc# d\non-pa');
+    const rendered = document.createElement('div');
+    rendered.innerHTML = result.html;
+    const rows = [...rendered.querySelectorAll('div[style="font-size:12px"] > div')].map(row => row.textContent);
+    expect(rows).toEqual(['C# |G |', 'c# d', 'on-pa']);
+    expect([...rows[0]!].flatMap((char, index) => char === '|' ? [index] : [])).toEqual([3, 6]);
+    expect(rows[1]!.indexOf('c#')).toBe(0);
+    expect(rows[1]!.indexOf('d')).toBe(3);
+  });
   it('AC1: transponoi koko yhdistelmäputken', () => {
     const result = createTranspositionResult(
       '<div>C |G |</div><div>C C</div><div>onpa</div>',

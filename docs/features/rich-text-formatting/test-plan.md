@@ -24,3 +24,14 @@ ryhmän eri rekisterit sekä vaaralliset ja ei-tekstuaaliset solmut.
 
 Aja `npm run lint`, `npm test` ja `git diff --check`. Raportoi tiedostojen,
 testien, epäonnistuneiden ja ohitettujen testien määrät AGENTS.md:n mukaan.
+
+## AC18/AC20:n koko putken regressiot 7.10.2026
+
+`Rich text AC18: vierekkäiset musiikkimerkit lihavoidaan` tarkistaa
+merkit ( ) : , . - / | sekä välilyöntien tavallisen muotoilun oikean
+transponointiputken kautta askelilla 0 ja 2.
+`Rich text AC20: rit.-tekstin sisäinen piste säilyttää muotoilunsa putkessa`
+tarkistaa tekstin rit kursivoinnin ja sen sisäisen pisteen tavallisen
+muotoilun samoilla askelilla. Testit ovat createTranspositionResult.test.ts:ssä.
+21 testitiedostoa ja 438 testiä läpäisevät; 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät.

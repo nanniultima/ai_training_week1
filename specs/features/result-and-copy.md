@@ -1,6 +1,10 @@
 # Feature: Tuloksen näyttäminen ja kopiointi
 
 **Status:** Done
+> Voimassa oleva täsmennys: [transposition-spec-amendments](transposition-spec-amendments.md).
+> Muutosspeksi on toteutettu. Sen nolla-askel-, cafe-, sointusanasto- ja
+> fonttikokosäännöt korvaavat ristiriitaiset tämän tiedoston aiemman version
+> säännöt ja esimerkit. Alkuperäiset AC-numerot säilyvät jäljitettävyyttä varten.
 
 ## Problem Statement
 Vaiheiden 1–6 logiikka ei vielä muodosta käyttöliittymästä käynnistettävää kokonaisuutta. Käyttäjän pitää nähdä kohdistettu rikastekstitulos vain luku -kentässä ja kopioida se sekä HTML:nä että tavallisena tekstinä.
@@ -121,12 +125,14 @@ Työtilan sisältö jaetaan leveällä näytöllä kahteen palstaan: transponoin
 **Given** näkymän leveys on enintään `64rem` **When** työtila renderöidään **Then** `.workspace-layout` käyttää yhtä saraketta `minmax(0, 1fr)`, jolloin DOM-järjestyksen vuoksi asetukset näkyvät ennen Syöte/Tulos-valitsinta ja aktiivista sisältöpaneelia.
 ### AC50: Luonnollinen sanaväli säilyy koko transponointiputkessa
 **Given** A-duuri `+3` ja HTML-rivit `<div>|A              ,Bm/D# |  </div><div>c#               e d# d</div><div>se iskee sieluun syvimpään</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `|C              ,Dm/F# |  \nE                G F# F\nse iskee sieluun syvimpään` eikä varoituksia muodostu
+### AC51: Itsenäinen loppuputki ei tavuta laulutekstiä
+**Given** C-duuri `+2` ja HTML-rivit `<div>|Bm/F#       |</div><div>niin kuin muut</div>` **When** `createTranspositionResult` suoritetaan **Then** plain text on täsmälleen `|C#m/G#      |\nniin kuin muut`, tekstissä ei ole tavutusviivaa eikä varoituksia muodostu. Loppuputki säilyy sarakkeessa `13`: `Bm/F# → C#m/G#` kuluttaa yhden välilyönnin kohdistusspeksin AC45:n mukaisesti.
 
 ## Files to Modify
 | File | Change |
 |---|---|
 | `src/types.ts` | Esitys-, varoitus-, Clipboard-adapteri- ja tulostilatyypit. |
-| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset sekä editorivälien ja kohdistuksen integraatio; AC1–AC10, AC45–AC47, AC50. |
+| `src/logic/createTranspositionResult.ts`, `.test.ts` | Putki, litistys, fonttikoko, varoitukset sekä editorivälien ja kohdistuksen integraatio; AC1–AC10, AC45–AC47, AC50–AC51. |
 | `src/logic/createResultPresentation.ts`, `.test.ts` | HTML/plainText/varoitukset; AC11–AC25. |
 | `src/ui/copyResultToClipboard.ts`, `.test.ts` | ClipboardItem/Blob ja virheet; AC26–AC30. |
 | `src/ui/ui.ts`, `.test.ts` | InnerHTML, näkymänvalinta, enharmoninen valinta, tulos- ja kopiointitilat sekä työtilan palstarakenne; AC31–AC44, AC48–AC49. |
@@ -144,11 +150,11 @@ Työtilan sisältö jaetaan leveällä näytöllä kahteen palstaan: transponoin
 - Rollback: poista uudet moduulit ja palauta ui.ts/style.css; vaiheiden 1–6 API:t säilyvät.
 
 ## Testing Strategy (MANDATORY)
-Täsmällinen 50/50-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC50. Aja `npm run lint`, `npm test`, `git diff --check`.
+Täsmällinen 51/51-jäljitettävyys on `docs/features/result-and-copy/test-plan.md`:ssä. Virheet: AC9–AC10, AC25, AC28–AC30, AC37–AC38, AC40. Reunat: AC6, AC8, AC13–AC14, AC22–AC24, AC27, AC31, AC33–AC34, AC39, AC41–AC51. Aja `npm run lint`, `npm test`, `git diff --check`.
 
 ## Spec Readiness checklist
 - [x] Every AC is Given/When/Then with a precise expected value
 - [x] Files to modify are listed with what changes in each
 - [x] Risk and rollback are documented
 - [x] Testing covers every AC plus error and edge cases
-- [x] Every AC has at least one named test case (50/50)
+- [x] Every AC has at least one named test case (51/51)

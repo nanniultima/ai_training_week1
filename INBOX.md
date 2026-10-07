@@ -1,2 +1,2 @@
-- Näytä käyttöliittymässä selkeä virhe, kun puolisävelaskelten arvo ei ole kokonaisluku väliltä −11–11 (esimerkiksi 19).
+- [x] Näytä käyttöliittymässä selkeä virhe, kun puolisävelaskelten arvo ei ole kokonaisluku väliltä −11–11 (esimerkiksi 19). Korjattu 7.10.2026: viesti näkyy, vanha tulos tyhjenee ja kelvollisen arvon jälkeen transponointi toimii jälleen.
 6.10.2026 [KORJATTU]: Kohdistetun musiikkivälimerkin lihavointi palautettu; 8 merkkiregressiota ja rit.-sisämuotoilutesti läpäisevät, ks. docs/features/alignment-preservation/tasks.md.

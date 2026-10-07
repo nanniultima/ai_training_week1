@@ -8,17 +8,15 @@ const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 
 const MAJOR_FLAT = new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb']);
 const MINOR_FLAT = new Set(['D', 'G', 'C', 'F', 'Bb', 'Eb', 'Ab']);
 
-function parsePitch(name: string): { normalized: string; offset: number } {
+function parsePitch(name: string): { offset: number } {
   if (name.length === 0) throw new Error('Sävel ei saa olla tyhjä');
   const match = /^([A-GHa-gh])([#b]?)$/.exec(name);
   if (match === null) throw new Error(`Tuntematon sävel: ${name}`);
   const letter = (match[1] ?? '').toUpperCase();
-  const normalizedLetter = letter === 'H' ? 'B' : letter;
   const accidental = match[2] ?? '';
   const natural = NATURAL_CHROMA[letter];
   if (natural === undefined) throw new Error(`Tuntematon sävel: ${name}`);
   return {
-    normalized: `${normalizedLetter}${accidental}`,
     offset: natural + (accidental === '#' ? 1 : accidental === 'b' ? -1 : 0),
   };
 }
@@ -31,6 +29,9 @@ export function transposeNote(name: string, register: number, settings: ReadyTra
     throw new Error('Askelmäärän pitää olla kokonaisluku väliltä -11–11');
   }
   const parsed = parsePitch(name);
+  if (settings.step === 0) {
+    return { name: /^[Hh]/.test(name) ? `B${name.slice(1)}` : name, register: register as NoteRegister };
+  }
   const absolute = (register - 1) * 12 + parsed.offset + settings.step;
   const resultRegister = Math.floor(absolute / 12) + 1;
   if (resultRegister < 1) throw new Error(`Sävel ${name} alittaa tuetun sävelalueen`);
@@ -39,6 +40,6 @@ export function transposeNote(name: string, register: number, settings: ReadyTra
   const flat = settings.mode === 'major'
     ? MAJOR_FLAT.has(settings.targetTonic) || (settings.targetTonic === 'C' && settings.step < 0)
     : MINOR_FLAT.has(settings.targetTonic) || (settings.targetTonic === 'A' && settings.step < 0);
-  const resultName = settings.step === 0 ? parsed.normalized : (flat ? FLAT_NAMES : SHARP_NAMES)[pitchClass] ?? '';
+  const resultName = (flat ? FLAT_NAMES : SHARP_NAMES)[pitchClass] ?? '';
   return { name: resultName, register: resultRegister as NoteRegister };
 }

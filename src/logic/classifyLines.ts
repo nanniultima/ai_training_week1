@@ -4,6 +4,7 @@ import { parseNoteGroup } from './parseNoteGroup.js';
 const REPEAT = /^x[1-9][0-9]*$/;
 
 function isNoteGroup(token: string): boolean {
+  if (/^cafe$/i.test(token)) return false;
   try { parseNoteGroup(token); return true; } catch { return false; }
 }
 
@@ -12,7 +13,6 @@ function noteTokens(content: string): readonly string[] {
 }
 
 function isNoteLine(content: string): boolean {
-  if (content.replace(/^ +| +$/g, '') === 'cafe') return false;
   const tokens = noteTokens(content);
   return tokens.some(isNoteGroup)
     && tokens.every((token, index) => {

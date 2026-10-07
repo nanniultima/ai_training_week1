@@ -29,6 +29,9 @@ export function transposeChordSymbol(
   if (symbol.length === 0) throw new Error('Sointu ei saa olla tyhjä');
   const match = /^([A-GH][#b]?)(m|7|maj7|m7|sus|sus4|dim|aug|add9)?(?:\/([A-GH][#b]?))?$/.exec(symbol);
   if (match === null) throw new Error(`Tuntematon sointumerkintä: ${symbol}`);
+  if (NOTE_CHROMA[match[1]!] === undefined || (match[3] !== undefined && NOTE_CHROMA[match[3]] === undefined)) {
+    throw new Error(`Tuntematon sointumerkintä: ${symbol}`);
+  }
   const root = transposeNote(match[1] ?? '', settings);
   const suffix = match[2] ?? '';
   const bass = match[3] === undefined ? '' : `/${transposeNote(match[3], settings)}`;

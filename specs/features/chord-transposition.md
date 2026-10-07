@@ -1,6 +1,10 @@
 # Feature: Sointujen transponointi
 
 **Status:** Done
+> Voimassa oleva täsmennys: [transposition-spec-amendments](transposition-spec-amendments.md).
+> Muutosspeksi on toteutettu. Sen nolla-askel-, cafe-, sointusanasto- ja
+> fonttikokosäännöt korvaavat ristiriitaiset tämän tiedoston aiemman version
+> säännöt ja esimerkit. Alkuperäiset AC-numerot säilyvät jäljitettävyyttä varten.
 
 ## Problem Statement
 
@@ -386,3 +390,12 @@ lihavointia; se kuuluu `rich-text-formatting`-ominaisuudelle.
 - [x] Every AC can fail — one that cannot fail proves nothing
 - [x] Error and edge cases have ACs of their own
 - [x] Every AC appears in the testing strategy table
+
+## AC23:n toteutuskorjaus 7.10.2026
+Keskeneräisen bassosoinnun muunnettu teksti säilyy nyt yhtenäisenä
+contentissa, muotoilusegmenteissä, suspiciousChord-tokenissa ja varoituksessa.
+Koko tulosputken HTML/plainText-yhtäsuuruus testattiin ilman sanoja ja sanojen
+kanssa, mukaan lukien merkin piteneminen ja nolla-askeleen H-normalisointi.
+Käyttäytymissääntö on nykyinen AC23; uusia bassosäveliä ei arvata eikä lisätä.
+21 testitiedostoa, 426 onnistunutta testiä, 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät. Review: APPROVED.

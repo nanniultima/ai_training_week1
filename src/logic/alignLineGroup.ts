@@ -174,6 +174,11 @@ export function calculateAlignedColumns(group: AlignedLineGroup, anchors = colle
         const previousColumn = columns[anchors.indexOf(previous.sourceRange.start)]!;
         const outputEnd = previousColumn + cp(previous.text).length;
         const gap = anchor - previous.sourceRange.end;
+        const rowGroup: AlignedLineGroup = isChordLine ? { chord: group.chord } : { note: group.note };
+        const hasRetainedContent = nonAnchorParts(rowGroup).some(part =>
+          part.sourceRange.start >= previous.sourceRange.end && part.sourceRange.end <= anchor
+          && /\S/.test(part.text),
+        );
         if (isChordLine && current.text.startsWith('|')) {
           const between = (group.chord?.tokens ?? [])
             .filter(token => token.type === 'text' && token.sourceRange
@@ -181,6 +186,10 @@ export function calculateAlignedColumns(group: AlignedLineGroup, anchors = colle
               && token.sourceRange.end <= anchor)
             .map(token => token.text).join('').replace(/ +$/, '');
           proposals.push(Math.max(baseline, outputEnd + cp(between).length));
+        } else if (hasRetainedContent) {
+          // Separators around repeat markers and a spaced hyphen are content,
+          // not flexible whitespace between two adjacent music tokens.
+          proposals.push(outputEnd + gap);
         } else if (gap > 1) {
           proposals.push(Math.max(baseline, outputEnd + 1));
         } else {
@@ -308,8 +317,16 @@ function rewriteMusic(content: string, parts: readonly RangedPart[], extras: rea
   else result += / *$/.exec(content)?.[0] ?? '';
   return result;
 }
-function buildAlignedLines(group: AlignedLineGroup): MusicResultLine[] {
+function buildAlignedLines(group: AlignedLineGroup, mode: 'align' | 'preserve'): MusicResultLine[] {
   if (!group.chord && !group.note) throw new Error('Kohdistettavassa kokonaisuudessa pitää olla sointu- tai sävelrivi');
+  if (mode === 'preserve') {
+    const natural = naturalNoteGroup(naturalChordGroup(group));
+    return [
+      ...(natural.chord ? [natural.chord] : []),
+      ...(natural.note ? [natural.note] : []),
+      ...(natural.text ? [natural.text] : []),
+    ];
+  }
   if (group.chord && !group.note && !group.text) {
     return [naturalChordGroup(group).chord!];
   }
@@ -368,6 +385,6 @@ function buildAlignedLines(group: AlignedLineGroup): MusicResultLine[] {
   return output;
 }
 
-export function alignLineGroup(group: AlignedLineGroup): AlignedMusicResultLine[] {
-  return buildAlignedLines(group).map(validatedAlignedLine);
+export function alignLineGroup(group: AlignedLineGroup, mode: 'align' | 'preserve' = 'align'): AlignedMusicResultLine[] {
+  return buildAlignedLines(group, mode).map(validatedAlignedLine);
 }

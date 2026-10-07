@@ -21,3 +21,16 @@ jälkeen pysähdy.
 Vain speksin Files to Modify -taulukon yksitoista tiedostoa.
 
 - AC39: normalisoi editorin sitovat välilyönnit ASCII-välilyönneiksi.
+
+## AC18/AC20:n välimerkkiregressio 7.10.2026
+
+RED vahvistettiin koko putkessa syötteellä (C): C, C. C-C / C |,
+askelilla 0 ja 2: esimerkiksi ) ja : jäivät lihavoimatta, koska ne
+kuuluivat yhdistettyyn tekstierotintokeniin.
+GREEN: sointurivin tokenisointi erottaa itsenäiset musiikkimerkit,
+mutta säilyttää tekstisanan sisäisen pisteen (rit.) tekstiyksikössä.
+Formatterin olemassa oleva merkkikohtainen lihavointi toimii nyt kaikille
+erillisille merkeille. Välilyöntejä ei lihavoida ja rit.-tekstin sisäiset
+italic/plain-jaksot säilyvät. Testit tehtiin ennen tuotantomuutosta.
+21 testitiedostoa, 438 onnistunutta testiä, 0 epäonnistunutta, 0 ohitettua.
+Lint ja diff-tarkistus läpäisevät. Review: APPROVED.

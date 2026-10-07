@@ -11,6 +11,16 @@ const settings = (
 ): ReadyTranspositionSettings => ({ status: 'ready', mode, sourceTonic, step, targetTonic });
 
 describe('transposeChordSymbol', () => {
+  it.each(['Cb', 'B#', 'Fb', 'E#', 'H#', 'Hb', 'Cbm7', 'G/Cb', 'G/B#', 'G/Fb', 'G/E#', 'G/H#', 'G/Hb', 'Cb/G'])('Amendments AC13: hylkää tuen ulkopuoliset sointusävelet (%s)', symbol => {
+    for (const [step, target] of [[0, 'C'], [1, 'C#'], [-1, 'B']] as const) {
+      expect(() => transposeChordSymbol(symbol, settings('major', 'C', step, target)))
+        .toThrowError(new Error(`Tuntematon sointumerkintä: ${symbol}`));
+    }
+  });
+  it('Amendments AC5: säilyttää sointumerkit nolla-askeleella', () => {
+    expect(['H7', 'G/H', 'C#', 'Db'].map(symbol => transposeChordSymbol(symbol, settings('major', 'C', 0, 'C'))))
+      .toEqual(['B7', 'G/B', 'C#', 'Db']);
+  });
   it('AC1 transponoi duurisoinnun ylöspäin', () => {
     expect(transposeChordSymbol('C', settings('major', 'C', 2, 'D'))).toBe('D');
   });
